@@ -1,0 +1,15 @@
+{
+	"name": "reputation:piglin",
+	"default_reputation": 50,
+	"members": [
+		"minecraft:piglin",
+		"minecraft:piglin_brute",
+		"minecraft:zombified_piglin"
+	],
+	"enemies": [
+		"reputation:villager",
+		"reputation:illager",
+		"reputation:skeleton",
+		"reputation:nether"
+	]
+}

@@ -1,0 +1,14 @@
+modLoader="javafml" #mandatory
+loaderVersion="[34,)"
+license="GNU LESSER GENERAL PUBLIC LICENSE Version 2.1"
+
+[[mods]]
+modId="reputation"
+version="1.1.0"
+displayName="Reputation"
+displayURL=""
+updateJSONURL=""
+credits=""
+authors="Smileycorp, The_Computerizer"
+description=""
+

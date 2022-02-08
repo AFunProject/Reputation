@@ -1,0 +1,17 @@
+{
+	"name": "reputation:illager",
+	"default_reputation": -50,
+	"members": [
+		"minecraft:pillager",
+		"minecraft:witch",
+		"minecraft:vindicator",
+		"minecraft:ravager",
+		"minecraft:evoker",
+		"minecraft:vex",
+		"minecraft:illusioner"
+	],
+	"enemies": [
+		"reputation:villager",
+		"reputation:piglin"
+	]
+}

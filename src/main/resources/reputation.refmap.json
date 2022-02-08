@@ -1,0 +1,20 @@
+{
+  "mappings": {
+    "mods/thecomputerizer/reputation/mixin/MixinPackRepository": {
+      "openAllSelected()Ljava/util/List;": "Lnet/minecraft/server/packs/repository/PackRepository;m_10525_()Ljava/util/List;"
+    },
+    "mods/thecomputerizer/reputation/mixin/MixinVillagerPanicTrigger": {
+      "hasHostile(Lnet/minecraft/world/entity/LivingEntity;)Z": "Lnet/minecraft/world/entity/ai/behavior/VillagerPanicTrigger;m_24687_(Lnet/minecraft/world/entity/LivingEntity;)Z"
+    }
+  },
+  "data": {
+    "searge": {
+      "mods/thecomputerizer/reputation/mixin/MixinPackRepository": {
+        "openAllSelected()Ljava/util/List;": "Lnet/minecraft/server/packs/repository/PackRepository;m_10525_()Ljava/util/List;"
+      },
+      "mods/thecomputerizer/reputation/mixin/MixinVillagerPanicTrigger": {
+        "hasHostile(Lnet/minecraft/world/entity/LivingEntity;)Z": "Lnet/minecraft/world/entity/ai/behavior/VillagerPanicTrigger;m_24687_(Lnet/minecraft/world/entity/LivingEntity;)Z"
+      }
+    }
+  }
+}

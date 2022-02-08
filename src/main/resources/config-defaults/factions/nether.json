@@ -1,0 +1,15 @@
+{
+	"name": "reputation:nether",
+	"default_reputation": -50,
+	"members": [
+		"minecraft:wither_skeleton",
+		"minecraft:blaze",
+		"minecraft:hoglin",
+		"minecraft:zoglin"
+	],
+	"enemies": [
+		"reputation:villager",
+		"reputation:skeleton",
+		"reputation:piglin"
+	]
+}
