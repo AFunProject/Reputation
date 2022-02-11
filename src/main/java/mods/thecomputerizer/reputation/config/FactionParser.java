@@ -22,7 +22,7 @@ public class FactionParser {
 
 	public static void readFactionsFromConfig() {
 		File directory = FMLPaths.GAMEDIR.get().resolve("config").resolve("reputation").toFile();
-		if (!(directory.exists() || directory.isDirectory())) {
+		if (!directory.toPath().resolve("factions").toFile().exists()) {
 			try {
 				createDefaultFiles(directory);
 			} catch (Exception e) {
@@ -40,7 +40,6 @@ public class FactionParser {
 					Faction faction = Faction.fromJson(name, builder.toString());
 					assert faction != null;
 					ReputationHandler.registerFaction(faction);
-					Reputation.logInfo("Faction registered like: "+builder); //there is a bracket missing, and I will find out why
 				} catch (Exception e) {
 					Reputation.logError("failed to load file " + file.getName(), e);
 				}

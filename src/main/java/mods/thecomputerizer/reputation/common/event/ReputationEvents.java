@@ -1,13 +1,21 @@
 package mods.thecomputerizer.reputation.common.event;
 
+import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
-import mods.thecomputerizer.reputation.Reputation;
+import mods.thecomputerizer.reputation.common.ModDefinitions;
+import mods.thecomputerizer.reputation.common.capability.ReputationProvider;
+import mods.thecomputerizer.reputation.common.command.AddReputationCommand;
+import mods.thecomputerizer.reputation.common.command.SetReputationCommand;
+import mods.thecomputerizer.reputation.common.network.PacketHandler;
+import mods.thecomputerizer.reputation.common.network.SyncFactionsMessage;
+import mods.thecomputerizer.reputation.config.ClientConfigHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
@@ -16,20 +24,13 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.network.NetworkDirection;
-import mods.thecomputerizer.reputation.common.ModDefinitions;
-import mods.thecomputerizer.reputation.common.capability.ReputationProvider;
-import mods.thecomputerizer.reputation.common.command.AddReputationCommand;
-import mods.thecomputerizer.reputation.common.command.SetReputationCommand;
-import mods.thecomputerizer.reputation.common.network.PacketHandler;
-import mods.thecomputerizer.reputation.common.network.SyncFactionsMessage;
-import mods.thecomputerizer.reputation.config.ClientConfigHandler;
 
 @EventBusSubscriber(modid = ModDefinitions.MODID)
 public class ReputationEvents {
@@ -80,8 +81,12 @@ public class ReputationEvents {
 		}
 	}
 
+	//attach reputation base goals to ai upon spawning
 	@SubscribeEvent
-	public static void onDamage(LivingDamageEvent event) {
+	public static void onJoin(EntityJoinWorldEvent event) {
+		if(event.getEntity() instanceof Villager) {
+			Villager villager = (Villager)event.getEntity();
+			}
 	}
 
 	@SubscribeEvent
