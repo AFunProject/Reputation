@@ -16,6 +16,7 @@ import mods.thecomputerizer.reputation.common.ai.ReputationSenorType;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.config.ClientConfigHandler;
 import mods.thecomputerizer.reputation.config.FactionParser;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

@@ -5,6 +5,9 @@
     },
     "mods/thecomputerizer/reputation/mixin/MixinVillagerPanicTrigger": {
       "hasHostile(Lnet/minecraft/world/entity/LivingEntity;)Z": "Lnet/minecraft/world/entity/ai/behavior/VillagerPanicTrigger;m_24687_(Lnet/minecraft/world/entity/LivingEntity;)Z"
+    },
+    "mods/thecomputerizer/reputation/mixin/MixinVillagerGoalPackages": {
+      "getPanicPackage(Lnet/minecraft/world/entity/npc/VillagerProfession;F)Lcom/google/common/collect/ImmutableList;": "Lnet/minecraft/world/entity/ai/behavior/VillagerGoalPackages;m_24601_(Lnet/minecraft/world/entity/npc/VillagerProfession;F)Lcom/google/common/collect/ImmutableList;"
     }
   },
   "data": {
@@ -14,6 +17,9 @@
       },
       "mods/thecomputerizer/reputation/mixin/MixinVillagerPanicTrigger": {
         "hasHostile(Lnet/minecraft/world/entity/LivingEntity;)Z": "Lnet/minecraft/world/entity/ai/behavior/VillagerPanicTrigger;m_24687_(Lnet/minecraft/world/entity/LivingEntity;)Z"
+      },
+      "mods/thecomputerizer/reputation/mixin/MixinVillagerGoalPackages": {
+        "getPanicPackage(Lnet/minecraft/world/entity/npc/VillagerProfession;F)Lcom/google/common/collect/ImmutableList;": "Lnet/minecraft/world/entity/ai/behavior/VillagerGoalPackages;m_24601_(Lnet/minecraft/world/entity/npc/VillagerProfession;F)Lcom/google/common/collect/ImmutableList;"
       }
     }
   }

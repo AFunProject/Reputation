@@ -5,7 +5,8 @@
 	"refmap": "reputation.refmap.json",
 	"mixins": [
 		"MixinPackRepository",
-		"MixinVillagerPanicTrigger"
+		"MixinVillagerPanicTrigger",
+		"MixinVillagerGoalPackages"
 	],
 	"minVersion": "0.8"
 }

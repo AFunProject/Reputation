@@ -11,6 +11,7 @@ import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.Reputation;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import org.apache.commons.io.FileUtils;
 
 import net.minecraftforge.fml.loading.FMLLoader;

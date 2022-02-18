@@ -20,7 +20,6 @@ public class ReputationSensor extends Sensor<LivingEntity> {
     }
 
     protected void doTick(ServerLevel level, LivingEntity entity) {
-        Reputation.logInfo("tick da sensor");
         List<Player> list = level.players().stream().filter(EntitySelector.NO_SPECTATORS)
                 .filter((p) -> entity.closerThan(p, 16.0D))
                 .filter((p) -> isEntityTargetable(entity, p))
@@ -33,15 +32,18 @@ public class ReputationSensor extends Sensor<LivingEntity> {
                 int reputation = ReputationHandler.getReputation(nearest, f);
                 if(reputation<=-50) {
                     entity.getBrain().setMemory(ReputationMemoryModule.NEAREST_PLAYER_BAD_REPUTATION.get(), nearest);
-                    Reputation.logInfo("bad!");
+                    entity.getBrain().setMemory(ReputationMemoryModule.NEAREST_PLAYER_NEUTRAL_REPUTATION.get(), Optional.empty());
+                    entity.getBrain().setMemory(ReputationMemoryModule.NEAREST_PLAYER_GOOD_REPUTATION.get(), Optional.empty());
                 }
                 else if(reputation<50) {
                     entity.getBrain().setMemory(ReputationMemoryModule.NEAREST_PLAYER_NEUTRAL_REPUTATION.get(), nearest);
-                    Reputation.logInfo("ok!");
+                    entity.getBrain().setMemory(ReputationMemoryModule.NEAREST_PLAYER_BAD_REPUTATION.get(), Optional.empty());
+                    entity.getBrain().setMemory(ReputationMemoryModule.NEAREST_PLAYER_GOOD_REPUTATION.get(), Optional.empty());
                 }
                 else {
                     entity.getBrain().setMemory(ReputationMemoryModule.NEAREST_PLAYER_GOOD_REPUTATION.get(), nearest);
-                    Reputation.logInfo("good!");
+                    entity.getBrain().setMemory(ReputationMemoryModule.NEAREST_PLAYER_BAD_REPUTATION.get(), Optional.empty());
+                    entity.getBrain().setMemory(ReputationMemoryModule.NEAREST_PLAYER_NEUTRAL_REPUTATION.get(), Optional.empty());
                 }
             }
         }

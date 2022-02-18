@@ -4,6 +4,8 @@ import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
+import mods.thecomputerizer.reputation.common.ai.ReputationMemoryModule;
+import mods.thecomputerizer.reputation.common.ai.ReputationSenorType;
 import mods.thecomputerizer.reputation.common.capability.ReputationProvider;
 import mods.thecomputerizer.reputation.common.command.AddReputationCommand;
 import mods.thecomputerizer.reputation.common.command.SetReputationCommand;
@@ -15,6 +17,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.Brain;
+import net.minecraft.world.entity.ai.memory.ExpirableValue;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.sensing.Sensor;
+import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -30,7 +37,11 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import net.minecraftforge.network.NetworkDirection;
+
+import java.util.Map;
+import java.util.Optional;
 
 @EventBusSubscriber(modid = ModDefinitions.MODID)
 public class ReputationEvents {
@@ -86,7 +97,14 @@ public class ReputationEvents {
 	public static void onJoin(EntityJoinWorldEvent event) {
 		if(event.getEntity() instanceof Villager) {
 			Villager villager = (Villager)event.getEntity();
-			}
+			Brain<Villager> brain = villager.getBrain();
+			Map<SensorType<? extends Sensor<? extends LivingEntity>>, Sensor<? extends LivingEntity>> sensors = ObfuscationReflectionHelper.getPrivateValue(Brain.class, brain, "f_21844_");
+			sensors.put(ReputationSenorType.NEAREST_PLAYER_REPUTATION.get(), ReputationSenorType.NEAREST_PLAYER_REPUTATION.get().create());
+			Map<MemoryModuleType<?>, Optional<? extends ExpirableValue<?>>> memories = ObfuscationReflectionHelper.getPrivateValue(Brain.class, brain, "f_21843_");
+			memories.put(ReputationMemoryModule.NEAREST_PLAYER_BAD_REPUTATION.get(), Optional.empty());
+			memories.put(ReputationMemoryModule.NEAREST_PLAYER_NEUTRAL_REPUTATION.get(), Optional.empty());
+			memories.put(ReputationMemoryModule.NEAREST_PLAYER_GOOD_REPUTATION.get(), Optional.empty());
+		}
 	}
 
 	@SubscribeEvent
