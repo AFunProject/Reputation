@@ -21,7 +21,6 @@ public class MixinVillager {
 
     @Inject(at = @At("HEAD"), method = "updateSpecialPrices(Lnet/minecraft/world/entity/player/Player;)V")
     private void updateSpecialPrices(Player player, CallbackInfo callback) {
-        Reputation.logInfo("pricing update mixin");
         if(player.getCapability(ReputationHandler.REPUTATION_CAPABILITY).isPresent()) {
             Villager villager = (Villager)(Object)this;
             double multiplier = HelperMethods.tradePrices(villager,player);
@@ -34,7 +33,6 @@ public class MixinVillager {
 
     @Inject(at = @At("HEAD"), method = "mobInteract(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;", cancellable = true)
     private void mobInteract(Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> callback) {
-        Reputation.logInfo("trade refusal mixin");
         ItemStack itemstack = player.getItemInHand(hand);
         Villager villager = (Villager)(Object)this;
         if (itemstack.getItem() != Items.VILLAGER_SPAWN_EGG && villager.isAlive() && !villager.isTrading() && !villager.isSleeping() && !player.isSecondaryUseActive()) {

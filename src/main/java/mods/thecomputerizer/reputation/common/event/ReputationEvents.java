@@ -115,16 +115,13 @@ public class ReputationEvents {
 				}
 			}
 			if (Reputation.passiveNeutralTag.getValues().contains(entity.getType())) {
-				Reputation.logInfo("Pacifying a neutral reputation mob");
 				ReputationAIPackages.buildReputationSensor(brain);
 				ReputationAIPackages.buildReputationPassiveNeutralAI(brain, 1);
 				if(entity instanceof Mob mob) {
 					Set<WrappedGoal> goalSet = mob.targetSelector.getAvailableGoals();
 					List<WrappedGoal> newGoals = goalSet.stream()
 							.filter((g) -> {
-								Reputation.logInfo("checking the target class: "+g.getGoal());
 								if(g.getGoal() instanceof NearestAttackableTargetGoal targetGoal) {
-									Reputation.logInfo("found: "+targetGoal.targetType);
 									return targetGoal.targetType != Player.class && targetGoal.targetType != ServerPlayer.class;
 								}
 								return false;
@@ -138,16 +135,13 @@ public class ReputationEvents {
 				}
 			}
 			if (Reputation.passiveGoodTag.getValues().contains(entity.getType())) {
-				Reputation.logInfo("Pacifying a good reputation mob");
 				ReputationAIPackages.buildReputationSensor(brain);
 				ReputationAIPackages.buildReputationPassiveGoodAI(brain, 1);
 				if(entity instanceof Mob mob) {
 					Set<WrappedGoal> goalSet = mob.targetSelector.getAvailableGoals();
 					List<WrappedGoal> newGoals = goalSet.stream()
 							.filter((g) -> {
-								Reputation.logInfo("checking the target class: "+g.getGoal());
 								if(g.getGoal() instanceof NearestAttackableTargetGoal targetGoal && !(g.getGoal() instanceof ReputationPacifyHostileNeutralStandingGoal)) {
-									Reputation.logInfo("found: "+targetGoal.targetType);
 									return targetGoal.targetType != Player.class && targetGoal.targetType != ServerPlayer.class;
 								}
 								return false;
@@ -165,7 +159,6 @@ public class ReputationEvents {
 
 	@SubscribeEvent
 	public static void onRespawn(PlayerEvent.Clone event) {
-		Reputation.logInfo("respawn log");
 		Player original = event.getOriginal();
 		Player respawned = event.getPlayer();
 		original.reviveCaps();
