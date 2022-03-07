@@ -4,25 +4,28 @@ import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
-import mods.thecomputerizer.reputation.common.ai.ReputationMemoryModule;
-import mods.thecomputerizer.reputation.common.ai.ReputationSenorType;
+import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
+import mods.thecomputerizer.reputation.common.ai.goals.FleeGoal;
+import mods.thecomputerizer.reputation.common.ai.goals.ReputationAttackableTargetGoal;
+import mods.thecomputerizer.reputation.common.ai.goals.ReputationPacifyHostileGoodStandingGoal;
+import mods.thecomputerizer.reputation.common.ai.goals.ReputationPacifyHostileNeutralStandingGoal;
 import mods.thecomputerizer.reputation.common.capability.ReputationProvider;
 import mods.thecomputerizer.reputation.common.command.AddReputationCommand;
 import mods.thecomputerizer.reputation.common.command.SetReputationCommand;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.common.network.SyncFactionsMessage;
 import mods.thecomputerizer.reputation.config.ClientConfigHandler;
+import mods.thecomputerizer.reputation.util.HelperMethods;
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.ai.Brain;
-import net.minecraft.world.entity.ai.memory.ExpirableValue;
-import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.sensing.Sensor;
-import net.minecraft.world.entity.ai.sensing.SensorType;
-import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.ai.goal.WrappedGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
@@ -37,11 +40,11 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import net.minecraftforge.network.NetworkDirection;
 
-import java.util.Map;
-import java.util.Optional;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @EventBusSubscriber(modid = ModDefinitions.MODID)
 public class ReputationEvents {
@@ -92,18 +95,71 @@ public class ReputationEvents {
 		}
 	}
 
-	//attach reputation base goals to ai upon spawning
+	//attach reputation based goals to AI upon spawning
 	@SubscribeEvent
 	public static void onJoin(EntityJoinWorldEvent event) {
-		if(event.getEntity() instanceof Villager) {
-			Villager villager = (Villager)event.getEntity();
-			Brain<Villager> brain = villager.getBrain();
-			Map<SensorType<? extends Sensor<? extends LivingEntity>>, Sensor<? extends LivingEntity>> sensors = ObfuscationReflectionHelper.getPrivateValue(Brain.class, brain, "f_21844_");
-			sensors.put(ReputationSenorType.NEAREST_PLAYER_REPUTATION.get(), ReputationSenorType.NEAREST_PLAYER_REPUTATION.get().create());
-			Map<MemoryModuleType<?>, Optional<? extends ExpirableValue<?>>> memories = ObfuscationReflectionHelper.getPrivateValue(Brain.class, brain, "f_21843_");
-			memories.put(ReputationMemoryModule.NEAREST_PLAYER_BAD_REPUTATION.get(), Optional.empty());
-			memories.put(ReputationMemoryModule.NEAREST_PLAYER_NEUTRAL_REPUTATION.get(), Optional.empty());
-			memories.put(ReputationMemoryModule.NEAREST_PLAYER_GOOD_REPUTATION.get(), Optional.empty());
+		if(event.getEntity() instanceof LivingEntity entity) {
+			Brain<? extends LivingEntity> brain = entity.getBrain();
+			if (Reputation.fleeTag.getValues().contains(entity.getType())) {
+				ReputationAIPackages.buildReputationSensor(brain);
+				ReputationAIPackages.buildReputationFleeAI(brain, HelperMethods.fleeFactor(entity));
+				if(entity instanceof Mob mob) {
+					mob.goalSelector.addGoal(0, new FleeGoal(mob, HelperMethods.fleeFactor(entity)));
+				}
+			}
+			if (Reputation.hostileTag.getValues().contains(entity.getType()) && entity instanceof Mob mob) {
+				ReputationAIPackages.buildReputationSensor(brain);
+				ReputationAIPackages.buildReputationHostileAI(mob, brain);
+				if(entity instanceof NeutralMob) {
+					mob.targetSelector.addGoal(2, new ReputationAttackableTargetGoal<>(mob, Player.class, true, false));
+				}
+			}
+			if (Reputation.passiveNeutralTag.getValues().contains(entity.getType())) {
+				Reputation.logInfo("Pacifying a neutral reputation mob");
+				ReputationAIPackages.buildReputationSensor(brain);
+				ReputationAIPackages.buildReputationPassiveNeutralAI(brain, 1);
+				if(entity instanceof Mob mob) {
+					Set<WrappedGoal> goalSet = mob.targetSelector.getAvailableGoals();
+					List<WrappedGoal> newGoals = goalSet.stream()
+							.filter((g) -> {
+								Reputation.logInfo("checking the target class: "+g.getGoal());
+								if(g.getGoal() instanceof NearestAttackableTargetGoal targetGoal) {
+									Reputation.logInfo("found: "+targetGoal.targetType);
+									return targetGoal.targetType != Player.class && targetGoal.targetType != ServerPlayer.class;
+								}
+								return false;
+							})
+							.collect(Collectors.toList());
+					mob.targetSelector.removeAllGoals();
+					for(WrappedGoal wrappedGoal : newGoals) {
+						mob.targetSelector.addGoal(wrappedGoal.getPriority(), wrappedGoal.getGoal());
+					}
+					mob.targetSelector.addGoal(2, new ReputationPacifyHostileNeutralStandingGoal<>(mob, Player.class, true, false));
+				}
+			}
+			if (Reputation.passiveGoodTag.getValues().contains(entity.getType())) {
+				Reputation.logInfo("Pacifying a good reputation mob");
+				ReputationAIPackages.buildReputationSensor(brain);
+				ReputationAIPackages.buildReputationPassiveGoodAI(brain, 1);
+				if(entity instanceof Mob mob) {
+					Set<WrappedGoal> goalSet = mob.targetSelector.getAvailableGoals();
+					List<WrappedGoal> newGoals = goalSet.stream()
+							.filter((g) -> {
+								Reputation.logInfo("checking the target class: "+g.getGoal());
+								if(g.getGoal() instanceof NearestAttackableTargetGoal targetGoal && !(g.getGoal() instanceof ReputationPacifyHostileNeutralStandingGoal)) {
+									Reputation.logInfo("found: "+targetGoal.targetType);
+									return targetGoal.targetType != Player.class && targetGoal.targetType != ServerPlayer.class;
+								}
+								return false;
+							})
+							.collect(Collectors.toList());
+					mob.targetSelector.removeAllGoals();
+					for(WrappedGoal wrappedGoal : newGoals) {
+						mob.targetSelector.addGoal(wrappedGoal.getPriority(), wrappedGoal.getGoal());
+					}
+					mob.targetSelector.addGoal(2, new ReputationPacifyHostileGoodStandingGoal<>(mob, Player.class, true, false));
+				}
+			}
 		}
 	}
 

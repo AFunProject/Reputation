@@ -3,11 +3,9 @@
     "mods/thecomputerizer/reputation/mixin/MixinPackRepository": {
       "openAllSelected()Ljava/util/List;": "Lnet/minecraft/server/packs/repository/PackRepository;m_10525_()Ljava/util/List;"
     },
-    "mods/thecomputerizer/reputation/mixin/MixinVillagerPanicTrigger": {
-      "hasHostile(Lnet/minecraft/world/entity/LivingEntity;)Z": "Lnet/minecraft/world/entity/ai/behavior/VillagerPanicTrigger;m_24687_(Lnet/minecraft/world/entity/LivingEntity;)Z"
-    },
-    "mods/thecomputerizer/reputation/mixin/MixinVillagerGoalPackages": {
-      "getPanicPackage(Lnet/minecraft/world/entity/npc/VillagerProfession;F)Lcom/google/common/collect/ImmutableList;": "Lnet/minecraft/world/entity/ai/behavior/VillagerGoalPackages;m_24601_(Lnet/minecraft/world/entity/npc/VillagerProfession;F)Lcom/google/common/collect/ImmutableList;"
+    "mods/thecomputerizer/reputation/mixin/MixinVillager": {
+      "updateSpecialPrices(Lnet/minecraft/world/entity/player/Player;)V": "Lnet/minecraft/world/entity/npc/Villager;m_35540_(Lnet/minecraft/world/entity/player/Player;)V",
+      "mobInteract(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;": "m_6071_(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;"
     }
   },
   "data": {
@@ -15,11 +13,9 @@
       "mods/thecomputerizer/reputation/mixin/MixinPackRepository": {
         "openAllSelected()Ljava/util/List;": "Lnet/minecraft/server/packs/repository/PackRepository;m_10525_()Ljava/util/List;"
       },
-      "mods/thecomputerizer/reputation/mixin/MixinVillagerPanicTrigger": {
-        "hasHostile(Lnet/minecraft/world/entity/LivingEntity;)Z": "Lnet/minecraft/world/entity/ai/behavior/VillagerPanicTrigger;m_24687_(Lnet/minecraft/world/entity/LivingEntity;)Z"
-      },
-      "mods/thecomputerizer/reputation/mixin/MixinVillagerGoalPackages": {
-        "getPanicPackage(Lnet/minecraft/world/entity/npc/VillagerProfession;F)Lcom/google/common/collect/ImmutableList;": "Lnet/minecraft/world/entity/ai/behavior/VillagerGoalPackages;m_24601_(Lnet/minecraft/world/entity/npc/VillagerProfession;F)Lcom/google/common/collect/ImmutableList;"
+      "mods/thecomputerizer/reputation/mixin/MixinVillager": {
+        "updateSpecialPrices(Lnet/minecraft/world/entity/player/Player;)V": "Lnet/minecraft/world/entity/npc/Villager;m_35540_(Lnet/minecraft/world/entity/player/Player;)V",
+        "mobInteract(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;": "m_6071_(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;"
       }
     }
   }

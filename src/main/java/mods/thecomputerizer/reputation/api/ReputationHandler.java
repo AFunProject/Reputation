@@ -38,10 +38,6 @@ public class ReputationHandler {
 	}
 
 	public static Collection<Faction> getEntityFactions(LivingEntity entity) {
-		/*LazyOptional<IReputation> optional = entity.getCapability(REPUTATION_CAPABILITY);
-		if (!optional.isPresent()) {
-			return new HashSet<>();
-		}*/							//What is the purpose of this? Only the player has the capability
 		Set<Faction> factions = new HashSet<>();
 		for (Faction faction : getFactions()) {
 			if (faction.isMember(entity)) {

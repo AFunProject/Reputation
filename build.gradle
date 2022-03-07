@@ -16,7 +16,7 @@ apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.18-1.1.1'
+version = '1.18-0.2.0'
 group = 'mods.thecomputerizer.reputation' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'Reputation'
 
@@ -26,6 +26,8 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 minecraft {
     mappings channel: 'official', version: '1.18'
+
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     runs {
         client {
@@ -100,7 +102,7 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.18.1-39.0.16'
+    minecraft 'net.minecraftforge:forge:1.18.1-39.1.2'
 
     implementation fg.deobf("curse.maven:atlas-lib-463826:3549608")
 }
@@ -110,7 +112,7 @@ jar {
         attributes([
                 "Specification-Title"     : "reputation",
                 "Specification-Vendor"    : "The_Computerizer",
-                "Specification-Version"   : "1", // We are version 1 of ourselves
+                "Specification-Version"   : "0.2.0",
                 "Implementation-Title"    : project.name,
                 "Implementation-Version"  : project.jar.archiveVersion,
                 "Implementation-Vendor"   : "The_Computerizer",
