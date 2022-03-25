@@ -19,8 +19,7 @@ import net.minecraftforge.fml.util.thread.SidedThreadGroups;
 @SuppressWarnings("OptionalGetWithoutIsPresent")
 public class ReputationHandler {
 
-	public static Capability<IReputation> REPUTATION_CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {
-	});
+	public static Capability<IReputation> REPUTATION_CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {});
 
 	private static Map<ResourceLocation, Faction> FACTIONS = new HashMap<>();
 	private static Map<ResourceLocation, Faction> CLIENT_FACTIONS = new HashMap<>();
@@ -68,6 +67,14 @@ public class ReputationHandler {
 			for (Faction enemy : faction.getEnemies()) {
 				reputation.changeReputation(player, enemy, -amount);
 			}
+		}
+	}
+
+	public static void changeReputationStrict(Player player, Faction faction, int amount) {
+		LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
+		if (optional.isPresent()) {
+			IReputation reputation = optional.resolve().get();
+			reputation.changeReputation(player, faction, amount);
 		}
 	}
 

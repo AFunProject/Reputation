@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.util.LazyOptional;
+import org.jetbrains.annotations.NotNull;
 
 public class ReputationProvider implements ICapabilitySerializable<CompoundTag> {
 
@@ -17,7 +18,7 @@ public class ReputationProvider implements ICapabilitySerializable<CompoundTag> 
 	}
 
 	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
+	public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, Direction side) {
 		return cap == ReputationHandler.REPUTATION_CAPABILITY ? LazyOptional.of(() -> impl).cast() : LazyOptional.empty();
 	}
 

@@ -2,15 +2,19 @@ package mods.thecomputerizer.reputation.util;
 
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.npc.WanderingTrader;
+import net.minecraft.world.entity.ai.Brain;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class HelperMethods {
@@ -117,5 +121,19 @@ public class HelperMethods {
             }
         }
         return 1f;
+    }
+
+    public static List<? extends LivingEntity> getSeenEntitiesOfFaction(Brain<? extends LivingEntity> brain, Faction faction) {
+        List<LivingEntity> ret = new ArrayList<>();
+        Optional<NearestVisibleLivingEntities> optional = brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
+        optional.ifPresent(nearestVisibleLivingEntities -> nearestVisibleLivingEntities.findAll(faction::isMember).iterator().forEachRemaining((ret::add)));
+        return ret;
+    }
+
+    public static List<? extends LivingEntity> getSeenEntitiesOfTypeInRange(ServerLevel level, EntityType<?> type, BlockPos pos, double range) {
+        return level.getEntitiesOfClass(LivingEntity.class, new AABB(pos.getX()-range, pos.getY()-(range/2), pos.getZ()-range, pos.getX()+range, pos.getY()+(range/2), pos.getZ()+range)).stream().filter(entity -> {
+            Optional<NearestVisibleLivingEntities> optional = entity.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
+            return optional.get().findAll(entity1 -> entity1.getType()==type).iterator().hasNext();
+        }).collect(Collectors.toList());
     }
 }

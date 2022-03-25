@@ -1,6 +1,10 @@
 {
 	"name": "reputation:illager",
 	"default_reputation": -50,
+	"lower_reputation_bound": -50,
+	"upper_reputation_bound": 50,
+	"weighted_murder": 5,
+	"weighted_looting": 2,
 	"members": [
 		"minecraft:pillager",
 		"minecraft:witch",

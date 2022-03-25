@@ -1,6 +1,5 @@
 package mods.thecomputerizer.reputation.mixin;
 
-import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.util.HelperMethods;
 import net.minecraft.world.InteractionHand;
