@@ -3,6 +3,7 @@ package mods.thecomputerizer.reputation.common.event;
 import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.ContainerHandler;
 import mods.thecomputerizer.reputation.api.Faction;
+import mods.thecomputerizer.reputation.api.PlayerFactionHandler;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
@@ -11,14 +12,17 @@ import mods.thecomputerizer.reputation.common.ai.goals.ReputationAttackableTarge
 import mods.thecomputerizer.reputation.common.ai.goals.ReputationPacifyHostileGoodStandingGoal;
 import mods.thecomputerizer.reputation.common.ai.goals.ReputationPacifyHostileNeutralStandingGoal;
 import mods.thecomputerizer.reputation.common.capability.PlacedContainerProvider;
+import mods.thecomputerizer.reputation.common.capability.PlayerFactionProvider;
 import mods.thecomputerizer.reputation.common.capability.ReputationProvider;
+import mods.thecomputerizer.reputation.common.command.AddPlayerToFactionCommand;
 import mods.thecomputerizer.reputation.common.command.AddReputationCommand;
+import mods.thecomputerizer.reputation.common.command.RemovePlayerFromFactionCommand;
 import mods.thecomputerizer.reputation.common.command.SetReputationCommand;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.common.network.SyncFactionsMessage;
+import mods.thecomputerizer.reputation.common.registration.TagKeys;
 import mods.thecomputerizer.reputation.config.ClientConfigHandler;
 import mods.thecomputerizer.reputation.util.HelperMethods;
-import mods.thecomputerizer.reputation.common.registration.TagKeys;
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -67,24 +71,40 @@ public class ReputationEvents {
 	@SubscribeEvent
 	public static void attachEntityCapabilities(AttachCapabilitiesEvent<Entity> event) {
 		Entity entity = event.getObject();
-		if (entity instanceof Player &!(entity instanceof FakePlayer)) event.addCapability(ModDefinitions.getResource("reputation"), new ReputationProvider());
-		else if(entity instanceof Container) event.addCapability(ModDefinitions.getResource("container_placed"), new PlacedContainerProvider());
+		if (entity instanceof Player & !(entity instanceof FakePlayer)) {
+			event.addCapability(ModDefinitions.getResource("reputation"), new ReputationProvider());
+		} else if (entity instanceof Container)
+			event.addCapability(ModDefinitions.getResource("container_placed"), new PlacedContainerProvider());
+	}
+
+	@SubscribeEvent
+	public static void attachLevelCapabilities(AttachCapabilitiesEvent<Level> event) {
+		Level level = event.getObject();
+		if(level.dimension()==Level.OVERWORLD && !level.isClientSide()) {
+			for (Faction faction : ReputationHandler.getFactions()) {
+				PlayerFactionProvider playerFactionProvider = new PlayerFactionProvider(faction);
+				PlayerFactionHandler.PLAYER_FACTIONS.put(faction, playerFactionProvider);
+				event.addCapability(faction.getName(), playerFactionProvider);
+			}
+		}
 	}
 
 	@SubscribeEvent
 	public static void registerCommands(RegisterCommandsEvent event){
 		SetReputationCommand.register(event.getDispatcher());
 		AddReputationCommand.register(event.getDispatcher());
+		AddPlayerToFactionCommand.register(event.getDispatcher());
+		RemovePlayerFromFactionCommand.register(event.getDispatcher());
 	}
 
 	@SubscribeEvent
 	public static void onPlayerJoin(PlayerLoggedInEvent event) {
 		Player player = event.getPlayer();
 		if (!player.level.isClientSide) {
-			PacketHandler.NETWORK_INSTANCE.sendTo(new SyncFactionsMessage(ReputationHandler.getFactions()), ((ServerPlayer)player).connection.connection, NetworkDirection.PLAY_TO_CLIENT);
-			for(Faction faction : ReputationHandler.getFactions()) {
-				ReputationHandler.changeReputation(player, faction, 0);
-			}
+			Brain<? extends LivingEntity> brain = player.getBrain();
+			brain.sensors.putIfAbsent(SensorType.NEAREST_LIVING_ENTITIES, SensorType.NEAREST_LIVING_ENTITIES.create());
+			brain.memories.putIfAbsent(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, Optional.empty());
+			PacketHandler.NETWORK_INSTANCE.sendTo(new SyncFactionsMessage(ReputationHandler.getServerFactions()), ((ServerPlayer)player).connection.connection, NetworkDirection.PLAY_TO_CLIENT);
 		}
 
 	}
@@ -200,6 +220,9 @@ public class ReputationEvents {
 	public static void onRespawn(PlayerEvent.Clone event) {
 		Player original = event.getOriginal();
 		Player respawned = event.getPlayer();
+		Brain<? extends LivingEntity> brain = respawned.getBrain();
+		brain.sensors.putIfAbsent(SensorType.NEAREST_LIVING_ENTITIES, SensorType.NEAREST_LIVING_ENTITIES.create());
+		brain.memories.putIfAbsent(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, Optional.empty());
 		original.reviveCaps();
 		for(Faction f : ReputationHandler.getFactions()) {
 			respawned.getCapability(ReputationHandler.REPUTATION_CAPABILITY).orElseThrow(RuntimeException::new).setReputation(respawned,f,ReputationHandler.getReputation(original,f));

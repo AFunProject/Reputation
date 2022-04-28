@@ -1,31 +1,29 @@
 package mods.thecomputerizer.reputation.api;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
-import mods.thecomputerizer.reputation.Reputation;
+import mods.thecomputerizer.reputation.common.ModDefinitions;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
+
 public class Faction {
 
-	private ResourceLocation name;
-	private int defaultRep;
-	private int lowerRep;
-	private int higherRep;
-	private List<ResourceLocation> enemy_names = new ArrayList<>();
-	private List<Faction> enemies = new ArrayList<>();
-	private List<EntityType<?>> members = new ArrayList<>();
-	private HashMap<String, Integer> weightedActions;
+	private final ResourceLocation name;
+	private final int defaultRep;
+	private final int lowerRep;
+	private final int higherRep;
+	private final List<ResourceLocation> enemy_names = new ArrayList<>();
+	private final List<Faction> enemies = new ArrayList<>();
+	private final List<EntityType<?>> members = new ArrayList<>();
+	private final HashMap<String, Integer> weightedActions;
 
 	public Faction(ResourceLocation name, int defaultRep, int lowerRep, int higherRep, HashMap<String, Integer> weightedActions, List<ResourceLocation> enemies, List<EntityType<?>> members) {
 		this.name = name;
@@ -79,75 +77,84 @@ public class Faction {
 		return this.weightedActions.get(action);
 	}
 
-	public static Faction fromJson(String identifier, String jsonString) {
+	public static Faction fromJsonAsString(String identifier, String jsonString) {
 		try {
 			JsonObject json = (JsonObject) JsonParser.parseString(jsonString);
-			ResourceLocation name = new ResourceLocation(json.get("name").getAsString());
+			String name = json.get("name").getAsString();
+			ResourceLocation id;
+			if(!name.contains(":")) id = new ResourceLocation(ModDefinitions.MODID,json.get("name").getAsString());
+			else id = new ResourceLocation(name);
+			return fromJson(id, json);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Failed to parse faction with id "+identifier+"! Error was "+e.getMessage());
+		}
+	}
+
+	public static Faction fromJson(ResourceLocation id, JsonElement data) {
+		try {
+			JsonObject json = data.getAsJsonObject();
+			String nameS = json.get("name").getAsString();
+			ResourceLocation name;
+			if(!nameS.contains(":")) name = new ResourceLocation(ModDefinitions.MODID,json.get("name").getAsString());
+			else name = new ResourceLocation(nameS);
 			int defaultRep = json.get("default_reputation").getAsInt();
 			int lowerRep = json.get("lower_reputation_bound").getAsInt();
 			int higherRep = json.get("upper_reputation_bound").getAsInt();
 			HashMap<String, Integer> weighting = new HashMap<>();
 			weighting.put("murder", json.get("weighted_murder").getAsInt());
 			weighting.put("looting", json.get("weighted_looting").getAsInt());
-			List<EntityType<?>> members = parseMembers(jsonString, json.get("members").getAsJsonArray());
-			List<ResourceLocation> enemies = parseResourceArray(jsonString, json.get("enemies").getAsJsonArray());
+			List<EntityType<?>> members = parseMembers("members", json);
+			List<ResourceLocation> enemies = parseResourceArray("enemies", json);
 			return new Faction(name, defaultRep, lowerRep, higherRep, weighting, enemies, members);
 		} catch (Exception e) {
-			Reputation.logError("Failed to add faction " + identifier, e);
-			Reputation.logInfo(jsonString);
+			e.printStackTrace();
+			throw new RuntimeException("Failed to parse faction with id "+id+"! Error was "+e.getMessage());
 		}
-		return null;
 	}
 
-	private static List<EntityType<?>> parseMembers(String filename, JsonArray array) {
+	private static List<EntityType<?>> parseMembers(String element, JsonObject json) {
 		List<EntityType<?>> members = new ArrayList<>();
-		for (ResourceLocation loc : parseResourceArray(filename, array)) {
-			try {
+		if(json.has(element)) {
+			for (ResourceLocation loc : parseResourceArray(element, json)) {
 				EntityType<?> entity = ForgeRegistries.ENTITIES.getValue(loc);
 				members.add(entity);
-			} catch (Exception e) {
-				Reputation.logError("Failed to add entry "+ loc + " to faction, entity does not exist " + filename, e);
-				Reputation.logInfo(array);
 			}
 		}
 		return members;
 	}
 
-	private static List<ResourceLocation> parseResourceArray(String filename, JsonArray array) {
+	private static List<ResourceLocation> parseResourceArray(String element, JsonObject json) {
 		List<ResourceLocation> resources = new ArrayList<>();
-		for (JsonElement json : array) {
-			try {
-				ResourceLocation loc = new ResourceLocation(json.getAsString());
+		if(json.has(element)) {
+			for (JsonElement index : json.get(element).getAsJsonArray()) {
+				ResourceLocation loc = new ResourceLocation(index.getAsString());
 				resources.add(loc);
-			} catch (Exception e) {
-				Reputation.logError("Failed to add entry "+ json.toString() + " to faction " + filename, e);
-				Reputation.logInfo(array);
 			}
 		}
 		return resources;
 	}
 
-	@Override
-	public String toString() {
+	public String toJsonString() {
 		StringBuilder builder = new StringBuilder("{");
-		builder.append("\"name\": \"").append(this.name.toString()).append("\", ");
-		builder.append("\"default_reputation\": ").append(this.defaultRep).append(", ");
-		builder.append("\"lower_reputation_bound\": ").append(this.lowerRep).append(", ");
-		builder.append("\"upper_reputation_bound\": ").append(this.higherRep).append(", ");
-		builder.append("\"weighted_murder\": ").append(this.weightedActions.get("murder")).append(", ");
-		builder.append("\"weighted_looting\": ").append(this.weightedActions.get("looting")).append(", ");
-		builder.append("\"members\": [");
+		builder.append("\"name\": \"").append(this.name.toString()).append("\", ").append("\n");
+		builder.append("\"default_reputation\": ").append(this.defaultRep).append(", ").append("\n");
+		builder.append("\"lower_reputation_bound\": ").append(this.lowerRep).append(", ").append("\n");
+		builder.append("\"upper_reputation_bound\": ").append(this.higherRep).append(", ").append("\n");
+		builder.append("\"weighted_murder\": ").append(this.weightedActions.get("murder")).append(", ").append("\n");
+		builder.append("\"weighted_looting\": ").append(this.weightedActions.get("looting")).append(", ").append("\n");
+		builder.append("\"members\": [").append("\n");
 		for (int i = 0; i < this.members.size(); i++) {
 			builder.append("\"").append(Objects.requireNonNull(this.members.get(i).getRegistryName())).append("\"");
-			if (i < this.members.size()-1) builder.append(", ");
+			if (i < this.members.size()-1) builder.append(", ").append("\n");
 		}
-		builder.append("], ");
-		builder.append("\"enemies\": [");
+		builder.append("], \n");
+		builder.append("\"enemies\": [").append("\n");
 		for (int i = 0; i < this.enemy_names.size(); i++) {
 			builder.append("\"").append(this.enemy_names.get(i).toString()).append("\"");
-			if (i < this.enemy_names.size()-1) builder.append(", ");
+			if (i < this.enemy_names.size()-1) builder.append(", ").append("\n");
 		}
-		builder.append("]");
+		builder.append("]").append("\n");
 		builder.append("}");
 		return builder.toString();
 	}

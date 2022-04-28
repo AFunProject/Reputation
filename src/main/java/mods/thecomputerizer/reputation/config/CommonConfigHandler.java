@@ -2,6 +2,8 @@ package mods.thecomputerizer.reputation.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 
+import java.util.List;
+
 public class CommonConfigHandler {
 	public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 	public static final ForgeConfigSpec CONFIG;

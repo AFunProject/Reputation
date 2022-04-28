@@ -1,33 +1,35 @@
 package mods.thecomputerizer.reputation.config;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
-import java.util.Objects;
-
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
-import mods.thecomputerizer.reputation.Reputation;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraftforge.fml.loading.FMLPaths;
 import org.apache.commons.io.FileUtils;
 
-import net.minecraftforge.fml.loading.FMLLoader;
-import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.fml.loading.moddiscovery.ModFile;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
 public class FactionParser {
+
+	/* Archived & marked for deletion
 
 	public static void readFactionsFromConfig() {
 		File directory = FMLPaths.GAMEDIR.get().resolve("config").resolve("reputation").toFile();
-		if (!directory.toPath().resolve("factions").toFile().exists()) {
-			try {
-				createDefaultFiles(directory);
-			} catch (Exception e) {
-				Reputation.logError("failed to write file", e);
-			}
+		try {
+			copyFactionsFromData(directory);
+		} catch (Exception e) {
+			Reputation.logError("failed to write file", e);
 		}
 		for (File file : Objects.requireNonNull(directory.toPath().resolve("factions").toFile().listFiles())) {
 			if (file.getName().endsWith(".json")) {
@@ -47,22 +49,49 @@ public class FactionParser {
 		}
 	}
 
-	private static void createDefaultFiles(File directory) throws Exception {
-		ModFile mod = FMLLoader.getLoadingModList().getModFileById(ModDefinitions.MODID).getFile();
-		copyFile(mod, directory, "factions/illager.json");
-		copyFile(mod, directory, "factions/nether.json");
-		copyFile(mod, directory, "factions/piglin.json");
-		copyFile(mod, directory, "factions/skeleton.json");
-		copyFile(mod, directory, "factions/villager.json");
-		copyFile(mod, directory, "resources/pack.mcmeta");
-		copyFile(mod, directory, "resources/assets/reputation/lang/en_us.json");
+	private static void copyFactionsFromData(File directory) throws Exception {
+		for(String faction : getFactionList(directory)) {
+			copyFile(directory, "factions/"+faction+".json");
+		}
+		copyFile(directory, "resources/pack.mcmeta");
+		copyFile(directory, "resources/assets/reputation/lang/en_us.json");
 	}
 
-	private static void copyFile(ModFile mod, File directory, String path) throws Exception {
+	private static void copyFile(File directory, String path) throws Exception {
 		File output = new File(directory, path);
+		if(output.exists()) output.delete();
 		File dir = output.getParentFile();
 		if (dir!=null)dir.mkdirs();
-		FileUtils.copyInputStreamToFile(Files.newInputStream(mod.findResource("config-defaults/"+path), StandardOpenOption.READ), new File(directory, path));
+		Resource resource = Minecraft.getInstance().getResourceManager().getResource(new ResourceLocation(ModDefinitions.MODID, "faction_resources/"+path));
+		FileUtils.copyInputStreamToFile(resource.getInputStream(), new File(directory, path));
 	}
 
+	private static List<String> getFactionList(File directory) throws Exception {
+		File output = new File(directory, "factionsList.json");
+		if(output.exists()) output.delete();
+		File dir = output.getParentFile();
+		if (dir!=null)dir.mkdirs();
+		Resource resource = Minecraft.getInstance().getResourceManager().getResource(new ResourceLocation(ModDefinitions.MODID, "faction_resources/"+ "factionsList.json"));
+		FileUtils.copyInputStreamToFile(resource.getInputStream(), new File(directory, "factionsList.json"));
+		return fromJson(output);
+	}
+
+	private static List<String> fromJson(File file) {
+		List<String> ret = new ArrayList<>();
+		try {
+			StringBuilder builder = new StringBuilder();
+			BufferedReader reader = new BufferedReader(new FileReader(file));
+			reader.lines().forEach(builder::append);
+			reader.close();
+			JsonObject json = (JsonObject) JsonParser.parseString(builder.toString());
+			for(JsonElement jsone : json.getAsJsonArray("factions")) {
+				ret.add(jsone.getAsString());
+			}
+		} catch (Exception e) {
+			Reputation.logError("Could not parse faction list!", new Exception());
+		}
+		return ret;
+	}
+
+	 */
 }

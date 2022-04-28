@@ -19,9 +19,11 @@ public class PacketHandler {
 			.simpleChannel ();
 	public static int disc = 0;
 
-	public static void initPackets() {	//I really did not like how the packets were done before, so I redid them
+	public static void initPackets() {
 		NETWORK_INSTANCE.registerMessage(disc++, SyncFactionsMessage.class, SyncFactionsMessage::encode, SyncFactionsMessage::new, SyncFactionsMessage::handle);
 		NETWORK_INSTANCE.registerMessage(disc++, SyncReputationMessage.class, SyncReputationMessage::encode, SyncReputationMessage::new, SyncReputationMessage::handle);
+		NETWORK_INSTANCE.registerMessage(disc++, SyncFactionPlayersMessage.class, SyncFactionPlayersMessage::encode, SyncFactionPlayersMessage::new, SyncFactionPlayersMessage::handle);
+		NETWORK_INSTANCE.registerMessage(disc++, SetIconMessage.class, SetIconMessage::encode, SetIconMessage::new, SetIconMessage::handle);
 	}
 
 	public static void sendTo(Object message, ServerPlayer player) {

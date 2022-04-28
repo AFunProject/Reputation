@@ -16,7 +16,7 @@ import java.util.Map.Entry;
 
 public class Reputation implements IReputation {
 
-	private Map<Faction, Integer> FACTIONS = new HashMap<>();
+	private final Map<Faction, Integer> FACTIONS = new HashMap<>();
 
 	@Override
 	public int getReputation(Faction faction) {
@@ -51,11 +51,10 @@ public class Reputation implements IReputation {
 
 	@Override
 	public void readNBT(CompoundTag nbt) {
-		for (Faction f : ReputationHandler.getFactions()) {					//nested nbt was breaking things, so I simplified it
+		for (Faction f : ReputationHandler.getFactions()) {
 			if (nbt.contains(f.getName().toString())) {
 				FACTIONS.put(f, nbt.getInt(f.getName().toString()));
 			}
 		}
 	}
-
 }
