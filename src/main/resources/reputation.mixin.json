@@ -4,7 +4,6 @@
 	"compatibilityLevel": "JAVA_17",
 	"refmap": "reputation.refmap.json",
 	"mixins": [
-		"MixinPackRepository",
 		"MixinVillager"
 	],
 	"minVersion": "0.8"
