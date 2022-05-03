@@ -130,10 +130,10 @@ public class HelperMethods {
         return ret;
     }
 
-    public static List<? extends LivingEntity> getSeenEntitiesOfTypeInRange(ServerLevel level, EntityType<?> type, BlockPos pos, double range) {
-        return level.getEntitiesOfClass(LivingEntity.class, new AABB(pos.getX()-range, pos.getY()-(range/2), pos.getZ()-range, pos.getX()+range, pos.getY()+(range/2), pos.getZ()+range)).stream().filter(entity -> {
-            Optional<NearestVisibleLivingEntities> optional = entity.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
-            return optional.get().findAll(entity1 -> entity1.getType()==type).iterator().hasNext();
-        }).collect(Collectors.toList());
+    public static List<? extends LivingEntity> getSeenEntitiesOfTypeInRange(ServerLevel level, LivingEntity entity, EntityType<?> type, BlockPos pos, double range) {
+        return level.getEntitiesOfClass(LivingEntity.class, new AABB(pos.getX()-range, pos.getY()-(range/2), pos.getZ()-range, pos.getX()+range, pos.getY()+(range/2), pos.getZ()+range)).stream()
+                .filter(e -> e.getType()==type)
+                .filter(e -> e.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).get().contains(entity))
+                .collect(Collectors.toList());
     }
 }

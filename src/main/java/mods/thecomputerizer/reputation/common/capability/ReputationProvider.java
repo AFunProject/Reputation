@@ -14,7 +14,7 @@ public class ReputationProvider implements ICapabilitySerializable<CompoundTag> 
 	private final IReputation impl;
 
 	public ReputationProvider() {
-		impl = new Reputation();
+		impl = new ReputationCapability();
 	}
 
 	@Override

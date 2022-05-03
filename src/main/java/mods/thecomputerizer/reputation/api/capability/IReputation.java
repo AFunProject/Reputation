@@ -4,7 +4,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import mods.thecomputerizer.reputation.api.Faction;
 
+import java.util.HashMap;
+
 public interface IReputation {
+
+	HashMap<Faction, Integer> allReputations();
 
 	int getReputation(Faction faction);
 

@@ -8,9 +8,9 @@ public interface IPlayerFaction {
 
     boolean isPlayerAttached(Player player);
 
-    void addPlayer(Player player);
+    boolean addPlayer(Player player);
 
-    void removePlayer(Player player);
+    boolean removePlayer(Player player);
 
     Faction getFaction();
 

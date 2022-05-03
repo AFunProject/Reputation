@@ -34,19 +34,23 @@ public class PlayerFaction implements IPlayerFaction {
     }
 
     @Override
-    public void addPlayer(Player player) {
+    public boolean addPlayer(Player player) {
         if(!this.isPlayerAttached(player)) this.PLAYER_UUIDS.add(player.getUUID());
+        else return false;
         if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && player instanceof ServerPlayer) {
             PacketHandler.sendTo(new SyncFactionPlayersMessage(faction, PLAYER_UUIDS),(ServerPlayer)player);
         }
+        return true;
     }
 
     @Override
-    public void removePlayer(Player player) {
+    public boolean removePlayer(Player player) {
         if(this.isPlayerAttached(player)) this.PLAYER_UUIDS.remove(player.getUUID());
+        else return false;
         if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && player instanceof ServerPlayer) {
             PacketHandler.sendTo(new SyncFactionPlayersMessage(faction, PLAYER_UUIDS),(ServerPlayer)player);
         }
+        return true;
     }
 
     @Override

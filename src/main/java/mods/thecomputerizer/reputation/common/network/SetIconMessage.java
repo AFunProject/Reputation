@@ -1,6 +1,6 @@
 package mods.thecomputerizer.reputation.common.network;
 
-import mods.thecomputerizer.reputation.client.RenderIcon;
+import mods.thecomputerizer.reputation.client.render.RenderIcon;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -28,11 +28,12 @@ public class SetIconMessage {
 
     public static void handle(SetIconMessage message, Supplier<NetworkEvent.Context> context) {
         NetworkEvent.Context ctx = context.get();
-        ctx.enqueueWork(() ->  DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> () -> RenderIcon.setIcon(message.setIconLocation())));
+        ctx.enqueueWork(() ->  {});
+        RenderIcon.setIcon(message.setIconLocation());
         ctx.setPacketHandled(true);
     }
 
     private ResourceLocation setIconLocation() {
-        return this.encoded ? ModDefinitions.getResource("icons/plus.png") : ModDefinitions.getResource("icons/minus.png");
+        return this.encoded ? ModDefinitions.getResource("textures/icons/plus.png") : ModDefinitions.getResource("textures/icons/minus.png");
     }
 }

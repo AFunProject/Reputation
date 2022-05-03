@@ -27,8 +27,9 @@ public class RemovePlayerFromFactionCommand {
     private static int removeSelf(CommandSourceStack cs, ResourceLocation faction) throws CommandRuntimeException {
         try {
             Player player = cs.getPlayerOrException();
-            PlayerFactionHandler.removePlayerFromFaction(ReputationHandler.getFaction(faction), player);
-            player.sendMessage(new TextComponent("Added player "+player.getDisplayName()+" to the faction '"+faction+"'"),player.getUUID());
+            if(PlayerFactionHandler.removePlayerFromFaction(ReputationHandler.getFaction(faction), player))
+                player.sendMessage(new TextComponent("Added player "+player.getDisplayName()+" to the faction '"+faction+"'"),player.getUUID());
+            else player.sendMessage(new TextComponent("Player "+player.getDisplayName()+" is not in faction '"+faction+"'!"),player.getUUID());
         }
         catch(Exception e) {
             e.printStackTrace();

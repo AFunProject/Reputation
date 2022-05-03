@@ -26,8 +26,10 @@ public class AddPlayerToFactionCommand {
     private static int addSelf(CommandSourceStack cs, ResourceLocation faction) throws CommandRuntimeException {
         try {
             Player player = cs.getPlayerOrException();
-            PlayerFactionHandler.addPlayerToFaction(ReputationHandler.getFaction(faction), player);
-            player.sendMessage(new TextComponent("Added player "+player.getDisplayName()+" to the faction '"+faction+"'"),player.getUUID());
+            if (PlayerFactionHandler.addPlayerToFaction(ReputationHandler.getFaction(faction), player))
+                player.sendMessage(new TextComponent("Added player " + player.getDisplayName() + " to the faction '" + faction + "'"), player.getUUID());
+            else
+                player.sendMessage(new TextComponent("Player " + player.getDisplayName() + " is already in faction '" + faction + "'!"), player.getUUID());
         }
         catch(Exception e) {
             e.printStackTrace();

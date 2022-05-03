@@ -1,4 +1,4 @@
-package mods.thecomputerizer.reputation.client;
+package mods.thecomputerizer.reputation.client.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import mods.thecomputerizer.reputation.Reputation;
@@ -32,7 +32,6 @@ public class RenderIcon {
         toRender.ICON_LOCATION = icon;
         toRender.activated = true;
         renderable.add(toRender);
-        Reputation.logInfo("Rendering Icon");
     }
 
     @SubscribeEvent
@@ -85,7 +84,7 @@ public class RenderIcon {
                             e.getMatrixStack().scale(scaleX, scaleY, 1f);
 
                             float posY = y-((float)sizeY*sizeY/2f);
-                            float posX = x - (float)sizeX*scaleX - 10f;
+                            float posX = (x/2f) - (float)sizeX*scaleX-100;
 
                             Reputation.logInfo("Rendering Icon: Pos X: "+posX);
 

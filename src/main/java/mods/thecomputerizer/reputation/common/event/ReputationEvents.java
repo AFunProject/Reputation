@@ -1,10 +1,10 @@
 package mods.thecomputerizer.reputation.common.event;
 
-import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.ContainerHandler;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.PlayerFactionHandler;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
+import mods.thecomputerizer.reputation.api.capability.IReputation;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
 import mods.thecomputerizer.reputation.common.ai.goals.FleeGoal;
@@ -28,10 +28,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.NeutralMob;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
@@ -41,10 +38,12 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
@@ -56,14 +55,9 @@ import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @EventBusSubscriber(modid = ModDefinitions.MODID)
 public class ReputationEvents {
@@ -73,8 +67,15 @@ public class ReputationEvents {
 		Entity entity = event.getObject();
 		if (entity instanceof Player & !(entity instanceof FakePlayer)) {
 			event.addCapability(ModDefinitions.getResource("reputation"), new ReputationProvider());
-		} else if (entity instanceof Container)
+		}
+	}
+
+	@SubscribeEvent
+	public static void attachBlockCapabilities(AttachCapabilitiesEvent<BlockEntity> event) {
+		BlockEntity block = event.getObject();
+		if (block instanceof Container) {
 			event.addCapability(ModDefinitions.getResource("container_placed"), new PlacedContainerProvider());
+		}
 	}
 
 	@SubscribeEvent
@@ -90,7 +91,7 @@ public class ReputationEvents {
 	}
 
 	@SubscribeEvent
-	public static void registerCommands(RegisterCommandsEvent event){
+	public static void registerCommands(RegisterCommandsEvent event) {
 		SetReputationCommand.register(event.getDispatcher());
 		AddReputationCommand.register(event.getDispatcher());
 		AddPlayerToFactionCommand.register(event.getDispatcher());
@@ -104,9 +105,17 @@ public class ReputationEvents {
 			Brain<? extends LivingEntity> brain = player.getBrain();
 			brain.sensors.putIfAbsent(SensorType.NEAREST_LIVING_ENTITIES, SensorType.NEAREST_LIVING_ENTITIES.create());
 			brain.memories.putIfAbsent(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, Optional.empty());
-			PacketHandler.NETWORK_INSTANCE.sendTo(new SyncFactionsMessage(ReputationHandler.getServerFactions()), ((ServerPlayer)player).connection.connection, NetworkDirection.PLAY_TO_CLIENT);
+			LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
+			if (optional.isPresent() && optional.resolve().isPresent()) {
+				IReputation reputation = optional.resolve().get();
+				Map<Faction, Integer> toSync = reputation.allReputations();
+				ServerPlayer serverPlayer = (ServerPlayer)player;
+				PacketHandler.sendTo(new SyncFactionsMessage(toSync.keySet(), serverPlayer),serverPlayer);
+				for(Faction f : toSync.keySet()) {
+					reputation.setReputation(player,f,toSync.get(f));
+				}
+			}
 		}
-
 	}
 
 	//block interaction events
@@ -116,19 +125,20 @@ public class ReputationEvents {
 		if(!level.isClientSide()) {
 			ServerLevel serverLevel = (ServerLevel) level;
 			if (event.getUseBlock() != Event.Result.DENY && level.getBlockEntity(event.getPos()) instanceof Container) {
-				Reputation.logInfo("container");
-				if (ContainerHandler.changesReputation(Objects.requireNonNull(level.getBlockEntity(event.getPos())))) {
-					for (LivingEntity v : HelperMethods.getSeenEntitiesOfTypeInRange(serverLevel, event.getPlayer().getType(), event.getPos(), 16f)) {
-						Villager villager = (Villager) v;
-						Reputation.logInfo("Entity: " + v.getName().getString());
-						for (Faction faction : ReputationHandler.getEntityFactions(villager)) {
-							ReputationHandler.changeReputationStrict(event.getPlayer(), faction, -1 * faction.getActionWeighting("looting"));
+				if(Objects.requireNonNull(level.getBlockEntity(event.getPos())).getCapability(PlacedContainerProvider.PLACED_CONTAINER_CAPABILITY).isPresent()) {
+					if (ContainerHandler.changesReputation(Objects.requireNonNull(level.getBlockEntity(event.getPos())))) {
+						for (LivingEntity v : HelperMethods.getSeenEntitiesOfTypeInRange(serverLevel, event.getPlayer(), EntityType.VILLAGER, event.getPos(), 16f)) {
+							Villager villager = (Villager) v;
+							for (Faction faction : ReputationHandler.getEntityFactions(villager)) {
+								ReputationHandler.changeReputation(event.getPlayer(), faction, -1 * faction.getActionWeighting("looting"));
+							}
 						}
 					}
 				}
 			}
 		}
 	}
+
 	@SubscribeEvent
 	public static void placeBlock(BlockEvent.EntityPlaceEvent event) {
 		LevelAccessor level = event.getWorld();
@@ -149,10 +159,10 @@ public class ReputationEvents {
 			if (player != null) {
 				for(Faction faction : ReputationHandler.getEntityFactions(entity)) {
 					for (LivingEntity e : HelperMethods.getSeenEntitiesOfFaction(entity.getBrain(), faction)) {
-						ReputationHandler.changeReputationStrict(player, faction, -1 * faction.getActionWeighting("murder"));
+						ReputationHandler.changeReputation(player, faction, -1 * faction.getActionWeighting("murder"));
 						for (Faction enemy : faction.getEnemies()) {
 							if (enemy.isMember(e))
-								ReputationHandler.changeReputationStrict(player, enemy, faction.getActionWeighting("murder"));
+								ReputationHandler.changeReputation(player, enemy, faction.getActionWeighting("murder"));
 						}
 					}
 				}
@@ -184,10 +194,10 @@ public class ReputationEvents {
 					Set<WrappedGoal> goalSet = mob.targetSelector.getAvailableGoals();
 					List<WrappedGoal> newGoals = goalSet.stream()
 							.filter((g) -> {
-								if(g.getGoal() instanceof NearestAttackableTargetGoal targetGoal) return targetGoal.targetType != Player.class && targetGoal.targetType != ServerPlayer.class;
+								if (g.getGoal() instanceof NearestAttackableTargetGoal targetGoal)
+									return targetGoal.targetType != Player.class && targetGoal.targetType != ServerPlayer.class;
 								return false;
-							})
-							.collect(Collectors.toList());
+							}).toList();
 					mob.targetSelector.removeAllGoals();
 					for(WrappedGoal wrappedGoal : newGoals) {
 						mob.targetSelector.addGoal(wrappedGoal.getPriority(), wrappedGoal.getGoal());
@@ -202,10 +212,10 @@ public class ReputationEvents {
 					Set<WrappedGoal> goalSet = mob.targetSelector.getAvailableGoals();
 					List<WrappedGoal> newGoals = goalSet.stream()
 							.filter((g) -> {
-								if(g.getGoal() instanceof NearestAttackableTargetGoal targetGoal && !(g.getGoal() instanceof ReputationPacifyHostileNeutralStandingGoal)) return targetGoal.targetType != Player.class && targetGoal.targetType != ServerPlayer.class;
+								if (g.getGoal() instanceof NearestAttackableTargetGoal targetGoal && !(g.getGoal() instanceof ReputationPacifyHostileNeutralStandingGoal))
+									return targetGoal.targetType != Player.class && targetGoal.targetType != ServerPlayer.class;
 								return false;
-							})
-							.collect(Collectors.toList());
+							}).toList();
 					mob.targetSelector.removeAllGoals();
 					for(WrappedGoal wrappedGoal : newGoals) {
 						mob.targetSelector.addGoal(wrappedGoal.getPriority(), wrappedGoal.getGoal());

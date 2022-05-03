@@ -1,11 +1,9 @@
 package mods.thecomputerizer.reputation.common.network;
 
-import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.Collection;
@@ -21,23 +19,23 @@ public class SyncFactionsMessage {
 		data = buf.readUtf();
 	}
 
-	public SyncFactionsMessage(Collection<Faction> factions) {
+	public SyncFactionsMessage(Collection<Faction> factions, ServerPlayer player) {
 		StringBuilder builder = new StringBuilder();
 		for (Faction faction : factions) {
-			Reputation.logInfo("Encoding Faction: "+faction.getName());
 			builder.append(faction.toJsonString());
 			builder.append(";");
 		}
 		data = builder.toString();
 	}
 
-	public void encode(FriendlyByteBuf buf){
+	public void encode(FriendlyByteBuf buf) {
 		if (data!=null) buf.writeUtf(data);
 	}
 
 	public static void handle(SyncFactionsMessage message, Supplier<NetworkEvent.Context> context) {
 		NetworkEvent.Context ctx = context.get();
-		ctx.enqueueWork(() ->  DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> () -> ReputationHandler.readPacketData(message.getFactionData())));
+		ctx.enqueueWork(() -> {});
+		ReputationHandler.readPacketData(message.getFactionData());
 		ctx.setPacketHandled(true);
 	}
 

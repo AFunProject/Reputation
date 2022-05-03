@@ -28,7 +28,7 @@ public class AddReputationCommand {
     private static int addReputation(CommandSourceStack cs, ResourceLocation faction, int set) throws CommandRuntimeException {
         try {
             Player player = cs.getPlayerOrException();
-            ReputationHandler.changeReputationStrict(player,ReputationHandler.getFaction(faction),set);
+            ReputationHandler.changeReputation(player,ReputationHandler.getFaction(faction),set);
             player.sendMessage(new TextComponent("Added "+set+" to the reputation of faction '"+faction+"'"),player.getUUID());
         }
         catch(Exception e) {
@@ -40,7 +40,7 @@ public class AddReputationCommand {
     private static int addReputationPlayer(Entity e, ResourceLocation faction, int set) throws CommandRuntimeException {
         try {
             if(!(e instanceof Player player)) throw new CommandRuntimeException(new TextComponent("Entity was not a player!"));
-            ReputationHandler.changeReputationStrict(player,ReputationHandler.getFaction(faction),set);
+            ReputationHandler.changeReputation(player,ReputationHandler.getFaction(faction),set);
             player.sendMessage(new TextComponent("Added "+set+" to the reputation of faction '"+faction+"'"),player.getUUID());
         }
         catch(Exception ex) {

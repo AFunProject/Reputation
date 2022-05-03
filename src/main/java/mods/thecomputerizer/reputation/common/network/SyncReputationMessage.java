@@ -5,8 +5,6 @@ import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.client.ClientHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -32,7 +30,8 @@ public class SyncReputationMessage {
 
 	public static void handle(SyncReputationMessage message, Supplier<NetworkEvent.Context> context) {
 		NetworkEvent.Context ctx = context.get();
-		ctx.enqueueWork(() ->  DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.readReputationMessage(message)));
+		ctx.enqueueWork(() -> {});
+		ClientHandler.readReputationMessage(message);
 		ctx.setPacketHandled(true);
 	}
 

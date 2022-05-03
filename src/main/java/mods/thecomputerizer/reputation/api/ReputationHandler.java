@@ -1,7 +1,8 @@
 package mods.thecomputerizer.reputation.api;
 
+import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.capability.IReputation;
-import mods.thecomputerizer.reputation.client.RenderIcon;
+import mods.thecomputerizer.reputation.client.render.RenderIcon;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.common.network.SetIconMessage;
@@ -68,32 +69,32 @@ public class ReputationHandler {
 	}
 
 	public static void changeReputation(Player player, Faction faction, int amount) {
-		if(amount!=0) {
+		if(amount!=0 && player instanceof ServerPlayer) {
 			LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
 			if (optional.isPresent()) {
 				IReputation reputation = optional.resolve().get();
 				reputation.changeReputation(player, faction, amount);
-				for (Faction enemy : faction.getEnemies()) {
-					reputation.changeReputation(player, enemy, -amount);
-				}
-				if(player instanceof ServerPlayer) PacketHandler.sendTo(new SetIconMessage(amount>0),(ServerPlayer)player);
-				else if(amount>0) RenderIcon.setIcon(ModDefinitions.getResource("icons/plus.png"));
-				else RenderIcon.setIcon(ModDefinitions.getResource("icons/minus.png"));
+				PacketHandler.sendTo(new SetIconMessage(amount>0),(ServerPlayer)player);
 			}
 		}
 	}
 
-	public static void changeReputationStrict(Player player, Faction faction, int amount) {
-		if(amount!=0) {
-			LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
-			if (optional.isPresent()) {
-				IReputation reputation = optional.resolve().get();
-				reputation.changeReputation(player, faction, amount);
-				if(player instanceof ServerPlayer) PacketHandler.sendTo(new SetIconMessage(amount>0),(ServerPlayer)player);
-				else if(amount>0) RenderIcon.setIcon(ModDefinitions.getResource("icons/plus.png"));
-				else RenderIcon.setIcon(ModDefinitions.getResource("icons/minus.png"));
-			}
+	public static boolean isGoodReputation(Player player, Faction faction) {
+		LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
+		if (optional.isPresent()) {
+			IReputation reputation = optional.resolve().get();
+			return reputation.getReputation(faction)>=faction.getHigherRep();
 		}
+		return false;
+	}
+
+	public static boolean isBadReputation(Player player, Faction faction) {
+		LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
+		if (optional.isPresent()) {
+			IReputation reputation = optional.resolve().get();
+			return reputation.getReputation(faction)<=faction.getLowerRep();
+		}
+		return false;
 	}
 
 	public static void emptyMaps() {
@@ -103,6 +104,7 @@ public class ReputationHandler {
 
 	public static void readPacketData(Collection<Faction> factions) {
 		for (Faction faction : factions) {
+			Reputation.logInfo("reading faction: "+faction.getName());
 			CLIENT_FACTIONS.put(faction.getName(), faction);
 		}
 	}

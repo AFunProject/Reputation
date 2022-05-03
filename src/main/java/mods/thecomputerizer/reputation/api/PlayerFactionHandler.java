@@ -23,23 +23,26 @@ public class PlayerFactionHandler {
         return false;
     }
 
-    public static void addPlayerToFaction(Faction f, Player p) {
+    public static boolean addPlayerToFaction(Faction f, Player p) {
+        boolean pass = false;
         for(Faction other : ReputationHandler.getFactions()) {
             if(other==f) {
                 LazyOptional<IPlayerFaction> optional = ServerLifecycleHooks.getCurrentServer().overworld().getCapability(PLAYER_FACTIONS.get(f).PLAYER_FACTION);
                 if (optional.isPresent()) {
                     IPlayerFaction playerFaction = optional.resolve().get();
-                    playerFaction.addPlayer(p);
+                    pass = playerFaction.addPlayer(p);
                 }
             } else removePlayerFromFaction(other, p);
         }
+        return pass;
     }
 
-    public static void removePlayerFromFaction(Faction f, Player p) {
+    public static boolean removePlayerFromFaction(Faction f, Player p) {
         LazyOptional<IPlayerFaction> optional = ServerLifecycleHooks.getCurrentServer().overworld().getCapability(PLAYER_FACTIONS.get(f).PLAYER_FACTION);
         if (optional.isPresent()) {
             IPlayerFaction playerFaction = optional.resolve().get();
-            playerFaction.removePlayer(p);
+            return playerFaction.removePlayer(p);
         }
+        return false;
     }
 }
