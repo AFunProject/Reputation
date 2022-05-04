@@ -1,4 +1,4 @@
-package mods.thecomputerizer.reputation.client.render;
+package mods.thecomputerizer.reputation.client.event;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -6,6 +6,7 @@ import com.mojang.math.Matrix4f;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
+import mods.thecomputerizer.reputation.config.ClientConfigHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -13,14 +14,23 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderNameplateEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
+import java.util.HashMap;
+
+@Mod.EventBusSubscriber(modid = ModDefinitions.MODID)
+@OnlyIn(value = Dist.CLIENT)
 public class RenderEvents {
 
     public static final int RENDER_DISTANCE = 64;
     public static final ResourceLocation BAD_REPUTATION = new ResourceLocation(ModDefinitions.MODID,"textures/icons/minus.png");
     public static final ResourceLocation GOOD_REPUTATION = new ResourceLocation(ModDefinitions.MODID,"textures/icons/plus.png");
+    public static HashMap<ResourceLocation, Faction> CLIENT_FACTIONS = new HashMap<>();
 
     @SubscribeEvent
     public static void renderName(RenderNameplateEvent e) {
@@ -65,6 +75,16 @@ public class RenderEvents {
                     }
                     offset++;
                 }
+            }
+        }
+    }
+
+    //prints the player's reputation for each faction to the screen
+    @SubscribeEvent
+    public static void debugInfo(RenderGameOverlayEvent.Text e) {
+        if(ClientConfigHandler.debug.get() && Minecraft.getInstance().player!=null) {
+            for (Faction f : CLIENT_FACTIONS.values()) {
+                e.getLeft().add("Reputation for the "+f.getName()+" faction: "+ ReputationHandler.getReputation(Minecraft.getInstance().player,f));
             }
         }
     }

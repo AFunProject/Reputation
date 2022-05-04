@@ -25,7 +25,7 @@ public class PlayerFactionHandler {
 
     public static boolean addPlayerToFaction(Faction f, Player p) {
         boolean pass = false;
-        for(Faction other : ReputationHandler.getFactions()) {
+        for(Faction other : ReputationHandler.getFactionMap().values()) {
             if(other==f) {
                 LazyOptional<IPlayerFaction> optional = ServerLifecycleHooks.getCurrentServer().overworld().getCapability(PLAYER_FACTIONS.get(f).PLAYER_FACTION);
                 if (optional.isPresent()) {

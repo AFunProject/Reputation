@@ -8,8 +8,11 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
+import mods.thecomputerizer.reputation.client.event.RenderEvents;
+import net.minecraft.client.Minecraft;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.vehicle.Minecart;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,7 +23,7 @@ public class FactionArgument implements ArgumentType<ResourceLocation> {
     private static final List<ResourceLocation> FACTIONS = new ArrayList<>();
 
     public static FactionArgument id() {
-        for(Faction f : ReputationHandler.getFactions()) FACTIONS.add(f.getName());
+        for(Faction f : ReputationHandler.getFactionMap().values()) FACTIONS.add(f.getName());
         return new FactionArgument();
     }
 
@@ -31,7 +34,7 @@ public class FactionArgument implements ArgumentType<ResourceLocation> {
 
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
-        return context.getSource() instanceof SharedSuggestionProvider ? SharedSuggestionProvider.suggestResource(FACTIONS.stream(), builder) : Suggestions.empty();
+        return context.getSource() instanceof SharedSuggestionProvider ? (Minecraft.getInstance().player!=null ? SharedSuggestionProvider.suggestResource(RenderEvents.CLIENT_FACTIONS.keySet().stream(), builder) : SharedSuggestionProvider.suggestResource(FACTIONS.stream(), builder)) : Suggestions.empty();
     }
 
     @Override

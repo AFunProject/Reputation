@@ -8,8 +8,6 @@ import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.api.capability.IPlacedContainer;
 import mods.thecomputerizer.reputation.api.capability.IPlayerFaction;
 import mods.thecomputerizer.reputation.api.capability.IReputation;
-import mods.thecomputerizer.reputation.client.render.RenderEvents;
-import mods.thecomputerizer.reputation.client.render.RenderIcon;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.common.ai.ReputationMemoryModule;
 import mods.thecomputerizer.reputation.common.ai.ReputationSenorType;
@@ -18,11 +16,9 @@ import mods.thecomputerizer.reputation.common.registration.TagKeys;
 import mods.thecomputerizer.reputation.config.ClientConfigHandler;
 import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AddReloadListenerEvent;
@@ -33,7 +29,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -62,10 +57,6 @@ public class Reputation {
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::registerCapabilities);
 		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ClientConfigHandler.CONFIG, "reputation/client.toml");
 		MinecraftForge.EVENT_BUS.register(this);
-		if(FMLEnvironment.dist == Dist.CLIENT) {
-			MinecraftForge.EVENT_BUS.register(RenderIcon.class);
-			MinecraftForge.EVENT_BUS.register(RenderEvents.class);
-		}
 		MinecraftForge.EVENT_BUS.addListener(this::reloadData);
 		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
 		ReputationMemoryModule.MEMORY_MODULES.register(modBus);
@@ -95,14 +86,12 @@ public class Reputation {
 			@Override
 			protected void apply(@Nonnull Void value, @Nonnull ResourceManager rm, @Nonnull ProfilerFiller profiler) {
 				try {
-					ReputationHandler.emptyMaps();
 					List<ResourceLocation> checked = new ArrayList<>();
 					for (ResourceLocation resource : rm.listResources("factions/", (location) -> location.endsWith("json"))) {
 						if(!checked.contains(resource)) {
 							InputStreamReader reader = new InputStreamReader(rm.getResource(resource).getInputStream(), StandardCharsets.UTF_8);
 							ReputationHandler.registerFaction(Faction.fromJson(resource, GSON.fromJson(reader, JsonElement.class)));
 							reader.close();
-							Reputation.logInfo("registered faction at location " + resource);
 							checked.add(resource);
 						}
 					}

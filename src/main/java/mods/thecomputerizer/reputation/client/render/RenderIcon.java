@@ -2,6 +2,7 @@ package mods.thecomputerizer.reputation.client.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import mods.thecomputerizer.reputation.Reputation;
+import mods.thecomputerizer.reputation.common.ModDefinitions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -11,12 +12,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@OnlyIn(Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = ModDefinitions.MODID)
+@OnlyIn(value = Dist.CLIENT)
 public class RenderIcon {
 
     public static List<RenderIcon> renderable = new ArrayList<>();

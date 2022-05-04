@@ -2,6 +2,7 @@ package mods.thecomputerizer.reputation.api;
 
 import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.capability.IReputation;
+import mods.thecomputerizer.reputation.client.event.RenderEvents;
 import mods.thecomputerizer.reputation.client.render.RenderIcon;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
@@ -24,39 +25,32 @@ public class ReputationHandler {
 
 	public static Capability<IReputation> REPUTATION_CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {});
 
-	private static Map<ResourceLocation, Faction> FACTIONS = new HashMap<>();
-	private static Map<ResourceLocation, Faction> CLIENT_FACTIONS = new HashMap<>();
+	private static HashMap<ResourceLocation, Faction> FACTIONS = new HashMap<>();
 
 	public static void registerFaction(Faction faction) {
-		if(!faction.getName().getPath().isEmpty()) {
+		Reputation.logInfo("registering faction");
+		if(!faction.getName().toString().isEmpty() && !FACTIONS.containsKey(faction.getName())) {
+			Reputation.logInfo("registered faction at location " + faction.getName().toString());
 			FACTIONS.put(faction.getName(), faction);
 		}
 	}
 
 	public static Faction getFaction(ResourceLocation loc) {
-		return getSidedList().get(loc);
+		return getFactionMap().get(loc);
 	}
 
-	public static Collection<Faction> getFactions() {
-		return getSidedList().values();
-	}
-
-	public static Collection<Faction> getServerFactions() {
-		return FACTIONS.values();
+	public static Map<ResourceLocation, Faction> getFactionMap() {
+		return FACTIONS;
 	}
 
 	public static Collection<Faction> getEntityFactions(LivingEntity entity) {
 		Set<Faction> factions = new HashSet<>();
-		for (Faction faction : getFactions()) {
+		for (Faction faction : getFactionMap().values()) {
 			if (faction.isMember(entity)) {
 				factions.add(faction);
 			}
 		}
 		return factions;
-	}
-
-	private static Map<ResourceLocation, Faction> getSidedList() {
-		return FMLEnvironment.dist == Dist.CLIENT ? CLIENT_FACTIONS : FACTIONS;
 	}
 
 	public static int getReputation(Player player, Faction faction) {
@@ -99,13 +93,12 @@ public class ReputationHandler {
 
 	public static void emptyMaps() {
 		FACTIONS = new HashMap<>();
-		CLIENT_FACTIONS = new HashMap<>();
 	}
 
 	public static void readPacketData(Collection<Faction> factions) {
 		for (Faction faction : factions) {
 			Reputation.logInfo("reading faction: "+faction.getName());
-			CLIENT_FACTIONS.put(faction.getName(), faction);
+			RenderEvents.CLIENT_FACTIONS.put(faction.getName(),faction);
 		}
 	}
 }

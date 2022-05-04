@@ -65,7 +65,11 @@ public class ReputationCapability implements IReputation {
 		Reputation.logInfo("reading nbt");
 		FACTIONS = new HashMap<>();
 		FACTION_IDS = new HashMap<>();
-		for (Faction f : ReputationHandler.getServerFactions()) {
+		for(String key : nbt.getAllKeys()) {
+			Reputation.logInfo("nbt key: "+key);
+		}
+		for (Faction f : ReputationHandler.getFactionMap().values()) {
+			Reputation.logInfo("reading nbt - found faction: "+f.getName());
 			if (nbt.contains(f.getName().toString())) {
 				FACTIONS.putIfAbsent(f, nbt.getInt(f.getName().toString()));
 				FACTION_IDS.putIfAbsent(f.getName().toString(), nbt.getInt(f.getName().toString()));

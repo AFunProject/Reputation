@@ -1,5 +1,6 @@
 package mods.thecomputerizer.reputation.common.network;
 
+import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import net.minecraft.network.FriendlyByteBuf;
@@ -19,13 +20,14 @@ public class SyncFactionsMessage {
 		data = buf.readUtf();
 	}
 
-	public SyncFactionsMessage(Collection<Faction> factions, ServerPlayer player) {
+	public SyncFactionsMessage(Collection<Faction> factions) {
 		StringBuilder builder = new StringBuilder();
 		for (Faction faction : factions) {
 			builder.append(faction.toJsonString());
 			builder.append(";");
 		}
 		data = builder.toString();
+		Reputation.logInfo("sending packet "+data);
 	}
 
 	public void encode(FriendlyByteBuf buf) {
@@ -43,6 +45,7 @@ public class SyncFactionsMessage {
 		Set<Faction> factions = new HashSet<>();
 		for (String factionData : data.split(";")) {
 			if (factionData!=null && !factionData.isBlank()) {
+				Reputation.logInfo("from server packet " + hashCode());
 				Faction faction = Faction.fromJsonAsString("from server packet " + hashCode(), factionData);
 				if (faction != null) factions.add(faction);
 			}
