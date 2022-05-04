@@ -10,6 +10,7 @@ import net.minecraftforge.registries.RegistryObject;
 
 import java.util.Optional;
 
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class ReputationMemoryModule<U> extends MemoryModuleType<U> {
 
     public static final DeferredRegister<MemoryModuleType<?>> MEMORY_MODULES = DeferredRegister.create(ForgeRegistries.MEMORY_MODULE_TYPES, ModDefinitions.MODID);

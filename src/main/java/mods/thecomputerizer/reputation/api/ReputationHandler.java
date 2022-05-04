@@ -3,20 +3,16 @@ package mods.thecomputerizer.reputation.api;
 import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.capability.IReputation;
 import mods.thecomputerizer.reputation.client.event.RenderEvents;
-import mods.thecomputerizer.reputation.client.render.RenderIcon;
-import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.common.network.SetIconMessage;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 
 import java.util.*;
 

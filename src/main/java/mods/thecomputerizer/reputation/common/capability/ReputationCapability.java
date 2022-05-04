@@ -1,6 +1,5 @@
 package mods.thecomputerizer.reputation.common.capability;
 
-import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.api.capability.IReputation;

@@ -1,7 +1,6 @@
 package mods.thecomputerizer.reputation.common.capability;
 
 import mods.thecomputerizer.reputation.api.Faction;
-import mods.thecomputerizer.reputation.api.capability.IPlacedContainer;
 import mods.thecomputerizer.reputation.api.capability.IPlayerFaction;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;

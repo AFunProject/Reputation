@@ -32,7 +32,7 @@ public class SetReputationCommand {
         try {
             Player player = cs.getPlayerOrException();
             LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
-            if (optional.isPresent()) {
+            if (optional.isPresent() && optional.resolve().isPresent()) {
                 IReputation reputation = optional.resolve().get();
                 reputation.setReputation(player,ReputationHandler.getFaction(faction),set);
             }
@@ -48,7 +48,7 @@ public class SetReputationCommand {
         try {
             if(!(e instanceof Player player)) throw new CommandRuntimeException(new TextComponent("Entity was not a player!"));
             LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
-            if (optional.isPresent()) {
+            if (optional.isPresent() && optional.resolve().isPresent()) {
                 IReputation reputation = optional.resolve().get();
                 reputation.setReputation(player,ReputationHandler.getFaction(faction),set);
             }

@@ -40,7 +40,7 @@ public class TweakEvents {
 		LivingEntity entity = event.getEntityLiving();
 		Level level = entity.level;
 		if(!level.isClientSide) {
-			if (event.getSource()==DamageSource.ON_FIRE && entity instanceof AbstractSkeleton &&
+			if (event.getSource()==DamageSource.ON_FIRE && entity instanceof AbstractSkeleton && level.getBiome(entity.blockPosition()).unwrapKey().isPresent() &&
 					BiomeDictionary.hasType(level.getBiome(entity.blockPosition()).unwrapKey().get(), BiomeDictionary.Type.HOT)) {
 				BlockPos pos = entity.blockPosition();
 				WitherSkeleton newentity = new WitherSkeleton(EntityType.WITHER_SKELETON, level);

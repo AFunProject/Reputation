@@ -21,12 +21,11 @@ public class HelperMethods {
 
     public static Player getNearestPlayerInGoodStandingToEntity(LivingEntity entity, double distance) {
         Level level = entity.level;
-        List<Player> list = level.players().stream().filter(EntitySelector.NO_SPECTATORS)
+        List<? extends Player> list = level.players().stream().filter(EntitySelector.NO_SPECTATORS)
                 .filter((p) -> entity.closerThan(p, distance))
                 .filter((p) -> p.getCapability(ReputationHandler.REPUTATION_CAPABILITY).isPresent())
-                .filter((p) -> isPlayerInGoodStanding(entity,p))
-                .sorted(Comparator.comparingDouble(entity::distanceToSqr))
-                .collect(Collectors.toList());
+                .filter((p) -> isPlayerInGoodStanding(entity, p))
+                .sorted(Comparator.comparingDouble(entity::distanceToSqr)).toList();
         if(!list.isEmpty()) {
             return list.get(0);
         }
@@ -35,12 +34,11 @@ public class HelperMethods {
 
     public static Player getNearestPlayerInNeutralStandingToEntity(LivingEntity entity, double distance) {
         Level level = entity.level;
-        List<Player> list = level.players().stream().filter(EntitySelector.NO_SPECTATORS)
+        List<? extends Player> list = level.players().stream().filter(EntitySelector.NO_SPECTATORS)
                 .filter((p) -> entity.closerThan(p, distance))
                 .filter((p) -> p.getCapability(ReputationHandler.REPUTATION_CAPABILITY).isPresent())
-                .filter((p) -> isPlayerInNeutralStanding(entity,p))
-                .sorted(Comparator.comparingDouble(entity::distanceToSqr))
-                .collect(Collectors.toList());
+                .filter((p) -> isPlayerInNeutralStanding(entity, p))
+                .sorted(Comparator.comparingDouble(entity::distanceToSqr)).toList();
         if(!list.isEmpty()) {
             return list.get(0);
         }
@@ -49,12 +47,11 @@ public class HelperMethods {
 
     public static Player getNearestPlayerInBadStandingToEntity(LivingEntity entity, double distance) {
         Level level = entity.level;
-        List<Player> list = level.players().stream().filter(EntitySelector.NO_SPECTATORS)
+        List<? extends Player> list = level.players().stream().filter(EntitySelector.NO_SPECTATORS)
                 .filter((p) -> entity.closerThan(p, distance))
                 .filter((p) -> p.getCapability(ReputationHandler.REPUTATION_CAPABILITY).isPresent())
-                .filter((p) -> isPlayerInBadStanding(entity,p))
-                .sorted(Comparator.comparingDouble(entity::distanceToSqr))
-                .collect(Collectors.toList());
+                .filter((p) -> isPlayerInBadStanding(entity, p))
+                .sorted(Comparator.comparingDouble(entity::distanceToSqr)).toList();
         if(!list.isEmpty()) {
             return list.get(0);
         }
@@ -133,7 +130,7 @@ public class HelperMethods {
     public static List<? extends LivingEntity> getSeenEntitiesOfTypeInRange(ServerLevel level, LivingEntity entity, EntityType<?> type, BlockPos pos, double range) {
         return level.getEntitiesOfClass(LivingEntity.class, new AABB(pos.getX()-range, pos.getY()-(range/2), pos.getZ()-range, pos.getX()+range, pos.getY()+(range/2), pos.getZ()+range)).stream()
                 .filter(e -> e.getType()==type)
-                .filter(e -> e.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).get().contains(entity))
+                .filter(e -> e.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).isPresent() && e.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).get().contains(entity))
                 .collect(Collectors.toList());
     }
 }

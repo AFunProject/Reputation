@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -11,8 +12,10 @@ import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public class ReputationSensor extends Sensor<LivingEntity> {
     public @NotNull Set<MemoryModuleType<?>> requires() {
@@ -20,12 +23,11 @@ public class ReputationSensor extends Sensor<LivingEntity> {
     }
 
     protected void doTick(ServerLevel level, LivingEntity entity) {
-        List<Player> list = level.players().stream().filter(EntitySelector.NO_SPECTATORS)
+        List<ServerPlayer> list = level.players().stream().filter(EntitySelector.NO_SPECTATORS)
                 .filter((p) -> entity.closerThan(p, 16.0D))
                 .filter((p) -> isEntityTargetable(entity, p))
                 .filter((p) -> p.getCapability(ReputationHandler.REPUTATION_CAPABILITY).isPresent())
-                .sorted(Comparator.comparingDouble(entity::distanceToSqr))
-                .collect(Collectors.toList());
+                .sorted(Comparator.comparingDouble(entity::distanceToSqr)).toList();
         if(!list.isEmpty()) {
             Player nearest = list.get(0);
             for (Faction f : ReputationHandler.getEntityFactions(entity)) {

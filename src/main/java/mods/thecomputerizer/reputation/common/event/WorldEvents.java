@@ -1,6 +1,5 @@
 package mods.thecomputerizer.reputation.common.event;
 
-import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.PlayerFactionHandler;
 import mods.thecomputerizer.reputation.api.ReputationHandler;

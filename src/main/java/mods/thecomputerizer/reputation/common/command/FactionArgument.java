@@ -12,7 +12,6 @@ import mods.thecomputerizer.reputation.client.event.RenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.vehicle.Minecart;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -104,7 +104,7 @@ public class Faction {
 			HashMap<String, Integer> weighting = new HashMap<>();
 			weighting.put("murder", json.get("weighted_murder").getAsInt());
 			weighting.put("looting", json.get("weighted_looting").getAsInt());
-			List<EntityType<?>> members = parseMembers("members", json);
+			List<EntityType<?>> members = parseMembers(json);
 			List<ResourceLocation> enemies = parseResourceArray("enemies", json);
 			return new Faction(name, defaultRep, lowerRep, higherRep, weighting, enemies, members);
 		} catch (Exception e) {
@@ -113,10 +113,10 @@ public class Faction {
 		}
 	}
 
-	private static List<EntityType<?>> parseMembers(String element, JsonObject json) {
+	private static List<EntityType<?>> parseMembers(JsonObject json) {
 		List<EntityType<?>> members = new ArrayList<>();
-		if(json.has(element)) {
-			for (ResourceLocation loc : parseResourceArray(element, json)) {
+		if(json.has("members")) {
+			for (ResourceLocation loc : parseResourceArray("members", json)) {
 				EntityType<?> entity = ForgeRegistries.ENTITIES.getValue(loc);
 				members.add(entity);
 			}

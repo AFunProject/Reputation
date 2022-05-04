@@ -16,7 +16,6 @@ import net.minecraft.world.phys.Vec3;
 import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class FleeGoal extends Goal {
     @Nullable
@@ -24,7 +23,7 @@ public class FleeGoal extends Goal {
     protected final PathNavigation pathNav;
     private final Mob mob;
     private Player player;
-    private double speed;
+    private final double speed;
 
     public FleeGoal(Mob mob, double speed) {
         this.mob = mob;
@@ -36,11 +35,10 @@ public class FleeGoal extends Goal {
     @Override
     public boolean canUse() {
         Level level = this.mob.level;
-        List<Player> list = level.players().stream().filter(EntitySelector.NO_SPECTATORS)
+        List<? extends Player> list = level.players().stream().filter(EntitySelector.NO_SPECTATORS)
                 .filter((p) -> this.mob.closerThan(p, 16.0D))
                 .filter((p) -> p.getCapability(ReputationHandler.REPUTATION_CAPABILITY).isPresent())
-                .sorted(Comparator.comparingDouble(this.mob::distanceToSqr))
-                .collect(Collectors.toList());
+                .sorted(Comparator.comparingDouble(this.mob::distanceToSqr)).toList();
         if(!list.isEmpty()) {
             Player nearest = list.get(0);
             for (Faction f : ReputationHandler.getEntityFactions(this.mob)) {

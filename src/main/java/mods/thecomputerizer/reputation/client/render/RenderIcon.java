@@ -1,7 +1,6 @@
 package mods.thecomputerizer.reputation.client.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;

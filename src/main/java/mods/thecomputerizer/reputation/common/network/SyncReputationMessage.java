@@ -11,8 +11,8 @@ import java.util.function.Supplier;
 
 public class SyncReputationMessage {
 
-	private ResourceLocation faction;
-	private int reputation;
+	private final ResourceLocation faction;
+	private final int reputation;
 	public SyncReputationMessage(FriendlyByteBuf buf){
 		faction = new ResourceLocation(buf.readUtf());
 		reputation = buf.readInt();
