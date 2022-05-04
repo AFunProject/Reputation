@@ -90,13 +90,14 @@ public class HelperMethods {
         if(!factions.isEmpty()) {
             int total = 0;
             int rep = 0;
+            int cutoff = 0;
             for (Faction f : factions) {
                 rep += ReputationHandler.getReputation(player, f);
                 total++;
+                cutoff+=f.getHigherRep();
             }
-            if(rep!=50) {
-                return (((double)rep/total)-50d)/-200d;
-            }
+            float averageHighRep = cutoff/(float)total;
+            if(rep>=averageHighRep) return (((double)rep/total)-averageHighRep)/(averageHighRep*-5);
         }
         return 0d;
     }
