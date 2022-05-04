@@ -79,17 +79,17 @@ public class RenderIcon {
                             float opacity = (int) (17f - (icon.fadeCount / 80f));
                             opacity = (opacity * 1.15f) / 15f;
 
-                            int sizeX = 50;
-                            int sizeY = 50;
+                            int sizeX = 40;
+                            int sizeY = 40;
 
                             float scaleY = 1f;
                             float scaleX = 1f;
                             e.getMatrixStack().scale(scaleX, scaleY, 1f);
 
-                            float posY = y-((float)sizeY*sizeY/2f);
-                            float posX = (x/2f) - (float)sizeX*scaleX-100;
+                            float posY = (y/2f) - ((float)sizeY*scaleY/2f);
+                            float posX = x - (float)sizeX*scaleX-20;
 
-                            Reputation.logInfo("Rendering Icon: Pos X: "+posX);
+                            Reputation.logInfo("Rendering Icon: Pos X: "+posX+" Pos Y: "+posY+" Total X: "+x+" Total Y: "+y);
 
                             RenderSystem.setShaderColor(1F, 1F, 1F, Math.max(0, Math.min(0.95f, opacity)));
                             RenderSystem.setShaderTexture(0, icon.ICON_LOCATION);
