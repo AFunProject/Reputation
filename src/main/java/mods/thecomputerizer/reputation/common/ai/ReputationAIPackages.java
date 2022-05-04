@@ -2,7 +2,6 @@ package mods.thecomputerizer.reputation.common.ai;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
-import mods.thecomputerizer.reputation.Reputation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.Brain;
@@ -14,9 +13,10 @@ import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 
+import java.util.Arrays;
 import java.util.Optional;
 
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ReputationAIPackages {
 
     public static void buildReputationSensor(Brain<? extends LivingEntity> brain) {
@@ -28,11 +28,9 @@ public class ReputationAIPackages {
 
     public static void buildReputationFleeAI(Brain brain, float f) {
         brain.addActivity(Activity.PANIC, getFleePackage(f));
-        brain.addActivity(Activity.CORE, getFleePackage(f));
-        brain.addActivity(Activity.MEET, getFleePackage(f));
-        brain.addActivity(Activity.IDLE, getFleePackage(f));
-        brain.addActivity(Activity.REST, getFleePackage(f));
-        brain.addActivity(Activity.HIDE, getFleePackage(f));
+        for (Activity activity : Arrays.asList(Activity.CORE, Activity.MEET, Activity.IDLE, Activity.REST, Activity.HIDE)) {
+            brain.addActivity(activity, getFleePackage(f));
+        }
     }
 
     public static void buildReputationPassiveNeutralAI(Brain brain, int time) {
