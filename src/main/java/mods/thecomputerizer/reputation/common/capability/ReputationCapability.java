@@ -40,7 +40,6 @@ public class ReputationCapability implements IReputation {
 	@Override
 	public void changeReputation(Player player, Faction faction, int reputation) {
 		int base = FACTION_IDS.containsKey(faction.getName().toString()) ? FACTION_IDS.get(faction.getName().toString()) : faction.getDefaultRep();
-		Reputation.logInfo("base: "+FACTION_IDS.get(faction.getName().toString())+" faction: "+faction.getName());
 		FACTION_IDS.put(faction.getName().toString(), base + reputation);
 		FACTIONS.put(faction, base + reputation);
 		if (player instanceof ServerPlayer) {
@@ -50,11 +49,9 @@ public class ReputationCapability implements IReputation {
 
 	@Override
 	public CompoundTag writeNBT(CompoundTag nbt) {
-		Reputation.logInfo("writing nbt");
 		for (Faction entry : FACTIONS.keySet()) {
 			if(!nbt.contains(entry.getName().toString())) {
 				nbt.putInt(entry.getName().toString(), FACTIONS.get(entry));
-				Reputation.logInfo("writing cap int for " + entry.getName().toString() + ": " + nbt.getInt(entry.getName().toString()));
 			}
 		}
 		return nbt;
@@ -62,20 +59,13 @@ public class ReputationCapability implements IReputation {
 
 	@Override
 	public void readNBT(CompoundTag nbt) {
-		Reputation.logInfo("reading nbt");
 		FACTIONS = new HashMap<>();
 		FACTION_IDS = new HashMap<>();
-		for(String key : nbt.getAllKeys()) {
-			Reputation.logInfo("nbt key: "+key);
-		}
 		for (Faction f : ReputationHandler.getFactionMap().values()) {
-			Reputation.logInfo("reading nbt - found faction: "+f.getName());
 			if (nbt.contains(f.getName().toString())) {
 				FACTIONS.putIfAbsent(f, nbt.getInt(f.getName().toString()));
 				FACTION_IDS.putIfAbsent(f.getName().toString(), nbt.getInt(f.getName().toString()));
-				Reputation.logInfo("Reading cap int for " + f.getName().toString() + ": " + nbt.getInt(f.getName().toString()));
 			} else {
-				Reputation.logInfo("reading nbt factions default " + f.getName().toString());
 				FACTIONS.putIfAbsent(f, f.getDefaultRep());
 				FACTION_IDS.putIfAbsent(f.getName().toString(), f.getDefaultRep());
 			}

@@ -63,7 +63,6 @@ public class ReputationAIPackages {
 
     public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getHostilePackage(Mob mob, Brain<? extends LivingEntity> brain) {
         return ImmutableList.of(Pair.of(1, new StartAttacking<>(attackFunction -> {
-            Reputation.logInfo("testing brain hostile stuff");
             Optional<Player> optional = brain.getMemory(ReputationMemoryModule.NEAREST_PLAYER_BAD_REPUTATION.get());
             return optional.isPresent() && Sensor.isEntityAttackable(mob, optional.get()) ? optional : Optional.empty();
         })));

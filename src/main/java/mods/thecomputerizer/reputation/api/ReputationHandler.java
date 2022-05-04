@@ -28,7 +28,6 @@ public class ReputationHandler {
 	private static HashMap<ResourceLocation, Faction> FACTIONS = new HashMap<>();
 
 	public static void registerFaction(Faction faction) {
-		Reputation.logInfo("registering faction");
 		if(!faction.getName().toString().isEmpty() && !FACTIONS.containsKey(faction.getName())) {
 			Reputation.logInfo("registered faction at location " + faction.getName().toString());
 			FACTIONS.put(faction.getName(), faction);
@@ -97,7 +96,6 @@ public class ReputationHandler {
 
 	public static void readPacketData(Collection<Faction> factions) {
 		for (Faction faction : factions) {
-			Reputation.logInfo("reading faction: "+faction.getName());
 			RenderEvents.CLIENT_FACTIONS.put(faction.getName(),faction);
 		}
 	}

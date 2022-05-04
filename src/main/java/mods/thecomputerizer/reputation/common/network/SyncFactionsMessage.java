@@ -27,7 +27,6 @@ public class SyncFactionsMessage {
 			builder.append(";");
 		}
 		data = builder.toString();
-		Reputation.logInfo("sending packet "+data);
 	}
 
 	public void encode(FriendlyByteBuf buf) {
@@ -45,7 +44,6 @@ public class SyncFactionsMessage {
 		Set<Faction> factions = new HashSet<>();
 		for (String factionData : data.split(";")) {
 			if (factionData!=null && !factionData.isBlank()) {
-				Reputation.logInfo("from server packet " + hashCode());
 				Faction faction = Faction.fromJsonAsString("from server packet " + hashCode(), factionData);
 				if (faction != null) factions.add(faction);
 			}

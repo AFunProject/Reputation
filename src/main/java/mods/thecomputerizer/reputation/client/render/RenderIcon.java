@@ -89,8 +89,6 @@ public class RenderIcon {
                             float posY = (y/2f) - ((float)sizeY*scaleY/2f);
                             float posX = x - (float)sizeX*scaleX-20;
 
-                            Reputation.logInfo("Rendering Icon: Pos X: "+posX+" Pos Y: "+posY+" Total X: "+x+" Total Y: "+y);
-
                             RenderSystem.setShaderColor(1F, 1F, 1F, Math.max(0, Math.min(0.95f, opacity)));
                             RenderSystem.setShaderTexture(0, icon.ICON_LOCATION);
                             GuiComponent.blit(e.getMatrixStack(), (int) posX, (int) posY, 0F, 0F, sizeX, sizeY, sizeX, sizeY);

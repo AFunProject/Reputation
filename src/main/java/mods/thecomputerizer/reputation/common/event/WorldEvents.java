@@ -75,7 +75,6 @@ public class WorldEvents {
             brain.memories.putIfAbsent(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, Optional.empty());
             if(entity instanceof Player player) {
                 //sync faction data to players upon joining
-                Reputation.logInfo("PLayer info test");
                 LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
                 if (optional.isPresent() && optional.resolve().isPresent()) {
                     IReputation reputation = optional.resolve().get();
@@ -83,7 +82,6 @@ public class WorldEvents {
                     ServerPlayer serverPlayer = (ServerPlayer)player;
                     PacketHandler.sendTo(new SyncFactionsMessage(toSync.keySet()),serverPlayer);
                     for(Faction f : toSync.keySet()) {
-                        Reputation.logInfo("Reputation Value sync test");
                         reputation.setReputation(player,f,toSync.get(f));
                     }
                 }
