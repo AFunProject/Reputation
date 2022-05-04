@@ -43,7 +43,7 @@ public class FleeGoal extends Goal {
             Player nearest = list.get(0);
             for (Faction f : ReputationHandler.getEntityFactions(this.mob)) {
                 int reputation = ReputationHandler.getReputation(nearest, f);
-                if(reputation<=-50) {
+                if(reputation<=f.getLowerRep()) {
                     this.player = nearest;
                     Vec3 vec3 = DefaultRandomPos.getPosAway((PathfinderMob) this.mob, 16, 7, this.player.position());
                     if (vec3 == null) {

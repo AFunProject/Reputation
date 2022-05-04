@@ -60,7 +60,7 @@ public class HelperMethods {
 
     public static boolean isPlayerInGoodStanding(LivingEntity entity, Player player) {
         for(Faction faction : ReputationHandler.getEntityFactions(entity)) {
-            if(ReputationHandler.getReputation(player,faction)>=50) {
+            if(ReputationHandler.getReputation(player,faction)>=faction.getHigherRep()) {
                 return true;
             }
         }
@@ -69,7 +69,7 @@ public class HelperMethods {
 
     public static boolean isPlayerInNeutralStanding(LivingEntity entity, Player player) {
         for(Faction faction : ReputationHandler.getEntityFactions(entity)) {
-            if(ReputationHandler.getReputation(player,faction)>-50 && ReputationHandler.getReputation(player,faction)<50) {
+            if(ReputationHandler.getReputation(player,faction)>faction.getLowerRep() && ReputationHandler.getReputation(player,faction)<faction.getHigherRep()) {
                 return true;
             }
         }
@@ -78,7 +78,7 @@ public class HelperMethods {
 
     public static boolean isPlayerInBadStanding(LivingEntity entity, Player player) {
         for(Faction faction : ReputationHandler.getEntityFactions(entity)) {
-            if(ReputationHandler.getReputation(player,faction)<=-50) {
+            if(ReputationHandler.getReputation(player,faction)<=faction.getLowerRep()) {
                 return true;
             }
         }
@@ -97,7 +97,7 @@ public class HelperMethods {
                 cutoff+=f.getHigherRep();
             }
             float averageHighRep = cutoff/(float)total;
-            if(rep>=averageHighRep) return (((double)rep/total)-averageHighRep)/(averageHighRep*-5);
+            if(rep!=averageHighRep) return (((double)rep/total)-averageHighRep)/(averageHighRep*-5);
         }
         return 0d;
     }
@@ -109,13 +109,14 @@ public class HelperMethods {
             if (!factions.isEmpty()) {
                 int total = 0;
                 int rep = 0;
+                int cutoff = 0;
                 for (Faction f : factions) {
                     rep += ReputationHandler.getReputation(player, f);
                     total++;
+                    cutoff+=f.getLowerRep();
                 }
-                if (rep != -50) {
-                    return 0.5f - (((float) rep / total) + 50f) / 100f;
-                }
+                float averageLowRep = cutoff/(float)total;
+                if (rep != averageLowRep) return 0.5f - (((float) rep / total) + Math.abs(averageLowRep)) / (2*Math.abs(averageLowRep));
             }
         }
         return 1f;
