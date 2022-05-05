@@ -31,6 +31,6 @@ public class SetIconMessage {
     }
 
     private ResourceLocation setIconLocation() {
-        return this.encoded ? ModDefinitions.getResource("textures/icons/flee.png") : ModDefinitions.getResource("textures/icons/minus.png");
+        return this.encoded ? ModDefinitions.getResource("textures/icons/plus.png") : ModDefinitions.getResource("textures/icons/minus.png");
     }
 }

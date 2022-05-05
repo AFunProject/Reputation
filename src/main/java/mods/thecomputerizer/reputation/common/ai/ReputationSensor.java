@@ -1,7 +1,6 @@
 package mods.thecomputerizer.reputation.common.ai;
 
 import com.google.common.collect.ImmutableSet;
-import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.PlayerFactionHandler;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
@@ -13,12 +12,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
-import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -70,7 +66,7 @@ public class ReputationSensor extends Sensor<LivingEntity> {
                     for (Faction f : ReputationHandler.getEntityFactions(mob)) {
                         if (PlayerFactionHandler.isPlayerInFaction(f, this.player)) inFaction = true;
                     }
-                    if (!inFaction && this.random.nextFloat(51f)>=0f && !this.startFlee) {
+                    if (!inFaction && this.random.nextFloat(41f)>=40f && !this.startFlee) {
                         this.startFlee = true;
                         if (this.player instanceof ServerPlayer)
                             PacketHandler.sendTo(new FleeIconMessage(mob.getUUID(), true), (ServerPlayer) this.player);

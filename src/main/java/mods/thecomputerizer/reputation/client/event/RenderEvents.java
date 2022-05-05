@@ -57,8 +57,8 @@ public class RenderEvents {
                         }
                         offset++;
                     }
-                }
-            } else render(e,living,player,FLEE,0d,0.5d,1f);
+                } else render(e,living,player,FLEE,0d,0.5d,1f);
+            }
         }
     }
 

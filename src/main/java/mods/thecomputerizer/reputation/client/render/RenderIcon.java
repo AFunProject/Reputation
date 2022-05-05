@@ -73,7 +73,7 @@ public class RenderIcon {
                     if (player != null && icon.ICON_LOCATION != null) {
                         int x = mc.getWindow().getGuiScaledWidth();
                         int y = mc.getWindow().getGuiScaledHeight();
-                        if (icon.fadeCount != 1000) {
+                        if (icon.fadeCount != 1000 && mc.screen==null) {
                             e.getMatrixStack().pushPose();
                             float opacity = (int) (17f - (icon.fadeCount / 80f));
                             opacity = (opacity * 1.15f) / 15f;
