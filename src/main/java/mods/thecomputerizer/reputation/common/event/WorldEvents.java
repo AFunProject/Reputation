@@ -1,5 +1,6 @@
 package mods.thecomputerizer.reputation.common.event;
 
+import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.PlayerFactionHandler;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
@@ -72,6 +73,7 @@ public class WorldEvents {
             Brain<? extends LivingEntity> brain = entity.getBrain();
             brain.sensors.putIfAbsent(SensorType.NEAREST_LIVING_ENTITIES, SensorType.NEAREST_LIVING_ENTITIES.create());
             brain.memories.putIfAbsent(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, Optional.empty());
+            brain.memories.putIfAbsent(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, Optional.empty());
             if(entity instanceof Player player) {
                 //sync faction data to players upon joining
                 LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
@@ -86,20 +88,21 @@ public class WorldEvents {
                 }
             }
             else {
+                ReputationAIPackages.buildReputationSensor(brain);
+                ReputationAIPackages.buildReputationInjuredAI(brain,0.5f);
+                //mobs with low health have a chance to flee
+                //if (entity instanceof Mob mob) mob.goalSelector.addGoal(0,new FleeGoal(mob,0.5f,false));
                 if (Objects.requireNonNull(ForgeRegistries.ENTITIES.tags()).getTag(TagKeys.FLEE).contains(entity.getType())) {
-                    ReputationAIPackages.buildReputationSensor(brain);
                     ReputationAIPackages.buildReputationFleeAI(brain, HelperMethods.fleeFactor(entity));
                     if (entity instanceof Mob mob)
-                        mob.goalSelector.addGoal(0, new FleeGoal(mob, HelperMethods.fleeFactor(entity)));
+                        mob.goalSelector.addGoal(0, new FleeGoal(mob, HelperMethods.fleeFactor(entity), true));
                 }
                 if (Objects.requireNonNull(ForgeRegistries.ENTITIES.tags()).getTag(TagKeys.HOSTILE).contains(entity.getType()) && entity instanceof Mob mob) {
-                    ReputationAIPackages.buildReputationSensor(brain);
                     ReputationAIPackages.buildReputationHostileAI(mob, brain);
                     if (entity instanceof NeutralMob)
                         mob.targetSelector.addGoal(2, new ReputationAttackableTargetGoal<>(mob, Player.class, true, false));
                 }
                 if (Objects.requireNonNull(ForgeRegistries.ENTITIES.tags()).getTag(TagKeys.PASSIVE_NEUTRAL).contains(entity.getType())) {
-                    ReputationAIPackages.buildReputationSensor(brain);
                     ReputationAIPackages.buildReputationPassiveNeutralAI(brain, 1);
                     if (entity instanceof Mob mob) {
                         Set<WrappedGoal> goalSet = mob.targetSelector.getAvailableGoals();
@@ -117,7 +120,6 @@ public class WorldEvents {
                     }
                 }
                 if (Objects.requireNonNull(ForgeRegistries.ENTITIES.tags()).getTag(TagKeys.PASSIVE_GOOD).contains(entity.getType())) {
-                    ReputationAIPackages.buildReputationSensor(brain);
                     ReputationAIPackages.buildReputationPassiveGoodAI(brain, 1);
                     if (entity instanceof Mob mob) {
                         Set<WrappedGoal> goalSet = mob.targetSelector.getAvailableGoals();

@@ -9,7 +9,6 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.function.Supplier;
 
 public class SetIconMessage {
-
     private final Boolean encoded;
 
     public SetIconMessage(FriendlyByteBuf buf){
@@ -32,6 +31,6 @@ public class SetIconMessage {
     }
 
     private ResourceLocation setIconLocation() {
-        return this.encoded ? ModDefinitions.getResource("textures/icons/plus.png") : ModDefinitions.getResource("textures/icons/minus.png");
+        return this.encoded ? ModDefinitions.getResource("textures/icons/flee.png") : ModDefinitions.getResource("textures/icons/minus.png");
     }
 }

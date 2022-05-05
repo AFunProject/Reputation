@@ -24,12 +24,18 @@ public class ReputationAIPackages {
         brain.memories.put(ReputationMemoryModule.NEAREST_PLAYER_BAD_REPUTATION.get(), Optional.empty());
         brain.memories.put(ReputationMemoryModule.NEAREST_PLAYER_NEUTRAL_REPUTATION.get(), Optional.empty());
         brain.memories.put(ReputationMemoryModule.NEAREST_PLAYER_GOOD_REPUTATION.get(), Optional.empty());
+        brain.memories.put(ReputationMemoryModule.FLEE_FROM_PLAYER.get(), Optional.empty());
     }
 
     public static void buildReputationFleeAI(Brain brain, float f) {
-        brain.addActivity(Activity.PANIC, getFleePackage(f));
-        for (Activity activity : Arrays.asList(Activity.CORE, Activity.MEET, Activity.IDLE, Activity.REST, Activity.HIDE)) {
+        for (Activity activity : Arrays.asList(Activity.PANIC, Activity.CORE, Activity.MEET, Activity.IDLE, Activity.REST, Activity.HIDE)) {
             brain.addActivity(activity, getFleePackage(f));
+        }
+    }
+
+    public static void buildReputationInjuredAI(Brain brain, float f) {
+        for (Activity activity : Arrays.asList(Activity.PANIC, Activity.CORE, Activity.MEET, Activity.IDLE, Activity.REST, Activity.HIDE)) {
+            brain.addActivity(activity, getInjuredFleePackage(f));
         }
     }
 
@@ -49,6 +55,10 @@ public class ReputationAIPackages {
 
     public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getFleePackage(float f) {
         return ImmutableList.of(Pair.of(0, SetWalkTargetAwayFrom.entity(ReputationMemoryModule.NEAREST_PLAYER_BAD_REPUTATION.get(), f, 6, false)));
+    }
+
+    public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getInjuredFleePackage(float f) {
+        return ImmutableList.of(Pair.of(0, SetWalkTargetAwayFrom.entity(ReputationMemoryModule.FLEE_FROM_PLAYER.get(), f, 32, false)));
     }
 
     public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getPassiveNeutralPackage(int time) {

@@ -104,6 +104,7 @@ public class Faction {
 			HashMap<String, Integer> weighting = new HashMap<>();
 			weighting.put("murder", json.get("weighted_murder").getAsInt());
 			weighting.put("looting", json.get("weighted_looting").getAsInt());
+			weighting.put("fleeing", json.get("weighted_fleeing").getAsInt());
 			List<EntityType<?>> members = parseMembers(json);
 			List<ResourceLocation> enemies = parseResourceArray("enemies", json);
 			return new Faction(name, defaultRep, lowerRep, higherRep, weighting, enemies, members);
@@ -143,6 +144,7 @@ public class Faction {
 		builder.append("\"upper_reputation_bound\": ").append(this.higherRep).append(", ").append("\n");
 		builder.append("\"weighted_murder\": ").append(this.weightedActions.get("murder")).append(", ").append("\n");
 		builder.append("\"weighted_looting\": ").append(this.weightedActions.get("looting")).append(", ").append("\n");
+		builder.append("\"weighted_fleeing\": ").append(this.weightedActions.get("fleeing")).append(", ").append("\n");
 		builder.append("\"members\": [").append("\n");
 		for (int i = 0; i < this.members.size(); i++) {
 			builder.append("\"").append(Objects.requireNonNull(this.members.get(i).getRegistryName())).append("\"");

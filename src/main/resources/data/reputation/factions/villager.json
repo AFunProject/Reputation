@@ -5,6 +5,7 @@
     "upper_reputation_bound": 50,
     "weighted_murder": 5,
     "weighted_looting": 2,
+    "weighted_fleeing": 3,
     "members": [
         "minecraft:villager",
         "minecraft:iron_golem",

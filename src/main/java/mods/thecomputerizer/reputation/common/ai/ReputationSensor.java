@@ -1,25 +1,37 @@
 package mods.thecomputerizer.reputation.common.ai;
 
 import com.google.common.collect.ImmutableSet;
+import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.Faction;
+import mods.thecomputerizer.reputation.api.PlayerFactionHandler;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
+import mods.thecomputerizer.reputation.client.event.RenderEvents;
+import mods.thecomputerizer.reputation.common.network.FleeIconMessage;
+import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
+import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class ReputationSensor extends Sensor<LivingEntity> {
+    
+    private boolean startFlee = false;
+    private final Random random = new Random();
+    private Player player = null;
+
+    
     public @NotNull Set<MemoryModuleType<?>> requires() {
-        return ImmutableSet.of(ReputationMemoryModule.NEAREST_PLAYER_BAD_REPUTATION.get(), ReputationMemoryModule.NEAREST_PLAYER_NEUTRAL_REPUTATION.get(), ReputationMemoryModule.NEAREST_PLAYER_GOOD_REPUTATION.get());
+        return ImmutableSet.of(ReputationMemoryModule.NEAREST_PLAYER_BAD_REPUTATION.get(), ReputationMemoryModule.NEAREST_PLAYER_NEUTRAL_REPUTATION.get(), ReputationMemoryModule.NEAREST_PLAYER_GOOD_REPUTATION.get(), ReputationMemoryModule.FLEE_FROM_PLAYER.get());
     }
 
     protected void doTick(ServerLevel level, LivingEntity entity) {
@@ -48,6 +60,47 @@ public class ReputationSensor extends Sensor<LivingEntity> {
                     entity.getBrain().setMemory(ReputationMemoryModule.NEAREST_PLAYER_NEUTRAL_REPUTATION.get(), Optional.empty());
                 }
             }
+        }
+        if(entity instanceof Mob mob) {
+            float percent = mob.getHealth()/mob.getMaxHealth();
+            if(this.player!=null || mob.getLastHurtByMob() instanceof Player ) {
+                if(mob.getLastHurtByMob() instanceof Player p) this.player = p;
+                if (mob.distanceTo(this.player)<=28 && percent <= .5f) {
+                    boolean inFaction = ReputationHandler.getEntityFactions(mob).isEmpty();
+                    for (Faction f : ReputationHandler.getEntityFactions(mob)) {
+                        if (PlayerFactionHandler.isPlayerInFaction(f, this.player)) inFaction = true;
+                    }
+                    if (!inFaction && this.random.nextFloat(51f)>=0f && !this.startFlee) {
+                        this.startFlee = true;
+                        if (this.player instanceof ServerPlayer)
+                            PacketHandler.sendTo(new FleeIconMessage(mob.getUUID(), true), (ServerPlayer) this.player);
+                        else if (!RenderEvents.fleeingMobs.contains(mob.getUUID()))
+                            RenderEvents.fleeingMobs.add(mob.getUUID());
+                    }
+                }
+                else if(this.startFlee) {
+                    this.startFlee = false;
+                    if (this.player instanceof ServerPlayer)
+                        PacketHandler.sendTo(new FleeIconMessage(mob.getUUID(), false), (ServerPlayer) this.player);
+                    else RenderEvents.fleeingMobs.remove(mob.getUUID());
+                    if(percent <= .5f) {
+                        for (Faction f : ReputationHandler.getEntityFactions(mob)) {
+                            ReputationHandler.changeReputation(this.player, f, -1 * f.getActionWeighting("fleeing"));
+                        }
+                        mob.discard();
+                    }
+                }
+            }
+            else if(this.startFlee) {
+                this.startFlee = false;
+                if (this.player!=null && this.player instanceof ServerPlayer)
+                    PacketHandler.sendTo(new FleeIconMessage(mob.getUUID(), false), (ServerPlayer) this.player);
+                else RenderEvents.fleeingMobs.remove(mob.getUUID());
+            }
+            if(this.startFlee) {
+                entity.getBrain().setMemory(ReputationMemoryModule.FLEE_FROM_PLAYER.get(), this.player);
+            }
+            else entity.getBrain().setMemory(ReputationMemoryModule.FLEE_FROM_PLAYER.get(), Optional.empty());
         }
     }
 }

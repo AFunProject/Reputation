@@ -12,7 +12,7 @@ public class PacketHandler {
 
 	private  static  final  String  PROTOCOL_VERSION  =  "1.0";
 	public static final SimpleChannel NETWORK_INSTANCE = NetworkRegistry.ChannelBuilder
-			.named(ModDefinitions.getResource("main"))
+			.named(ModDefinitions.getResource("main_channel"))
 			.clientAcceptedVersions ( PROTOCOL_VERSION :: equals)
 			.serverAcceptedVersions ( PROTOCOL_VERSION :: equals)
 			.networkProtocolVersion (() ->  PROTOCOL_VERSION )
@@ -24,6 +24,7 @@ public class PacketHandler {
 		NETWORK_INSTANCE.registerMessage(disc++, SyncReputationMessage.class, SyncReputationMessage::encode, SyncReputationMessage::new, SyncReputationMessage::handle);
 		NETWORK_INSTANCE.registerMessage(disc++, SyncFactionPlayersMessage.class, SyncFactionPlayersMessage::encode, SyncFactionPlayersMessage::new, SyncFactionPlayersMessage::handle);
 		NETWORK_INSTANCE.registerMessage(disc++, SetIconMessage.class, SetIconMessage::encode, SetIconMessage::new, SetIconMessage::handle);
+		NETWORK_INSTANCE.registerMessage(disc++, FleeIconMessage.class, FleeIconMessage::encode, FleeIconMessage::new, FleeIconMessage::handle);
 	}
 
 	public static void sendTo(Object message, ServerPlayer player) {
