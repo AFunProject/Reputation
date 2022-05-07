@@ -10,6 +10,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -24,14 +25,16 @@ public class RenderIcon {
     public static List<RenderIcon> renderable = new ArrayList<>();
 
     private ResourceLocation ICON_LOCATION = null;
+    private ResourceLocation FACTION = null;
     private int fadeCount = 1000;
     private boolean activated = false;
     private int timer = 0;
     private int startDelayCount = 0;
 
-    public static void setIcon(ResourceLocation icon) {
+    public static void setIcon(ResourceLocation icon, ResourceLocation faction) {
         RenderIcon toRender = new RenderIcon();
         toRender.ICON_LOCATION = icon;
+        toRender.FACTION = faction;
         toRender.activated = true;
         renderable.add(toRender);
     }
@@ -74,24 +77,28 @@ public class RenderIcon {
                         int x = mc.getWindow().getGuiScaledWidth();
                         int y = mc.getWindow().getGuiScaledHeight();
                         if (icon.fadeCount != 1000 && mc.screen==null) {
-                            e.getMatrixStack().pushPose();
                             float opacity = (int) (17f - (icon.fadeCount / 80f));
                             opacity = (opacity * 1.15f) / 15f;
-
-                            int sizeX = 40;
-                            int sizeY = 40;
-
+                            int sizeX = 25;
+                            int sizeY = 25;
                             float scaleY = 1f;
                             float scaleX = 1f;
-                            e.getMatrixStack().scale(scaleX, scaleY, 1f);
-
                             float posY = (y/2f) - ((float)sizeY*scaleY/2f);
                             float posX = x - (float)sizeX*scaleX-20;
 
+                            e.getMatrixStack().pushPose();
+                            e.getMatrixStack().scale(scaleX, scaleY, 1f);
                             RenderSystem.setShaderColor(1F, 1F, 1F, Math.max(0, Math.min(0.95f, opacity)));
                             RenderSystem.setShaderTexture(0, icon.ICON_LOCATION);
                             GuiComponent.blit(e.getMatrixStack(), (int) posX, (int) posY, 0F, 0F, sizeX, sizeY, sizeX, sizeY);
+                            e.getMatrixStack().popPose();
 
+                            e.getMatrixStack().pushPose();
+                            e.getMatrixStack().scale(scaleX, scaleY, 1f);
+                            RenderSystem.setShaderColor(1F, 1F, 1F, Math.max(0, Math.min(0.95f, opacity)));
+                            RenderSystem.setShaderTexture(0, icon.FACTION);
+                            posX-=(int)((float)sizeX*scaleX);
+                            GuiComponent.blit(e.getMatrixStack(), (int) posX, (int) posY, 0F, 0F, sizeX, sizeY, sizeX, sizeY);
                             e.getMatrixStack().popPose();
                         }
                     } else toRemove = icon;

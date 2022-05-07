@@ -20,9 +20,9 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderNameplateEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.lwjgl.system.CallbackI;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,14 +33,14 @@ import java.util.UUID;
 public class RenderEvents {
 
     public static final int RENDER_DISTANCE = 64;
-    public static final ResourceLocation BAD_REPUTATION = new ResourceLocation(ModDefinitions.MODID,"textures/icons/minus.png");
-    public static final ResourceLocation GOOD_REPUTATION = new ResourceLocation(ModDefinitions.MODID,"textures/icons/plus.png");
+    public static final ResourceLocation BAD_REPUTATION = new ResourceLocation(ModDefinitions.MODID,"textures/icons/reputation_decrease.png");
+    public static final ResourceLocation GOOD_REPUTATION = new ResourceLocation(ModDefinitions.MODID,"textures/icons/reputation_increase.png");
     public static final ResourceLocation FLEE = new ResourceLocation(ModDefinitions.MODID,"textures/icons/flee.png");
     public static HashMap<ResourceLocation, Faction> CLIENT_FACTIONS = new HashMap<>();
 
     public static ArrayList<UUID> fleeingMobs = new ArrayList<>();
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void renderName(RenderNameplateEvent e) {
         Player player = Minecraft.getInstance().player;
         if(player!=null && e.getEntity() instanceof LivingEntity living) {
@@ -53,11 +53,12 @@ public class RenderEvents {
                         else if (ReputationHandler.isBadReputation(player, f)) icon = BAD_REPUTATION;
                         if (icon != null) {
                             double xTranslate = (living.getBbWidth() / 2f) - (living.getBbWidth() * 0.0125f * 1.1 * offset);
-                            render(e,living,player,icon,xTranslate,0.25d,0.25f);
+                            render(e,living,player,new ResourceLocation(ModDefinitions.MODID,"textures/icons/faction_"+f.getName().getPath()+".png"),xTranslate,0.25d,0.25f);
+                            render(e,living,player,icon,xTranslate,0.35d,0.25f);
                         }
                         offset++;
                     }
-                } else render(e,living,player,FLEE,0d,0.5d,1f);
+                } else render(e,living,player,FLEE,0d,1d,2f);
             }
         }
     }
@@ -82,10 +83,10 @@ public class RenderEvents {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
         bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        bufferbuilder.vertex(matrix, 0, 16, 0).uv(0, 1).endVertex();
-        bufferbuilder.vertex(matrix, 16, 16, 0).uv(1, 1).endVertex();
-        bufferbuilder.vertex(matrix, 16, 0, 0).uv(1, 0).endVertex();
-        bufferbuilder.vertex(matrix, 0, 0, 0).uv(0, 0).endVertex();
+        bufferbuilder.vertex(matrix, -8, 16, 0).uv(0, 1).endVertex();
+        bufferbuilder.vertex(matrix, 8, 16, 0).uv(1, 1).endVertex();
+        bufferbuilder.vertex(matrix, 8, 0, 0).uv(1, 0).endVertex();
+        bufferbuilder.vertex(matrix, -8, 0, 0).uv(0, 0).endVertex();
         bufferbuilder.end();
         BufferUploader.end(bufferbuilder);
         poseStack.popPose();

@@ -66,7 +66,7 @@ public class ReputationSensor extends Sensor<LivingEntity> {
                     for (Faction f : ReputationHandler.getEntityFactions(mob)) {
                         if (PlayerFactionHandler.isPlayerInFaction(f, this.player)) inFaction = true;
                     }
-                    if (!inFaction && this.random.nextFloat(41f)>=40f && !this.startFlee) {
+                    if (!inFaction && this.random.nextFloat(21f)>=20f && !this.startFlee) {
                         this.startFlee = true;
                         if (this.player instanceof ServerPlayer)
                             PacketHandler.sendTo(new FleeIconMessage(mob.getUUID(), true), (ServerPlayer) this.player);

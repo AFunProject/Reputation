@@ -5,8 +5,13 @@ import mods.thecomputerizer.reputation.api.capability.IReputation;
 import mods.thecomputerizer.reputation.client.event.RenderEvents;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.common.network.SetIconMessage;
+import mods.thecomputerizer.reputation.common.registration.Sounds;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.capabilities.Capability;
@@ -20,8 +25,8 @@ import java.util.*;
 public class ReputationHandler {
 
 	public static Capability<IReputation> REPUTATION_CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {});
-
 	private static HashMap<ResourceLocation, Faction> FACTIONS = new HashMap<>();
+	public static Random random = new Random();
 
 	public static void registerFaction(Faction faction) {
 		if(!faction.getName().toString().isEmpty() && !FACTIONS.containsKey(faction.getName())) {
@@ -63,7 +68,7 @@ public class ReputationHandler {
 			if (optional.isPresent()) {
 				IReputation reputation = optional.resolve().get();
 				reputation.changeReputation(player, faction, amount);
-				PacketHandler.sendTo(new SetIconMessage(amount>0),(ServerPlayer)player);
+				PacketHandler.sendTo(new SetIconMessage(amount>0,faction.getName()),(ServerPlayer)player);
 			}
 		}
 	}

@@ -12,6 +12,7 @@ import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.common.ai.ReputationMemoryModule;
 import mods.thecomputerizer.reputation.common.ai.ReputationSenorType;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
+import mods.thecomputerizer.reputation.common.registration.Sounds;
 import mods.thecomputerizer.reputation.common.registration.TagKeys;
 import mods.thecomputerizer.reputation.config.ClientConfigHandler;
 import net.minecraft.Util;
@@ -62,6 +63,7 @@ public class Reputation {
 		ReputationMemoryModule.MEMORY_MODULES.register(modBus);
 		ReputationSenorType.SENSOR_TYPES.register(modBus);
 		TagKeys.init(modBus);
+		Sounds.register(modBus);
 	}
 
 	public void commonsetup(FMLCommonSetupEvent event) {
