@@ -79,12 +79,12 @@ public class RenderIcon {
                         if (icon.fadeCount != 1000 && mc.screen==null) {
                             float opacity = (int) (17f - (icon.fadeCount / 80f));
                             opacity = (opacity * 1.15f) / 15f;
-                            int sizeX = 25;
-                            int sizeY = 25;
-                            float scaleY = 1f;
-                            float scaleX = 1f;
-                            float posY = (y/2f) - ((float)sizeY*scaleY/2f);
-                            float posX = x - (float)sizeX*scaleX-20;
+                            int sizeX = 20;
+                            int sizeY = 20;
+                            float scaleY = 0.6f;
+                            float scaleX = 0.6f;
+                            float posY = ((y/scaleY)/2f) - ((float)sizeY*scaleY/2f);
+                            float posX = (x/scaleX) - (float)sizeX*scaleX-(25/scaleX);
 
                             e.getMatrixStack().pushPose();
                             e.getMatrixStack().scale(scaleX, scaleY, 1f);
@@ -94,10 +94,13 @@ public class RenderIcon {
                             e.getMatrixStack().popPose();
 
                             e.getMatrixStack().pushPose();
+                            scaleY = 1f;
+                            scaleX = 1f;
+                            posY = ((y/scaleY)/2f) - ((float)sizeY*scaleY/2f);
+                            posX = (x/scaleX) - (float)sizeX*scaleX-36;
                             e.getMatrixStack().scale(scaleX, scaleY, 1f);
                             RenderSystem.setShaderColor(1F, 1F, 1F, Math.max(0, Math.min(0.95f, opacity)));
                             RenderSystem.setShaderTexture(0, icon.FACTION);
-                            posX-=(int)((float)sizeX*scaleX);
                             GuiComponent.blit(e.getMatrixStack(), (int) posX, (int) posY, 0F, 0F, sizeX, sizeY, sizeX, sizeY);
                             e.getMatrixStack().popPose();
                         }

@@ -39,7 +39,7 @@ public class SetIconMessage {
         ctx.enqueueWork(() ->  {});
         RenderIcon.setIcon(message.setIconLocation(),message.faction);
         SoundEvent repSound = message.encoded ? Sounds.INCREASE_REPUTATION.get() : Sounds.DECREASE_REPUTATION.get();
-        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(repSound, Mth.randomBetween(ReputationHandler.random,0.85f,1.15f)));
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(repSound, Mth.randomBetween(ReputationHandler.random,0.88f,1.12f)));
         ctx.setPacketHandled(true);
     }
 

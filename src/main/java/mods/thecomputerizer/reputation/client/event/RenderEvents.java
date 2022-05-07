@@ -51,10 +51,10 @@ public class RenderEvents {
                     for (Faction f : ReputationHandler.getEntityFactions(living)) {
                         if (ReputationHandler.isGoodReputation(player, f)) icon = GOOD_REPUTATION;
                         else if (ReputationHandler.isBadReputation(player, f)) icon = BAD_REPUTATION;
+                        double xTranslate = (living.getBbWidth() / 2f) - (living.getBbWidth() * 0.0125f * 1.1 * offset);
+                        render(e,living,player,new ResourceLocation(ModDefinitions.MODID,"textures/icons/faction_"+f.getName().getPath()+".png"),xTranslate,0.25d,0.25f);
                         if (icon != null) {
-                            double xTranslate = (living.getBbWidth() / 2f) - (living.getBbWidth() * 0.0125f * 1.1 * offset);
-                            render(e,living,player,new ResourceLocation(ModDefinitions.MODID,"textures/icons/faction_"+f.getName().getPath()+".png"),xTranslate,0.25d,0.25f);
-                            render(e,living,player,icon,xTranslate,0.35d,0.25f);
+                            render(e,living,player,icon,xTranslate,0.28d,0.15f);
                         }
                         offset++;
                     }

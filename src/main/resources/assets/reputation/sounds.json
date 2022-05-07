@@ -1,0 +1,14 @@
+{
+  "increase_reputation": {
+		"category": "hostile",
+		"sounds": [{
+			"name": "reputation:reputation_increase"
+		}]
+	},
+  "decrease_reputation": {
+		"category": "hostile",
+		"sounds": [{
+			"name": "reputation:reputation_decrease"
+		}]
+	}
+}
