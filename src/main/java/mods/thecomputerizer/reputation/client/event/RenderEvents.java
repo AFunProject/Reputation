@@ -20,6 +20,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderNameplateEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -37,8 +38,15 @@ public class RenderEvents {
     public static final ResourceLocation GOOD_REPUTATION = new ResourceLocation(ModDefinitions.MODID,"textures/icons/reputation_increase.png");
     public static final ResourceLocation FLEE = new ResourceLocation(ModDefinitions.MODID,"textures/icons/flee.png");
     public static HashMap<ResourceLocation, Faction> CLIENT_FACTIONS = new HashMap<>();
-
     public static ArrayList<UUID> fleeingMobs = new ArrayList<>();
+
+    private static int tickTimer = 0;
+
+    @SubscribeEvent
+    public static void onClientTick(TickEvent.ClientTickEvent e) {
+        tickTimer++;
+        if(tickTimer==40) tickTimer=0;
+    }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void renderName(RenderNameplateEvent e) {
@@ -58,7 +66,7 @@ public class RenderEvents {
                         }
                         offset++;
                     }
-                } else render(e,living,player,FLEE,0d,1d,2f);
+                } else if(tickTimer<20) render(e,living,player,FLEE,0d,1d,2f);
             }
         }
     }
