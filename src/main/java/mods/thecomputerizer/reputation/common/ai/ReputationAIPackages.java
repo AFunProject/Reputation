@@ -1,7 +1,13 @@
 package mods.thecomputerizer.reputation.common.ai;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Pair;
+import mods.thecomputerizer.reputation.api.Faction;
+import mods.thecomputerizer.reputation.common.ModDefinitions;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.Brain;
@@ -12,12 +18,37 @@ import net.minecraft.world.entity.ai.behavior.StartAttacking;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
+import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.Arrays;
-import java.util.Optional;
+import java.util.*;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ReputationAIPackages {
+
+    public static void buildMobLists(JsonElement data) {
+        try {
+            JsonObject json = data.getAsJsonObject();
+            ModDefinitions.PASSIVE_FLEEING_ENTITIES = parseResourceArray("passive_fleeing",json);
+            ModDefinitions.HOSTILE_ENTITIES = parseResourceArray("hostile",json);
+            ModDefinitions.PASSIVE_NEUTRAL_ENTITIES = parseResourceArray("passive_neutral",json);
+            ModDefinitions.PASSIVE_GOOD_ENTITIES = parseResourceArray("passive_good",json);
+            ModDefinitions.HOSTILE_FLEEING_ENTITIES = parseResourceArray("hostile_fleeing",json);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to parse faction ai!");
+        }
+    }
+
+    private static List<EntityType<?>> parseResourceArray(String element, JsonObject json) {
+        List<EntityType<?>> members = new ArrayList<>();
+        if(json.has(element)) {
+            for (JsonElement index : json.get(element).getAsJsonArray()) {
+                EntityType<?> entity = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(index.getAsString()));
+                if(entity!=null) members.add(entity);
+            }
+        }
+        return members;
+    }
 
     public static void buildReputationSensor(Brain<? extends LivingEntity> brain) {
         brain.sensors.put(ReputationSenorType.NEAREST_PLAYER_REPUTATION.get(), ReputationSenorType.NEAREST_PLAYER_REPUTATION.get().create());

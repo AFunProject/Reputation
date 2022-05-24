@@ -9,14 +9,15 @@ import mods.thecomputerizer.reputation.api.capability.IPlacedContainer;
 import mods.thecomputerizer.reputation.api.capability.IPlayerFaction;
 import mods.thecomputerizer.reputation.api.capability.IReputation;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
+import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
 import mods.thecomputerizer.reputation.common.ai.ReputationMemoryModule;
 import mods.thecomputerizer.reputation.common.ai.ReputationSenorType;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.common.registration.Sounds;
-import mods.thecomputerizer.reputation.common.registration.TagKeys;
 import mods.thecomputerizer.reputation.config.ClientConfigHandler;
 import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -62,7 +63,6 @@ public class Reputation {
 		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
 		ReputationMemoryModule.MEMORY_MODULES.register(modBus);
 		ReputationSenorType.SENSOR_TYPES.register(modBus);
-		TagKeys.init(modBus);
 		Sounds.register(modBus);
 	}
 
@@ -96,6 +96,13 @@ public class Reputation {
 							reader.close();
 							checked.add(resource);
 						}
+					}
+					try {
+						Resource AI = rm.getResource(new ResourceLocation(ModDefinitions.MODID, "ai.json"));
+						InputStreamReader reader = new InputStreamReader(AI.getInputStream(), StandardCharsets.UTF_8);
+						ReputationAIPackages.buildMobLists(GSON.fromJson(reader, JsonElement.class));
+					} catch (Exception e) {
+						throw new RuntimeException("Failed to read AI data!");
 					}
 				} catch (Exception e) {
 					e.printStackTrace();

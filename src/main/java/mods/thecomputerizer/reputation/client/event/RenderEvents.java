@@ -66,7 +66,7 @@ public class RenderEvents {
                         }
                         offset++;
                     }
-                } else if(tickTimer<20) render(e,living,player,FLEE,0d,1d,2f);
+                } else if(tickTimer<20) render(e,living,player,FLEE,0d,1d,1.5f);
             }
         }
     }
