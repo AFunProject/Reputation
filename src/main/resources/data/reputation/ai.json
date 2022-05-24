@@ -1,0 +1,11 @@
+{
+  "passive_fleeing": [
+    "minecraft:villager"
+  ],
+  "hostile": [],
+  "passive_neutral": [],
+  "passive_good": [],
+  "hostile_fleeing": [
+    "minecraft:pillager"
+  ]
+}
