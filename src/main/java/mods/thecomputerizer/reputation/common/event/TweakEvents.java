@@ -1,5 +1,6 @@
 package mods.thecomputerizer.reputation.common.event;
 
+import mods.thecomputerizer.reputation.common.ai.ChatTracker;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
@@ -51,6 +52,9 @@ public class TweakEvents {
 				if (entity.hasCustomName()) newentity.setCustomName(entity.getCustomName());
 				level.addFreshEntity(newentity);
 			}
+			ChatTracker toRemove = null;
+			for(ChatTracker tracker : WorldEvents.trackers) if(entity.getUUID()==tracker.getEntityUUID()) toRemove = tracker;
+			if(toRemove!=null) WorldEvents.trackers.remove(toRemove);
 		}
 	}
 

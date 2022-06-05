@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Pair;
-import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
@@ -20,13 +19,17 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ReputationAIPackages {
 
     public static void buildMobLists(JsonElement data) {
         try {
+            //Reputation.logInfo("building mob list");
             JsonObject json = data.getAsJsonObject();
             ModDefinitions.PASSIVE_FLEEING_ENTITIES = parseResourceArray("passive_fleeing",json);
             ModDefinitions.HOSTILE_ENTITIES = parseResourceArray("hostile",json);
@@ -51,11 +54,11 @@ public class ReputationAIPackages {
     }
 
     public static void buildReputationSensor(Brain<? extends LivingEntity> brain) {
-        brain.sensors.put(ReputationSenorType.NEAREST_PLAYER_REPUTATION.get(), ReputationSenorType.NEAREST_PLAYER_REPUTATION.get().create());
         brain.memories.put(ReputationMemoryModule.NEAREST_PLAYER_BAD_REPUTATION.get(), Optional.empty());
         brain.memories.put(ReputationMemoryModule.NEAREST_PLAYER_NEUTRAL_REPUTATION.get(), Optional.empty());
         brain.memories.put(ReputationMemoryModule.NEAREST_PLAYER_GOOD_REPUTATION.get(), Optional.empty());
         brain.memories.put(ReputationMemoryModule.FLEE_FROM_PLAYER.get(), Optional.empty());
+        brain.sensors.put(ReputationSenorType.NEAREST_PLAYER_REPUTATION.get(), ReputationSenorType.NEAREST_PLAYER_REPUTATION.get().create());
     }
 
     public static void buildReputationFleeAI(Brain brain, float f) {

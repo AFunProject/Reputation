@@ -13,6 +13,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -21,16 +22,22 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 @EventBusSubscriber(modid = ModDefinitions.MODID)
 public class ReputationEvents {
+
+	public static final List<LivingEntity> tickThese = new ArrayList<>();
 
 	@SubscribeEvent
 	public static void attachEntityCapabilities(AttachCapabilitiesEvent<Entity> event) {
@@ -82,6 +89,7 @@ public class ReputationEvents {
 		LivingEntity entity = event.getEntityLiving();
 		Level level = entity.level;
 		if(!level.isClientSide) {
+			tickThese.remove(entity);
 			DamageSource source = event.getSource();
 			Player player = null;
 			if (source.getEntity() instanceof Player) player = (Player) source.getEntity();
@@ -96,6 +104,21 @@ public class ReputationEvents {
 						}
 					}
 				}
+			}
+		}
+	}
+
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SubscribeEvent
+	public static void tickBrains(LivingEvent.LivingUpdateEvent e) {
+		LivingEntity entity = e.getEntityLiving();
+		Level level = entity.level;
+		if(level instanceof ServerLevel server) {
+			if (tickThese.contains(entity)) {
+				server.getProfiler().push(entity.getClass().getName().toLowerCase(Locale.ROOT)+"Brain");
+				Brain brain = entity.getBrain();
+				brain.tick(server,entity);
+				server.getProfiler().pop();
 			}
 		}
 	}

@@ -1,10 +1,10 @@
 {
-	"required": true,
-	"package": "mods.thecomputerizer.reputation.mixin",
-	"compatibilityLevel": "JAVA_17",
-	"refmap": "reputation.refmap.json",
-	"mixins": [
-		"MixinVillager"
-	],
-	"minVersion": "0.8"
+  "required": true,
+  "package": "mods.thecomputerizer.reputation.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "reputation.refmap.json",
+  "mixins": [
+    "MixinVillager"
+  ],
+  "minVersion": "0.8"
 }

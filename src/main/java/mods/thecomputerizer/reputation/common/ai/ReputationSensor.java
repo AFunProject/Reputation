@@ -13,6 +13,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.player.Player;
@@ -25,12 +26,15 @@ public class ReputationSensor extends Sensor<LivingEntity> {
     private boolean startFlee = false;
     private final Random random = new Random();
     private Player player = null;
+    private Set<WrappedGoal> goals;
 
-    
+
+    @Override
     public @NotNull Set<MemoryModuleType<?>> requires() {
         return ImmutableSet.of(ReputationMemoryModule.NEAREST_PLAYER_BAD_REPUTATION.get(), ReputationMemoryModule.NEAREST_PLAYER_NEUTRAL_REPUTATION.get(), ReputationMemoryModule.NEAREST_PLAYER_GOOD_REPUTATION.get(), ReputationMemoryModule.FLEE_FROM_PLAYER.get());
     }
 
+    @Override
     protected void doTick(ServerLevel level, LivingEntity entity) {
         List<ServerPlayer> list = level.players().stream().filter(EntitySelector.NO_SPECTATORS)
                 .filter((p) -> entity.closerThan(p, 16.0D))
@@ -67,7 +71,7 @@ public class ReputationSensor extends Sensor<LivingEntity> {
                     for (Faction f : ReputationHandler.getEntityFactions(mob)) {
                         if (PlayerFactionHandler.isPlayerInFaction(f, this.player)) inFaction = true;
                     }
-                    if (!inFaction && this.random.nextFloat(21f)>=20f && !this.startFlee) {
+                    if (!inFaction && this.random.nextFloat(21f)>=2f && !this.startFlee) {
                         this.startFlee = true;
                         if (this.player instanceof ServerPlayer)
                             PacketHandler.sendTo(new FleeIconMessage(mob.getUUID(), true), (ServerPlayer) this.player);
@@ -96,9 +100,17 @@ public class ReputationSensor extends Sensor<LivingEntity> {
             }
             if(this.startFlee) {
                 entity.getBrain().setMemory(ReputationMemoryModule.FLEE_FROM_PLAYER.get(), this.player);
+                this.goals = mob.goalSelector.getAvailableGoals();
+                mob.goalSelector.removeAllGoals();
             }
-            else entity.getBrain().setMemory(ReputationMemoryModule.FLEE_FROM_PLAYER.get(), Optional.empty());
-            this.player = null;
+            else {
+                entity.getBrain().setMemory(ReputationMemoryModule.FLEE_FROM_PLAYER.get(), Optional.empty());
+                if(mob.goalSelector.getAvailableGoals().isEmpty() && this.goals!=null) {
+                    for (WrappedGoal goal : this.goals) {
+                        mob.goalSelector.addGoal(goal.getPriority(),goal.getGoal());
+                    }
+                }
+            }
         }
     }
 }

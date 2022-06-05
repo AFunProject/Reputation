@@ -25,6 +25,8 @@ public class PacketHandler {
 		NETWORK_INSTANCE.registerMessage(disc++, SyncFactionPlayersMessage.class, SyncFactionPlayersMessage::encode, SyncFactionPlayersMessage::new, SyncFactionPlayersMessage::handle);
 		NETWORK_INSTANCE.registerMessage(disc++, SetIconMessage.class, SetIconMessage::encode, SetIconMessage::new, SetIconMessage::handle);
 		NETWORK_INSTANCE.registerMessage(disc++, FleeIconMessage.class, FleeIconMessage::encode, FleeIconMessage::new, FleeIconMessage::handle);
+		NETWORK_INSTANCE.registerMessage(disc++, ChatIconMessage.class, ChatIconMessage::encode, ChatIconMessage::new, ChatIconMessage::handle);
+		NETWORK_INSTANCE.registerMessage(disc++, SyncChatIconsMessage.class, SyncChatIconsMessage::encode, SyncChatIconsMessage::new, SyncChatIconsMessage::handle);
 	}
 
 	public static void sendTo(Object message, ServerPlayer player) {

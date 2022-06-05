@@ -1,10 +1,12 @@
 package mods.thecomputerizer.reputation.common.event;
 
+import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.PlayerFactionHandler;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.api.capability.IReputation;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
+import mods.thecomputerizer.reputation.common.ai.ChatTracker;
 import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
 import mods.thecomputerizer.reputation.common.ai.goals.FleeGoal;
 import mods.thecomputerizer.reputation.common.ai.goals.ReputationAttackableTargetGoal;
@@ -15,6 +17,7 @@ import mods.thecomputerizer.reputation.common.command.AddPlayerToFactionCommand;
 import mods.thecomputerizer.reputation.common.command.AddReputationCommand;
 import mods.thecomputerizer.reputation.common.command.RemovePlayerFromFactionCommand;
 import mods.thecomputerizer.reputation.common.command.SetReputationCommand;
+import mods.thecomputerizer.reputation.common.network.ChatIconMessage;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.common.network.SyncFactionsMessage;
 import mods.thecomputerizer.reputation.util.HelperMethods;
@@ -32,6 +35,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
@@ -42,6 +46,10 @@ import java.util.*;
 
 @Mod.EventBusSubscriber(modid = ModDefinitions.MODID)
 public class WorldEvents {
+    private static int tickTimer = 0;
+    public static final List<ChatTracker> trackers = new ArrayList<>();
+    private static final Random random = new Random();
+    private static final List<ServerPlayer> players = new ArrayList<>();
 
     @SubscribeEvent
     public static void attachLevelCapabilities(AttachCapabilitiesEvent<Level> event) {
@@ -68,6 +76,7 @@ public class WorldEvents {
     public static void onJoin(EntityJoinWorldEvent event) {
         if(event.getEntity() instanceof LivingEntity entity && !event.getWorld().isClientSide) {
             Brain<? extends LivingEntity> brain = entity.getBrain();
+            if(!ReputationEvents.tickThese.contains(entity) && brain.memories.isEmpty()) ReputationEvents.tickThese.add(entity);
             brain.sensors.putIfAbsent(SensorType.NEAREST_LIVING_ENTITIES, SensorType.NEAREST_LIVING_ENTITIES.create());
             brain.memories.putIfAbsent(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, Optional.empty());
             brain.memories.putIfAbsent(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, Optional.empty());
@@ -82,13 +91,13 @@ public class WorldEvents {
                     for(Faction f : toSync.keySet()) {
                         reputation.setReputation(player,f,toSync.get(f));
                     }
+                    Reputation.syncChatIcons(serverPlayer);
+                    players.add(serverPlayer);
                 }
             }
             else {
                 ReputationAIPackages.buildReputationSensor(brain);
                 ReputationAIPackages.buildReputationInjuredAI(brain,0.5f);
-                //mobs with low health have a chance to flee
-                //if (entity instanceof Mob mob) mob.goalSelector.addGoal(0,new FleeGoal(mob,0.5f,false));
                 if (ModDefinitions.PASSIVE_FLEEING_ENTITIES.contains(entity.getType())) {
                     ReputationAIPackages.buildReputationFleeAI(brain, HelperMethods.fleeFactor(entity));
                     if (entity instanceof Mob mob)
@@ -134,6 +143,7 @@ public class WorldEvents {
                     }
                 }
             }
+            if(!ReputationHandler.getEntityFactions(entity).isEmpty()) trackers.add(new ChatTracker(entity));
         }
     }
 
@@ -141,6 +151,10 @@ public class WorldEvents {
     public static void onRespawn(PlayerEvent.Clone event) {
         Player original = event.getOriginal();
         Player respawned = event.getPlayer();
+        if(original instanceof ServerPlayer serverOriginal && respawned instanceof  ServerPlayer serverRespawned) {
+            players.remove(serverOriginal);
+            players.add(serverRespawned);
+        }
         Brain<? extends LivingEntity> brain = respawned.getBrain();
         brain.sensors.putIfAbsent(SensorType.NEAREST_LIVING_ENTITIES, SensorType.NEAREST_LIVING_ENTITIES.create());
         brain.memories.putIfAbsent(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, Optional.empty());
@@ -154,5 +168,33 @@ public class WorldEvents {
     @SubscribeEvent
     public static void onServerClose(ServerStoppedEvent e) {
         ReputationHandler.emptyMaps();
+    }
+
+    @SubscribeEvent
+    public static void onServerTick(TickEvent.ServerTickEvent e) {
+        tickTimer++;
+        for(ChatTracker tracker : trackers) tracker.queryChatTimer();
+        if(tickTimer>=20) {
+            long seed = random.nextLong(Long.MAX_VALUE);
+            ArrayList<ChatTracker> toUpdate = new ArrayList<>();
+            for(ChatTracker tracker : trackers) {
+                if(seed>=tracker.getSeed() && !tracker.getRecent() && !tracker.getRandom()) {
+                    tracker.setRandom(true);
+                    tracker.setChanged(true);
+                    tracker.setRecent(true);
+                }
+                if(tracker.getChanged()) toUpdate.add(tracker);
+            }
+            if(!toUpdate.isEmpty()) {
+                for(ServerPlayer player : players) PacketHandler.sendTo(new ChatIconMessage(toUpdate),player);
+                for(ChatTracker tracker : toUpdate) {
+                    tracker.setRandom(false);
+                    tracker.setInRange(false);
+                    tracker.setEngage(false);
+                    tracker.setChanged(false);
+                }
+            }
+            tickTimer=0;
+        }
     }
 }

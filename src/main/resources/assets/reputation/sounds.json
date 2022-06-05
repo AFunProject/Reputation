@@ -10,5 +10,11 @@
 		"sounds": [{
 			"name": "reputation:reputation_decrease"
 		}]
+	},
+	"flee": {
+		"category": "hostile",
+		"sounds": [{
+			"name": "reputation:flee"
+		}]
 	}
 }

@@ -13,10 +13,12 @@ import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
 import mods.thecomputerizer.reputation.common.ai.ReputationMemoryModule;
 import mods.thecomputerizer.reputation.common.ai.ReputationSenorType;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
+import mods.thecomputerizer.reputation.common.network.SyncChatIconsMessage;
 import mods.thecomputerizer.reputation.common.registration.Sounds;
 import mods.thecomputerizer.reputation.config.ClientConfigHandler;
 import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
@@ -39,12 +41,14 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Mod(value = ModDefinitions.MODID)
 @Mod.EventBusSubscriber(modid = ModDefinitions.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Reputation {
 
 	private static final Logger logger = LogManager.getLogger(ModDefinitions.NAME);
+	private static final List<JsonElement> chatIconData = new ArrayList<>();
 
 	private static final Gson GSON = Util.make(() -> {
 		GsonBuilder builder = new GsonBuilder();
@@ -97,6 +101,14 @@ public class Reputation {
 							checked.add(resource);
 						}
 					}
+					for (ResourceLocation resource : rm.listResources("chat/", (location) -> location.endsWith("json"))) {
+						if(!checked.contains(resource)) {
+							InputStreamReader reader = new InputStreamReader(rm.getResource(resource).getInputStream(), StandardCharsets.UTF_8);
+							chatIconData.add(GSON.fromJson(reader, JsonElement.class));
+							reader.close();
+							checked.add(resource);
+						}
+					}
 					try {
 						Resource AI = rm.getResource(new ResourceLocation(ModDefinitions.MODID, "ai.json"));
 						InputStreamReader reader = new InputStreamReader(AI.getInputStream(), StandardCharsets.UTF_8);
@@ -110,6 +122,10 @@ public class Reputation {
 				}
 			}
 		}));
+	}
+
+	public static void syncChatIcons(ServerPlayer player) {
+		if(!chatIconData.isEmpty()) PacketHandler.sendTo(new SyncChatIconsMessage(chatIconData.stream().distinct().collect(Collectors.toList())),player);
 	}
 
 	public static void logInfo(Object message) {

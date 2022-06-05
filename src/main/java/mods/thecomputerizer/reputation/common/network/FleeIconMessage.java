@@ -1,11 +1,12 @@
 package mods.thecomputerizer.reputation.common.network;
 
-import mods.thecomputerizer.reputation.Reputation;
+import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.client.event.RenderEvents;
-import mods.thecomputerizer.reputation.client.render.RenderIcon;
-import mods.thecomputerizer.reputation.common.ModDefinitions;
+import mods.thecomputerizer.reputation.common.registration.Sounds;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.UUID;
@@ -23,7 +24,7 @@ public class FleeIconMessage {
     public FleeIconMessage(UUID uuid, boolean add) {
         this.uuid = uuid;
         this.add = add;
-        Reputation.logInfo("Calling flee packet (performance check)");
+        //Reputation.logInfo("Calling flee packet (performance check)");
     }
 
     public static void encode(FleeIconMessage message, FriendlyByteBuf buf) {
@@ -34,7 +35,10 @@ public class FleeIconMessage {
     public static void handle(FleeIconMessage message, Supplier<NetworkEvent.Context> context) {
         NetworkEvent.Context ctx = context.get();
         ctx.enqueueWork(() ->  {});
-        if(!RenderEvents.fleeingMobs.contains(message.uuid) && message.add) RenderEvents.fleeingMobs.add(message.uuid);
+        if(!RenderEvents.fleeingMobs.contains(message.uuid) && message.add) {
+            RenderEvents.fleeingMobs.add(message.uuid);
+            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(Sounds.FLEE.get(), Mth.randomBetween(ReputationHandler.random,0.88f,1.12f)));
+        }
         else if(!message.add) RenderEvents.fleeingMobs.remove(message.uuid);
         ctx.setPacketHandled(true);
     }

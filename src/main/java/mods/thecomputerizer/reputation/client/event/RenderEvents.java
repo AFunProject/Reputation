@@ -3,11 +3,10 @@ package mods.thecomputerizer.reputation.client.event;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Matrix4f;
-import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
+import mods.thecomputerizer.reputation.client.ClientTrackers;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
-import mods.thecomputerizer.reputation.common.ai.ReputationMemoryModule;
 import mods.thecomputerizer.reputation.config.ClientConfigHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
@@ -66,6 +65,8 @@ public class RenderEvents {
                         }
                         offset++;
                     }
+                    ResourceLocation chatIcon = ClientTrackers.getChatIcon(living);
+                    if(chatIcon!=null) render(e,living,player,chatIcon,0d,1d,1.5f);
                 } else if(tickTimer<20) render(e,living,player,FLEE,0d,1d,1.5f);
             }
         }
