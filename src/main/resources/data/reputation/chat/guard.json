@@ -1,0 +1,8 @@
+{
+  "name": "guardvillagers:guard",
+  "idle": [
+    "meat"
+  ],
+  "idle_faction": [],
+  "engage": []
+}

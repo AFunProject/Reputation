@@ -17,7 +17,7 @@ apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.18-0.6.2'
+version = '1.18-0.7.0'
 group = 'mods.thecomputerizer.reputation' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'Reputation'
 
@@ -82,6 +82,8 @@ repositories {
 
 dependencies {
     minecraft 'net.minecraftforge:forge:1.18.2-40.1.31'
+
+    implementation fg.deobf("curse.maven:guard-villagers-360203:3802013")
 }
 
 jar {
@@ -89,7 +91,7 @@ jar {
         attributes([
                 "Specification-Title"     : "reputation",
                 "Specification-Vendor"    : "The_Computerizer",
-                "Specification-Version"   : "0.6.2",
+                "Specification-Version"   : "0.7.0",
                 "Implementation-Title"    : project.name,
                 "Implementation-Version"  : project.jar.archiveVersion,
                 "Implementation-Vendor"   : "The_Computerizer",

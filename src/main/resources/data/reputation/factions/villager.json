@@ -8,6 +8,7 @@
     "weighted_fleeing": 3,
     "members": [
         "minecraft:villager",
+        "guardvillagers:guard",
         "minecraft:iron_golem",
         "minecraft:wandering_trader"
     ],

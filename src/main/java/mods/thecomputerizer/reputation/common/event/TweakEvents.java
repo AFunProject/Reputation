@@ -1,6 +1,6 @@
 package mods.thecomputerizer.reputation.common.event;
 
-import mods.thecomputerizer.reputation.common.ai.ChatTracker;
+import mods.thecomputerizer.reputation.common.ModDefinitions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
@@ -19,7 +19,6 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import mods.thecomputerizer.reputation.common.ModDefinitions;
 
 @EventBusSubscriber(modid=ModDefinitions.MODID)
 public class TweakEvents {
@@ -52,8 +51,8 @@ public class TweakEvents {
 				if (entity.hasCustomName()) newentity.setCustomName(entity.getCustomName());
 				level.addFreshEntity(newentity);
 			}
-			ChatTracker toRemove = null;
-			for(ChatTracker tracker : WorldEvents.trackers) if(entity.getUUID()==tracker.getEntityUUID()) toRemove = tracker;
+			LivingEntity toRemove = null;
+			for(LivingEntity living : WorldEvents.trackers.keySet()) if(entity.getUUID()==WorldEvents.trackers.get(living).getEntityUUID()) toRemove = living;
 			if(toRemove!=null) WorldEvents.trackers.remove(toRemove);
 		}
 	}

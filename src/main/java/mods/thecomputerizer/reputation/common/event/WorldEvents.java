@@ -47,7 +47,7 @@ import java.util.*;
 @Mod.EventBusSubscriber(modid = ModDefinitions.MODID)
 public class WorldEvents {
     private static int tickTimer = 0;
-    public static final List<ChatTracker> trackers = new ArrayList<>();
+    public static final HashMap<LivingEntity, ChatTracker> trackers = new HashMap<>();
     private static final Random random = new Random();
     private static final List<ServerPlayer> players = new ArrayList<>();
 
@@ -143,7 +143,7 @@ public class WorldEvents {
                     }
                 }
             }
-            if(!ReputationHandler.getEntityFactions(entity).isEmpty()) trackers.add(new ChatTracker(entity));
+            if(!ReputationHandler.getEntityFactions(entity).isEmpty()) trackers.put(entity,new ChatTracker(entity));
         }
     }
 
@@ -173,13 +173,15 @@ public class WorldEvents {
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent e) {
         tickTimer++;
-        for(ChatTracker tracker : trackers) tracker.queryChatTimer();
+        for(ChatTracker tracker : trackers.values()) tracker.queryChatTimer();
         if(tickTimer>=20) {
             long seed = random.nextLong(Long.MAX_VALUE);
             ArrayList<ChatTracker> toUpdate = new ArrayList<>();
-            for(ChatTracker tracker : trackers) {
+            for(LivingEntity entity : trackers.keySet()) {
+                ChatTracker tracker = trackers.get(entity);
                 if(seed>=tracker.getSeed() && !tracker.getRecent() && !tracker.getRandom()) {
                     tracker.setRandom(true);
+                    for(Faction f : ReputationHandler.getEntityFactions(entity)) if(!HelperMethods.getSeenEntitiesOfFaction(entity.getBrain(),f).isEmpty()) tracker.setInRange(true);
                     tracker.setChanged(true);
                     tracker.setRecent(true);
                 }
