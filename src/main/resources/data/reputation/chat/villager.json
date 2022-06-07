@@ -1,8 +1,0 @@
-{
-  "name": "minecraft:villager",
-  "idle": [
-    "meat"
-  ],
-  "idle_faction": [],
-  "engage": []
-}
