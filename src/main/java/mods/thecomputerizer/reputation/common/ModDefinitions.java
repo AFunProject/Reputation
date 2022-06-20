@@ -10,7 +10,7 @@ public class ModDefinitions {
 
 	public static final String MODID = "reputation";
 	public static final String NAME = "Reputation";
-	public static final String VERSION = "1.18-0.7.0";
+	public static final String VERSION = "1.18-0.8.0";
 
 	public static List<EntityType<?>> PASSIVE_FLEEING_ENTITIES = new ArrayList<>();
 	public static List<EntityType<?>> HOSTILE_ENTITIES = new ArrayList<>();
