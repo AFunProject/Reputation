@@ -22,4 +22,10 @@ public class ReputationMemoryModule<U> extends MemoryModuleType<U> {
     public ReputationMemoryModule(Optional<Codec<U>> codec) {
         super(codec);
     }
+
+    public static MemoryModuleType<Player> getNearestModuleFromString(String bound) {
+        if(bound.matches("good")) return NEAREST_PLAYER_GOOD_REPUTATION.get();
+        else if(bound.matches("neutral")) return NEAREST_PLAYER_NEUTRAL_REPUTATION.get();
+        return NEAREST_PLAYER_BAD_REPUTATION.get();
+    }
 }

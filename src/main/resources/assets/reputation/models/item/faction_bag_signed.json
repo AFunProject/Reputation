@@ -1,0 +1,6 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "reputation:item/signed_bag_of_emerald"
+  }
+}

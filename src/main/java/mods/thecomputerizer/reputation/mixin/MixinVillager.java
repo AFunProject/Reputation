@@ -1,6 +1,7 @@
 package mods.thecomputerizer.reputation.mixin;
 
 import mods.thecomputerizer.reputation.api.ReputationHandler;
+import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
 import mods.thecomputerizer.reputation.util.HelperMethods;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -35,7 +36,11 @@ public class MixinVillager {
         ItemStack itemstack = player.getItemInHand(hand);
         Villager villager = (Villager)(Object)this;
         if (itemstack.getItem() != Items.VILLAGER_SPAWN_EGG && villager.isAlive() && !villager.isTrading() && !villager.isSleeping() && !player.isSecondaryUseActive()) {
-            if (HelperMethods.isPlayerInBadStanding(villager, player)) {
+            if (ReputationAIPackages.trading_standings.get(villager.getType()).matches("bad") && HelperMethods.isPlayerInBadStanding(villager, player)) {
+                villager.setUnhappy();
+                callback.setReturnValue(InteractionResult.sidedSuccess(villager.level.isClientSide));
+            }
+            else if(HelperMethods.isPlayerInBadStanding(villager, player) || HelperMethods.isPlayerInNeutralStanding(villager, player)) {
                 villager.setUnhappy();
                 callback.setReturnValue(InteractionResult.sidedSuccess(villager.level.isClientSide));
             }

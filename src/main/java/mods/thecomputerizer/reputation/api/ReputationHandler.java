@@ -5,15 +5,11 @@ import mods.thecomputerizer.reputation.api.capability.IReputation;
 import mods.thecomputerizer.reputation.client.event.RenderEvents;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.common.network.SetIconMessage;
-import mods.thecomputerizer.reputation.common.registration.Sounds;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
@@ -26,12 +22,14 @@ public class ReputationHandler {
 
 	public static Capability<IReputation> REPUTATION_CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {});
 	private static HashMap<ResourceLocation, Faction> FACTIONS = new HashMap<>();
+	public static HashMap<Item, Faction> FACTION_CURRENCY_MAP = new HashMap<>();
 	public static Random random = new Random();
 
 	public static void registerFaction(Faction faction) {
-		if(!faction.getName().toString().isEmpty() && !FACTIONS.containsKey(faction.getName())) {
-			Reputation.logInfo("registered faction at location " + faction.getName().toString());
-			FACTIONS.put(faction.getName(), faction);
+		if(!faction.getID().toString().isEmpty() && !FACTIONS.containsKey(faction.getID())) {
+			Reputation.logInfo("registered faction at location " + faction.getID().toString());
+			FACTIONS.put(faction.getID(), faction);
+			FACTION_CURRENCY_MAP.put(faction.getCurrencyItem(), faction);
 		}
 	}
 
@@ -68,11 +66,10 @@ public class ReputationHandler {
 			if (optional.isPresent()) {
 				IReputation reputation = optional.resolve().get();
 				reputation.changeReputation(player, faction, amount);
-				PacketHandler.sendTo(new SetIconMessage(amount>0,faction.getName()),(ServerPlayer)player);
+				PacketHandler.sendTo(new SetIconMessage(amount>0,faction.getID()),(ServerPlayer)player);
 			}
 		}
 	}
-
 	public static boolean isGoodReputation(Player player, Faction faction) {
 		LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
 		if (optional.isPresent()) {
@@ -97,7 +94,7 @@ public class ReputationHandler {
 
 	public static void readPacketData(Collection<Faction> factions) {
 		for (Faction faction : factions) {
-			RenderEvents.CLIENT_FACTIONS.put(faction.getName(),faction);
+			RenderEvents.CLIENT_FACTIONS.put(faction.getID(),faction);
 		}
 	}
 }

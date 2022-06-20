@@ -30,7 +30,7 @@ public class SyncFactionPlayersMessage {
     }
 
     public SyncFactionPlayersMessage(Faction faction, List<UUID> uuids) {
-        this.faction = faction.getName();
+        this.faction = faction.getID();
         this.uuids = uuids;
         this.uuidSize = uuids.size();
     }

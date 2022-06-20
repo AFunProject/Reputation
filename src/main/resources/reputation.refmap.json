@@ -1,7 +1,10 @@
 {
   "mappings": {
-    "mods/thecomputerizer/reputation/mixin/MixinPackRepository": {
-      "openAllSelected()Ljava/util/List;": "Lnet/minecraft/server/packs/repository/PackRepository;m_10525_()Ljava/util/List;"
+    "mods/thecomputerizer/reputation/mixin/MixinReloadableServerResources": {
+      "listeners()Ljava/util/List;": "Lnet/minecraft/server/ReloadableServerResources;m_206890_()Ljava/util/List;"
+    },
+    "mods/thecomputerizer/reputation/mixin/MixinRecipeManager": {
+      "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V": "Lnet/minecraft/world/item/crafting/RecipeManager;m_5787_(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V"
     },
     "mods/thecomputerizer/reputation/mixin/MixinVillager": {
       "updateSpecialPrices(Lnet/minecraft/world/entity/player/Player;)V": "Lnet/minecraft/world/entity/npc/Villager;m_35540_(Lnet/minecraft/world/entity/player/Player;)V",
@@ -10,8 +13,11 @@
   },
   "data": {
     "searge": {
-      "mods/thecomputerizer/reputation/mixin/MixinPackRepository": {
-        "openAllSelected()Ljava/util/List;": "Lnet/minecraft/server/packs/repository/PackRepository;m_10525_()Ljava/util/List;"
+      "mods/thecomputerizer/reputation/mixin/MixinReloadableServerResources": {
+        "listeners()Ljava/util/List;": "Lnet/minecraft/server/ReloadableServerResources;m_206890_()Ljava/util/List;"
+      },
+      "mods/thecomputerizer/reputation/mixin/MixinRecipeManager": {
+        "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V": "Lnet/minecraft/world/item/crafting/RecipeManager;m_5787_(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V"
       },
       "mods/thecomputerizer/reputation/mixin/MixinVillager": {
         "updateSpecialPrices(Lnet/minecraft/world/entity/player/Player;)V": "Lnet/minecraft/world/entity/npc/Villager;m_35540_(Lnet/minecraft/world/entity/player/Player;)V",

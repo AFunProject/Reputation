@@ -19,7 +19,7 @@ public class SyncReputationMessage {
 	}
 
 	public SyncReputationMessage(Faction faction, int reputation) {
-		this.faction = faction.getName();
+		this.faction = faction.getID();
 		this.reputation = reputation;
 	}
 

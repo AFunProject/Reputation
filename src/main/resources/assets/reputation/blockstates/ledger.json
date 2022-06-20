@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": [
+      { "model": "reputation:block/ledger" }
+    ]
+  }
+}

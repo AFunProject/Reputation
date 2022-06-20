@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Pair;
+import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
@@ -19,38 +20,59 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ReputationAIPackages {
 
+    public static HashMap<EntityType<?>, String> passive_fleeing_standings = new HashMap<>();
+    public static HashMap<EntityType<?>, String> hostile_standings = new HashMap<>();
+    public static HashMap<EntityType<?>, String> passive_standings = new HashMap<>();
+    public static HashMap<EntityType<?>, String> hostile_fleeing_standings = new HashMap<>();
+    public static HashMap<EntityType<?>, String> trading_standings = new HashMap<>();
+
     public static void buildMobLists(JsonElement data) {
         try {
-            //Reputation.logInfo("building mob list");
             JsonObject json = data.getAsJsonObject();
-            ModDefinitions.PASSIVE_FLEEING_ENTITIES = parseResourceArray("passive_fleeing",json);
-            ModDefinitions.HOSTILE_ENTITIES = parseResourceArray("hostile",json);
-            ModDefinitions.PASSIVE_NEUTRAL_ENTITIES = parseResourceArray("passive_neutral",json);
-            ModDefinitions.PASSIVE_GOOD_ENTITIES = parseResourceArray("passive_good",json);
-            ModDefinitions.HOSTILE_FLEEING_ENTITIES = parseResourceArray("hostile_fleeing",json);
+            ModDefinitions.PASSIVE_FLEEING_ENTITIES = parseResourceArray("passive_fleeing",json,"bad");
+            ModDefinitions.HOSTILE_ENTITIES = parseResourceArray("hostile",json,"bad");
+            ModDefinitions.PASSIVE_ENTITIES = parseResourceArray("passive",json,"good");
+            ModDefinitions.HOSTILE_FLEEING_ENTITIES = parseResourceArray("hostile_fleeing",json,"neutral");
+            ModDefinitions.TRADING_ENTITIES = parseResourceArray("trading",json,"neutral");
+            parseResourceArray("hostile_fleeing",json,"neutral");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to parse faction ai!");
         }
     }
 
-    private static List<EntityType<?>> parseResourceArray(String element, JsonObject json) {
+    private static List<EntityType<?>> parseResourceArray(String element, JsonObject json, String defaultStanding) {
         List<EntityType<?>> members = new ArrayList<>();
         if(json.has(element)) {
             for (JsonElement index : json.get(element).getAsJsonArray()) {
-                EntityType<?> entity = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(index.getAsString()));
-                if(entity!=null) members.add(entity);
+                String[] name = index.getAsString().split(":");
+                EntityType<?> entity = null;
+                if(name.length==1) entity = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(name[0]));
+                else if(name.length==2) entity = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(name[0],name[1]));
+                else if(name.length==3) {
+                    if(checkValidStanding(name[0])) defaultStanding = name[0];
+                    entity = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(name[1],name[2]));
+                }
+                if(entity!=null) {
+                    members.add(entity);
+                    try {
+                        ((HashMap<EntityType<?>, String>)ReputationAIPackages.class.getField(element+"_standings").get(null)).put(entity,defaultStanding);
+                    } catch (Exception e) {
+                        Reputation.logError("Could not read standings map for element: "+element,e);
+                    }
+                } else Reputation.logError("Could not read standings map for element: "+element,null);
             }
         }
         return members;
+    }
+
+    private static boolean checkValidStanding(String readStanding) {
+        return readStanding.matches("bad") || readStanding.matches("neutral") || readStanding.matches("good");
     }
 
     public static void buildReputationSensor(Brain<? extends LivingEntity> brain) {
@@ -61,9 +83,9 @@ public class ReputationAIPackages {
         brain.sensors.put(ReputationSenorType.NEAREST_PLAYER_REPUTATION.get(), ReputationSenorType.NEAREST_PLAYER_REPUTATION.get().create());
     }
 
-    public static void buildReputationFleeAI(Brain brain, float f) {
+    public static void buildReputationFleeAI(Brain brain, float f, String reputationBound) {
         for (Activity activity : Arrays.asList(Activity.PANIC, Activity.CORE, Activity.MEET, Activity.IDLE, Activity.REST, Activity.HIDE)) {
-            brain.addActivity(activity, getFleePackage(f));
+            brain.addActivity(activity, getFleePackage(f,reputationBound));
         }
     }
 
@@ -73,39 +95,30 @@ public class ReputationAIPackages {
         }
     }
 
-    public static void buildReputationPassiveNeutralAI(Brain brain, int time) {
-        brain.addActivity(Activity.CORE, getPassiveNeutralPackage(time));
-        brain.addActivity(Activity.FIGHT, getPassiveNeutralPackage(time));
+    public static void buildReputationPassiveAI(Brain brain, int time, String reputationBound) {
+        brain.addActivity(Activity.CORE, getPassivePackage(time,reputationBound));
+        brain.addActivity(Activity.FIGHT, getPassivePackage(time,reputationBound));
     }
 
-    public static void buildReputationPassiveGoodAI(Brain brain, int time) {
-        brain.addActivity(Activity.CORE, getPassiveGoodPackage(time));
-        brain.addActivity(Activity.FIGHT, getPassiveGoodPackage(time));
+    public static void buildReputationHostileAI(Mob mob, Brain brain, String reputationBound) {
+        brain.addActivity(Activity.IDLE, getHostilePackage(mob, brain, reputationBound));
     }
 
-    public static void buildReputationHostileAI(Mob mob, Brain brain) {
-        brain.addActivity(Activity.IDLE, getHostilePackage(mob, brain));
-    }
-
-    public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getFleePackage(float f) {
-        return ImmutableList.of(Pair.of(0, SetWalkTargetAwayFrom.entity(ReputationMemoryModule.NEAREST_PLAYER_BAD_REPUTATION.get(), f, 6, false)));
+    public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getFleePackage(float f, String reputationBound) {
+        return ImmutableList.of(Pair.of(0, SetWalkTargetAwayFrom.entity(ReputationMemoryModule.getNearestModuleFromString(reputationBound), f, 6, false)));
     }
 
     public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getInjuredFleePackage(float f) {
         return ImmutableList.of(Pair.of(0, SetWalkTargetAwayFrom.entity(ReputationMemoryModule.FLEE_FROM_PLAYER.get(), f, 32, false)));
     }
 
-    public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getPassiveNeutralPackage(int time) {
-        return ImmutableList.of(Pair.of(0, new BecomePassiveIfMemoryPresent(ReputationMemoryModule.NEAREST_PLAYER_NEUTRAL_REPUTATION.get(),time)));
+    public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getPassivePackage(int time, String reputationBound) {
+        return ImmutableList.of(Pair.of(0, new BecomePassiveIfMemoryPresent(ReputationMemoryModule.getNearestModuleFromString(reputationBound),time)));
     }
 
-    public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getPassiveGoodPackage(int time) {
-        return ImmutableList.of(Pair.of(0, new BecomePassiveIfMemoryPresent(ReputationMemoryModule.NEAREST_PLAYER_GOOD_REPUTATION.get(),time)));
-    }
-
-    public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getHostilePackage(Mob mob, Brain<? extends LivingEntity> brain) {
+    public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getHostilePackage(Mob mob, Brain<? extends LivingEntity> brain, String reputationBound) {
         return ImmutableList.of(Pair.of(1, new StartAttacking<>(attackFunction -> {
-            Optional<Player> optional = brain.getMemory(ReputationMemoryModule.NEAREST_PLAYER_BAD_REPUTATION.get());
+            Optional<Player> optional = brain.getMemory(ReputationMemoryModule.getNearestModuleFromString(reputationBound));
             return optional.isPresent() && Sensor.isEntityAttackable(mob, optional.get()) ? optional : Optional.empty();
         })));
     }

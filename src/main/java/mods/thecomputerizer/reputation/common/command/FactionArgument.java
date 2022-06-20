@@ -22,7 +22,7 @@ public class FactionArgument implements ArgumentType<ResourceLocation> {
     private static final List<ResourceLocation> FACTIONS = new ArrayList<>();
 
     public static FactionArgument id() {
-        for(Faction f : ReputationHandler.getFactionMap().values()) FACTIONS.add(f.getName());
+        for(Faction f : ReputationHandler.getFactionMap().values()) FACTIONS.add(f.getID());
         return new FactionArgument();
     }
 

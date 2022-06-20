@@ -59,7 +59,7 @@ public class RenderEvents {
                         if (ReputationHandler.isGoodReputation(player, f)) icon = GOOD_REPUTATION;
                         else if (ReputationHandler.isBadReputation(player, f)) icon = BAD_REPUTATION;
                         double xTranslate = (living.getBbWidth() / 2f) - (living.getBbWidth() * 0.0125f * 1.1 * offset);
-                        render(e,living,player,new ResourceLocation(ModDefinitions.MODID,"textures/icons/faction_"+f.getName().getPath()+".png"),xTranslate,0.25d,0.25f);
+                        render(e,living,player,new ResourceLocation(ModDefinitions.MODID,"textures/icons/faction_"+f.getID().getPath()+".png"),xTranslate,0.25d,0.22f);
                         if (icon != null) {
                             render(e,living,player,icon,xTranslate,0.28d,0.15f);
                         }
@@ -109,7 +109,7 @@ public class RenderEvents {
     public static void debugInfo(RenderGameOverlayEvent.Text e) {
         if(ClientConfigHandler.debug.get() && Minecraft.getInstance().player!=null) {
             for (Faction f : CLIENT_FACTIONS.values()) {
-                e.getLeft().add("Reputation for the "+f.getName()+" faction: "+ ReputationHandler.getReputation(Minecraft.getInstance().player,f));
+                e.getLeft().add("Reputation for the "+f.getID()+" faction: "+ ReputationHandler.getReputation(Minecraft.getInstance().player,f));
             }
         }
     }

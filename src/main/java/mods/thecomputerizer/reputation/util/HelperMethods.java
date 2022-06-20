@@ -2,6 +2,8 @@ package mods.thecomputerizer.reputation.util;
 
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
+import mods.thecomputerizer.reputation.common.ModDefinitions;
+import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntitySelector;
@@ -18,6 +20,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class HelperMethods {
+
+    public static Player getNearestPlayerInCustomStandingToEntity(LivingEntity entity, double distance, String reputationStanding) {
+        if(reputationStanding.matches("good")) return getNearestPlayerInGoodStandingToEntity(entity, distance);
+        else if(reputationStanding.matches("neutral")) return getNearestPlayerInNeutralStandingToEntity(entity, distance);
+        return getNearestPlayerInBadStandingToEntity(entity, distance);
+    }
 
     public static Player getNearestPlayerInGoodStandingToEntity(LivingEntity entity, double distance) {
         Level level = entity.level;
@@ -87,14 +95,15 @@ public class HelperMethods {
 
     public static double tradePrices(LivingEntity entity, Player player) {
         Collection<Faction> factions = ReputationHandler.getEntityFactions(entity);
-        if(!factions.isEmpty()) {
+        if(!factions.isEmpty() && ModDefinitions.TRADING_ENTITIES.contains(entity.getType())) {
             int total = 0;
             int rep = 0;
             int cutoff = 0;
             for (Faction f : factions) {
                 rep += ReputationHandler.getReputation(player, f);
                 total++;
-                cutoff+=f.getHigherRep();
+                if(ReputationAIPackages.trading_standings.get(entity.getType()).matches("bad")) cutoff+=f.getLowerRep();
+                else cutoff+=f.getHigherRep();
             }
             float averageHighRep = cutoff/(float)total;
             if(rep!=averageHighRep) return (((double)rep/total)-averageHighRep)/(averageHighRep*-5);
@@ -134,5 +143,11 @@ public class HelperMethods {
                 .filter(e -> e.getType()==type)
                 .filter(e -> e.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).isPresent() && e.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).get().contains(entity))
                 .collect(Collectors.toList());
+    }
+
+    public static int getOneAboveIntegerIndexOfMapForValue(Map<?, ?> map, List<?> valueAsList) {
+        for (int i = 0; i < map.values().size(); i++)
+            if (map.values().stream().toList().get(i) == valueAsList.get(0)) return i+1;
+        return 0;
     }
 }

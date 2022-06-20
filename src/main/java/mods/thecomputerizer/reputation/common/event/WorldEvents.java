@@ -10,8 +10,7 @@ import mods.thecomputerizer.reputation.common.ai.ChatTracker;
 import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
 import mods.thecomputerizer.reputation.common.ai.goals.FleeGoal;
 import mods.thecomputerizer.reputation.common.ai.goals.ReputationAttackableTargetGoal;
-import mods.thecomputerizer.reputation.common.ai.goals.ReputationPacifyHostileGoodStandingGoal;
-import mods.thecomputerizer.reputation.common.ai.goals.ReputationPacifyHostileNeutralStandingGoal;
+import mods.thecomputerizer.reputation.common.ai.goals.ReputationPacifyHostileCustomStandingGoal;
 import mods.thecomputerizer.reputation.common.capability.PlayerFactionProvider;
 import mods.thecomputerizer.reputation.common.command.AddPlayerToFactionCommand;
 import mods.thecomputerizer.reputation.common.command.AddReputationCommand;
@@ -41,6 +40,7 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.*;
 
@@ -50,6 +50,7 @@ public class WorldEvents {
     public static final HashMap<LivingEntity, ChatTracker> trackers = new HashMap<>();
     private static final Random random = new Random();
     private static final List<ServerPlayer> players = new ArrayList<>();
+    public static boolean checkedLedgers = false;
 
     @SubscribeEvent
     public static void attachLevelCapabilities(AttachCapabilitiesEvent<Level> event) {
@@ -58,7 +59,7 @@ public class WorldEvents {
             for (Faction faction : ReputationHandler.getFactionMap().values()) {
                 PlayerFactionProvider playerFactionProvider = new PlayerFactionProvider(faction);
                 PlayerFactionHandler.PLAYER_FACTIONS.put(faction, playerFactionProvider);
-                event.addCapability(faction.getName(), playerFactionProvider);
+                event.addCapability(faction.getID(), playerFactionProvider);
             }
         }
     }
@@ -79,7 +80,6 @@ public class WorldEvents {
             if(!ReputationEvents.tickThese.contains(entity) && brain.memories.isEmpty()) ReputationEvents.tickThese.add(entity);
             brain.sensors.putIfAbsent(SensorType.NEAREST_LIVING_ENTITIES, SensorType.NEAREST_LIVING_ENTITIES.create());
             brain.memories.putIfAbsent(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, Optional.empty());
-            brain.memories.putIfAbsent(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, Optional.empty());
             if(entity instanceof Player player) {
                 //sync faction data to players upon joining
                 LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
@@ -99,17 +99,17 @@ public class WorldEvents {
                 ReputationAIPackages.buildReputationSensor(brain);
                 ReputationAIPackages.buildReputationInjuredAI(brain,0.5f);
                 if (ModDefinitions.PASSIVE_FLEEING_ENTITIES.contains(entity.getType())) {
-                    ReputationAIPackages.buildReputationFleeAI(brain, HelperMethods.fleeFactor(entity));
+                    ReputationAIPackages.buildReputationFleeAI(brain, HelperMethods.fleeFactor(entity), ReputationAIPackages.passive_fleeing_standings.get(entity.getType()));
                     if (entity instanceof Mob mob)
                         mob.goalSelector.addGoal(0, new FleeGoal(mob, HelperMethods.fleeFactor(entity), true));
                 }
                 if (ModDefinitions.HOSTILE_ENTITIES.contains(entity.getType()) && entity instanceof Mob mob) {
-                    ReputationAIPackages.buildReputationHostileAI(mob, brain);
+                    ReputationAIPackages.buildReputationHostileAI(mob, brain,ReputationAIPackages.hostile_standings.get(entity.getType()));
                     if (entity instanceof NeutralMob)
                         mob.targetSelector.addGoal(2, new ReputationAttackableTargetGoal<>(mob, Player.class, true, false));
                 }
-                if (ModDefinitions.PASSIVE_NEUTRAL_ENTITIES.contains(entity.getType())) {
-                    ReputationAIPackages.buildReputationPassiveNeutralAI(brain, 1);
+                if (ModDefinitions.PASSIVE_ENTITIES.contains(entity.getType())) {
+                    ReputationAIPackages.buildReputationPassiveAI(brain, 1,ReputationAIPackages.passive_standings.get(entity.getType()));
                     if (entity instanceof Mob mob) {
                         Set<WrappedGoal> goalSet = mob.targetSelector.getAvailableGoals();
                         List<WrappedGoal> newGoals = goalSet.stream()
@@ -122,24 +122,7 @@ public class WorldEvents {
                         for (WrappedGoal wrappedGoal : newGoals) {
                             mob.targetSelector.addGoal(wrappedGoal.getPriority(), wrappedGoal.getGoal());
                         }
-                        mob.targetSelector.addGoal(2, new ReputationPacifyHostileNeutralStandingGoal<>(mob, Player.class, true, false));
-                    }
-                }
-                if (ModDefinitions.PASSIVE_GOOD_ENTITIES.contains(entity.getType())) {
-                    ReputationAIPackages.buildReputationPassiveGoodAI(brain, 1);
-                    if (entity instanceof Mob mob) {
-                        Set<WrappedGoal> goalSet = mob.targetSelector.getAvailableGoals();
-                        List<WrappedGoal> newGoals = goalSet.stream()
-                                .filter((g) -> {
-                                    if (g.getGoal() instanceof NearestAttackableTargetGoal targetGoal && !(g.getGoal() instanceof ReputationPacifyHostileNeutralStandingGoal))
-                                        return targetGoal.targetType != Player.class && targetGoal.targetType != ServerPlayer.class;
-                                    return false;
-                                }).toList();
-                        mob.targetSelector.removeAllGoals();
-                        for (WrappedGoal wrappedGoal : newGoals) {
-                            mob.targetSelector.addGoal(wrappedGoal.getPriority(), wrappedGoal.getGoal());
-                        }
-                        mob.targetSelector.addGoal(2, new ReputationPacifyHostileGoodStandingGoal<>(mob, Player.class, true, false));
+                        mob.targetSelector.addGoal(2, new ReputationPacifyHostileCustomStandingGoal<>(mob, Player.class, true, false,ReputationAIPackages.passive_standings.get(entity.getType())));
                     }
                 }
             }
@@ -198,5 +181,8 @@ public class WorldEvents {
             }
             tickTimer=0;
         }
+        if(ServerLifecycleHooks.getCurrentServer().getLevel(Level.OVERWORLD).getDayTime()>=12000) {
+            if (!checkedLedgers) checkedLedgers = true;
+        } else checkedLedgers = false;
     }
 }

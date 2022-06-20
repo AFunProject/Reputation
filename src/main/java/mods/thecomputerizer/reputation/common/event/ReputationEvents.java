@@ -23,6 +23,7 @@ import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.living.LivingSetAttackTargetEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.Event;
@@ -82,6 +83,12 @@ public class ReputationEvents {
 		if(event.getEntity() instanceof Player && level.getBlockEntity(event.getPos()) instanceof Container) {
 			ContainerHandler.setChangesReputation(Objects.requireNonNull(level.getBlockEntity(event.getPos())), false);
 		}
+	}
+
+	@SubscribeEvent
+	public static void setTarget(LivingSetAttackTargetEvent event) {
+		LivingEntity entity = event.getEntityLiving();
+		if(WorldEvents.trackers.containsKey(entity)) WorldEvents.trackers.get(entity).setEngage(true);
 	}
 
 	@SubscribeEvent
