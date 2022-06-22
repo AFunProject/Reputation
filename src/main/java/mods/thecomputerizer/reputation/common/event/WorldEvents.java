@@ -155,34 +155,38 @@ public class WorldEvents {
 
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent e) {
-        tickTimer++;
-        for(ChatTracker tracker : trackers.values()) tracker.queryChatTimer();
-        if(tickTimer>=20) {
-            long seed = random.nextLong(Long.MAX_VALUE);
-            ArrayList<ChatTracker> toUpdate = new ArrayList<>();
-            for(LivingEntity entity : trackers.keySet()) {
-                ChatTracker tracker = trackers.get(entity);
-                if(seed>=tracker.getSeed() && !tracker.getRecent() && !tracker.getRandom()) {
-                    tracker.setRandom(true);
-                    for(Faction f : ReputationHandler.getEntityFactions(entity)) if(!HelperMethods.getSeenEntitiesOfFaction(entity.getBrain(),f).isEmpty()) tracker.setInRange(true);
-                    tracker.setChanged(true);
-                    tracker.setRecent(true);
+        if(e.phase== TickEvent.Phase.END) {
+            tickTimer++;
+            for (ChatTracker tracker : trackers.values()) tracker.queryChatTimer();
+            if (tickTimer >= 20) {
+                long seed = random.nextLong(Long.MAX_VALUE);
+                ArrayList<ChatTracker> toUpdate = new ArrayList<>();
+                for (LivingEntity entity : trackers.keySet()) {
+                    ChatTracker tracker = trackers.get(entity);
+                    if (seed >= tracker.getSeed() && !tracker.getRecent() && !tracker.getRandom()) {
+                        tracker.setRandom(true);
+                        for (Faction f : ReputationHandler.getEntityFactions(entity))
+                            if (!HelperMethods.getSeenEntitiesOfFaction(entity.getBrain(), f).isEmpty())
+                                tracker.setInRange(true);
+                        tracker.setChanged(true);
+                        tracker.setRecent(true);
+                    }
+                    if (tracker.getChanged()) toUpdate.add(tracker);
                 }
-                if(tracker.getChanged()) toUpdate.add(tracker);
-            }
-            if(!toUpdate.isEmpty()) {
-                for(ServerPlayer player : players) PacketHandler.sendTo(new ChatIconMessage(toUpdate),player);
-                for(ChatTracker tracker : toUpdate) {
-                    tracker.setRandom(false);
-                    tracker.setInRange(false);
-                    tracker.setEngage(false);
-                    tracker.setChanged(false);
+                if (!toUpdate.isEmpty()) {
+                    for (ServerPlayer player : players) PacketHandler.sendTo(new ChatIconMessage(toUpdate), player);
+                    for (ChatTracker tracker : toUpdate) {
+                        tracker.setRandom(false);
+                        tracker.setInRange(false);
+                        tracker.setEngage(false);
+                        tracker.setChanged(false);
+                    }
                 }
+                tickTimer = 0;
             }
-            tickTimer=0;
+            if (ServerLifecycleHooks.getCurrentServer().getLevel(Level.OVERWORLD).getDayTime() >= 12000) {
+                if (!checkedLedgers) checkedLedgers = true;
+            } else checkedLedgers = false;
         }
-        if(ServerLifecycleHooks.getCurrentServer().getLevel(Level.OVERWORLD).getDayTime()>=12000) {
-            if (!checkedLedgers) checkedLedgers = true;
-        } else checkedLedgers = false;
     }
 }

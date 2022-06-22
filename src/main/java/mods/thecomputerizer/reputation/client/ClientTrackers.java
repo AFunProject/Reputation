@@ -23,22 +23,26 @@ public class ClientTrackers {
 
     @SubscribeEvent
     public static void tickTrackers(TickEvent.ClientTickEvent e) {
-        List<ChatTracker> toRemove = new ArrayList<>();
-        for(ChatTracker tracker : trackerMap.keySet()) {
-            trackerMap.put(tracker,trackerMap.get(tracker)+1);
-            if(trackerMap.get(tracker)>=50) toRemove.add(tracker);
-        }
-        if(!toRemove.isEmpty()) for(ChatTracker tracker : toRemove) {
-            trackerMap.remove(tracker);
-            selectedIconMap.remove(tracker);
+        if(e.phase==TickEvent.Phase.END) {
+            List<ChatTracker> toRemove = new ArrayList<>();
+            for (ChatTracker tracker : trackerMap.keySet()) {
+                trackerMap.put(tracker, trackerMap.get(tracker) + 1);
+                if (trackerMap.get(tracker) >= 50) toRemove.add(tracker);
+            }
+            if (!toRemove.isEmpty()) for (ChatTracker tracker : toRemove) {
+                trackerMap.remove(tracker);
+                selectedIconMap.remove(tracker);
+            }
         }
     }
 
     public static void initTracker(ChatTracker tracker) {
-        List<ResourceLocation> icons = iconMap.get(tracker.getEntityType()).get(tracker.getEvent());
-        if(!icons.isEmpty()) {
-            trackerMap.put(tracker, 0);
-            selectedIconMap.put(tracker,icons.get(random.nextInt(icons.size())));
+        if(iconMap.get(tracker.getEntityType())!=null) {
+            List<ResourceLocation> icons = iconMap.get(tracker.getEntityType()).get(tracker.getEvent());
+            if (!icons.isEmpty()) {
+                trackerMap.put(tracker, 0);
+                selectedIconMap.put(tracker, icons.get(random.nextInt(icons.size())));
+            }
         }
     }
 

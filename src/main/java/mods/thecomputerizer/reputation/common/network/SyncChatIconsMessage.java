@@ -24,7 +24,9 @@ public class SyncChatIconsMessage {
         int k = buf.readInt();
         Reputation.logInfo("syncing chat icons");
         for(int i = 0;i<k;i++) {
-            EntityType<?> type = getEntityFromResource(buf.readResourceLocation());
+            ResourceLocation entity = buf.readResourceLocation();
+            Reputation.logInfo("adding chat icons to "+entity);
+            EntityType<?> type = getEntityFromResource(entity);
             ClientTrackers.iconMap.put(type,new HashMap<>());
             int j;
             k = buf.readInt();
