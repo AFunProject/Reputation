@@ -8,7 +8,6 @@ public class RegistryHandler {
 
     public static void registerCommonObjects(IEventBus bus) {
         Blocks.register(bus);
-        BlockEntities.register(bus);
         Items.register(bus);
         Entities.register(bus);
         Sounds.register(bus);

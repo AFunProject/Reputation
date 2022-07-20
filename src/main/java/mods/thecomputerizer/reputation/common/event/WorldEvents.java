@@ -19,6 +19,8 @@ import mods.thecomputerizer.reputation.common.command.SetReputationCommand;
 import mods.thecomputerizer.reputation.common.network.ChatIconMessage;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.common.network.SyncFactionsMessage;
+import mods.thecomputerizer.reputation.common.objects.blocks.Ledger;
+import mods.thecomputerizer.reputation.common.objects.blocks.LedgerBook;
 import mods.thecomputerizer.reputation.util.HelperMethods;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -48,6 +50,8 @@ import java.util.*;
 public class WorldEvents {
     private static int tickTimer = 0;
     public static final HashMap<LivingEntity, ChatTracker> trackers = new HashMap<>();
+    public static final List<LedgerBook> books = new ArrayList<>();
+    public static final List<Ledger> ledgers = new ArrayList<>();
     private static final Random random = new Random();
     private static final List<ServerPlayer> players = new ArrayList<>();
     public static boolean checkedLedgers = false;
@@ -156,6 +160,8 @@ public class WorldEvents {
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent e) {
         if(e.phase== TickEvent.Phase.END) {
+            for(LedgerBook book : books) book.tick();
+            for(Ledger ledger : ledgers) ledger.tick();
             tickTimer++;
             for (ChatTracker tracker : trackers.values()) tracker.queryChatTimer();
             if (tickTimer >= 20) {

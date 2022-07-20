@@ -17,7 +17,7 @@ apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.18-0.8.0'
+version = '1.18-0.8.2'
 group = 'mods.thecomputerizer.reputation' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'Reputation'
 
@@ -91,7 +91,7 @@ jar {
         attributes([
                 "Specification-Title"     : "reputation",
                 "Specification-Vendor"    : "The_Computerizer",
-                "Specification-Version"   : "0.8.0",
+                "Specification-Version"   : "0.8.2",
                 "Implementation-Title"    : project.name,
                 "Implementation-Version"  : project.jar.archiveVersion,
                 "Implementation-Vendor"   : "The_Computerizer",

@@ -24,7 +24,6 @@ public class FleeIconMessage {
     public FleeIconMessage(UUID uuid, boolean add) {
         this.uuid = uuid;
         this.add = add;
-        //Reputation.logInfo("Calling flee packet (performance check)");
     }
 
     public static void encode(FleeIconMessage message, FriendlyByteBuf buf) {

@@ -3,6 +3,7 @@ package mods.thecomputerizer.reputation.mixin;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
 import mods.thecomputerizer.reputation.util.HelperMethods;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.npc.Villager;
@@ -17,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Villager.class)
-public class MixinVillager {
+public abstract class MixinVillager {
 
     @Inject(at = @At("HEAD"), method = "updateSpecialPrices(Lnet/minecraft/world/entity/player/Player;)V")
     private void updateSpecialPrices(Player player, CallbackInfo callback) {
@@ -36,13 +37,20 @@ public class MixinVillager {
         ItemStack itemstack = player.getItemInHand(hand);
         Villager villager = (Villager)(Object)this;
         if (itemstack.getItem() != Items.VILLAGER_SPAWN_EGG && villager.isAlive() && !villager.isTrading() && !villager.isSleeping() && !player.isSecondaryUseActive()) {
-            if (ReputationAIPackages.trading_standings.get(villager.getType()).matches("bad") && HelperMethods.isPlayerInBadStanding(villager, player)) {
+            try {
+                if (ReputationAIPackages.trading_standings.get(villager.getType()).matches("bad") && HelperMethods.isPlayerInBadStanding(villager, player)) {
+                    villager.setUnhappy();
+                    callback.setReturnValue(InteractionResult.sidedSuccess(villager.level.isClientSide));
+                } else if (HelperMethods.isPlayerInBadStanding(villager, player) || HelperMethods.isPlayerInNeutralStanding(villager, player)) {
+                    villager.setUnhappy();
+                    callback.setReturnValue(InteractionResult.sidedSuccess(villager.level.isClientSide));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                player.sendMessage(new TextComponent("Something went wrong fetching trade standings, defaulting to bad standing"),player.getUUID());
                 villager.setUnhappy();
                 callback.setReturnValue(InteractionResult.sidedSuccess(villager.level.isClientSide));
-            }
-            else if(HelperMethods.isPlayerInBadStanding(villager, player) || HelperMethods.isPlayerInNeutralStanding(villager, player)) {
-                villager.setUnhappy();
-                callback.setReturnValue(InteractionResult.sidedSuccess(villager.level.isClientSide));
+                ReputationAIPackages.trading_standings.put(villager.getType(), "bad");
             }
         }
     }

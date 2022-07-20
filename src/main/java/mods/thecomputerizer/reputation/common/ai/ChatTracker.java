@@ -123,7 +123,6 @@ public class ChatTracker {
     }
 
     public void encode(FriendlyByteBuf buf) {
-        Reputation.logInfo("write UUID "+this.getEntityUUID());
         buf.writeUUID(this.entityUUID);
         buf.writeLong(this.seed);
         buf.writeInt(this.getPriorityChatEvent().length());
@@ -134,10 +133,8 @@ public class ChatTracker {
     public static ChatTracker decode(FriendlyByteBuf buf) {
         ChatTracker ret = new ChatTracker();
         ret.setUUID(buf.readUUID());
-        Reputation.logInfo("read UUID "+ret.getEntityUUID());
         ret.setSeed(buf.readLong());
         ret.event = (String)buf.readCharSequence(buf.readInt(), StandardCharsets.UTF_8);
-        Reputation.logInfo("read in event as "+ret.event);
         ret.entityType = buf.readResourceLocation();
         return ret;
     }

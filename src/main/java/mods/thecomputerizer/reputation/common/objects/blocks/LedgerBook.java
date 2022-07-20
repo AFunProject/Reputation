@@ -2,6 +2,7 @@ package mods.thecomputerizer.reputation.common.objects.blocks;
 
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
+import mods.thecomputerizer.reputation.common.event.WorldEvents;
 import mods.thecomputerizer.reputation.common.objects.items.FactionCurrencyBag;
 import mods.thecomputerizer.reputation.util.HelperMethods;
 import net.minecraft.Util;
@@ -15,33 +16,37 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Random;
 
 @SuppressWarnings("deprecation")
 public class LedgerBook extends Block {
 
-    public boolean canUse;
+    public int tick;
 
     public LedgerBook(Properties properties) {
         super(properties);
-        this.canUse = true;
+        WorldEvents.books.add(this);
+        this.tick = 10;
     }
 
     @Override
     public @NotNull InteractionResult use(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hit) {
-        if(this.canUse) {
+        if(this.tick>=10 && level instanceof ServerLevel) {
             if (player.getMainHandItem().getItem() instanceof FactionCurrencyBag && player.getOffhandItem().getItem().getRegistryName().toString().matches(Items.INK_SAC.getRegistryName().toString())
                 &! player.getMainHandItem().getOrCreateTag().contains("Signed") && player.getMainHandItem().getOrCreateTag().contains("Item")
                 && ForgeRegistries.ITEMS.getValue(new ResourceLocation(player.getMainHandItem().getOrCreateTag().getCompound("Item").getString("id")))!=null) {
                     float factor = 2f;
-                    if (HelperMethods.getSeenEntitiesOfFaction(player.getBrain(), ReputationHandler.FACTION_CURRENCY_MAP.get(ForgeRegistries.ITEMS.getValue(new ResourceLocation(player.getMainHandItem().getOrCreateTag().getCompound("Item").getString("id"))))).isEmpty()) {
+                    if (HelperMethods.getEntitiesOfFactionNearPlayer((ServerLevel) level, player, ReputationHandler.FACTION_CURRENCY_MAP.get(ForgeRegistries.ITEMS.getValue(new ResourceLocation(player.getMainHandItem().getOrCreateTag().getCompound("Item").getString("id")))),8).isEmpty()) {
                         player.sendMessage(new TextComponent("The book acknowledges the tribute"), Util.NIL_UUID);
                         factor = 1f;
                     } else {
@@ -56,7 +61,7 @@ public class LedgerBook extends Block {
                     }
                     player.getMainHandItem().getOrCreateTag().putFloat("Signed", factor);
                     player.getOffhandItem().shrink(1);
-                    this.canUse = false;
+                    this.tick = 0;
                     return InteractionResult.CONSUME_PARTIAL;
             } else {
                 StringBuilder builder = new StringBuilder();
@@ -64,15 +69,29 @@ public class LedgerBook extends Block {
                 for (Faction f : ReputationHandler.getFactionMap().values())
                     builder.append(f.getName()).append(" -> ").append(ReputationHandler.getReputation(player, f));
                 player.sendMessage(new TextComponent(builder.toString()), Util.NIL_UUID);
+                this.tick = 0;
             }
-            this.canUse = false;
             return InteractionResult.PASS;
         }
         return InteractionResult.FAIL;
     }
 
     @Override
-    public void randomTick(@NotNull BlockState state, @NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull Random random) {
-        if (!this.canUse) this.canUse = true;
+    public @NotNull VoxelShape getShape(@NotNull BlockState pState, @NotNull BlockGetter pLevel, @NotNull BlockPos pPos, @NotNull CollisionContext pContext) {
+        return Block.box(3d,0d,3d,12d,4d,12d);
+    }
+
+    @Override
+    public void destroy(@NotNull LevelAccessor pLevel, @NotNull BlockPos pPos, @NotNull BlockState pState) {
+        WorldEvents.books.remove(this);
+    }
+
+    @Override
+    public void wasExploded(@NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Explosion pExplosion) {
+        WorldEvents.books.remove(this);
+    }
+
+    public void tick() {
+        if(this.tick<10) this.tick++;
     }
 }

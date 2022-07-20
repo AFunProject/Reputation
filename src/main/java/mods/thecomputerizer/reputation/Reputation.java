@@ -68,7 +68,7 @@ public class Reputation {
 											new ResourceLocation(
 													stack.getTag().getCompound("Item")
 															.get("id").getAsString())))));
-					if(stack.getTag().contains("Signed")) ret+=0.5f;
+					if (stack.getTag().contains("Signed")) ret += 0.5f;
 					return ret;
 				});
 	}

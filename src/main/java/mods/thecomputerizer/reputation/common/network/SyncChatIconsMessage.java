@@ -22,10 +22,8 @@ public class SyncChatIconsMessage {
 
     public SyncChatIconsMessage(FriendlyByteBuf buf){
         int k = buf.readInt();
-        Reputation.logInfo("syncing chat icons");
         for(int i = 0;i<k;i++) {
             ResourceLocation entity = buf.readResourceLocation();
-            Reputation.logInfo("adding chat icons to "+entity);
             EntityType<?> type = getEntityFromResource(entity);
             ClientTrackers.iconMap.put(type,new HashMap<>());
             int j;
@@ -62,7 +60,6 @@ public class SyncChatIconsMessage {
     private static void parseEvents(JsonElement data, FriendlyByteBuf buf) {
         try {
             JsonObject json = data.getAsJsonObject();
-            Reputation.logInfo(json.toString());
             buf.writeResourceLocation(new ResourceLocation(json.get("name").getAsString()));
             List<ResourceLocation> random = parseResourceArray("idle",json);
             buf.writeInt(random.size());

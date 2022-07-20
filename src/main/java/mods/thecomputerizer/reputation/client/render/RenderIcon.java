@@ -10,7 +10,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -81,8 +80,8 @@ public class RenderIcon {
                             opacity = (opacity * 1.15f) / 15f;
                             int sizeX = 20;
                             int sizeY = 20;
-                            float scaleY = 0.6f;
-                            float scaleX = 0.6f;
+                            float scaleY = 0.48f;
+                            float scaleX = 0.48f;
                             float posY = ((y/scaleY)/2f) - ((float)sizeY*scaleY/2f);
                             float posX = (x/scaleX) - (float)sizeX*scaleX-(25/scaleX);
 
@@ -94,8 +93,8 @@ public class RenderIcon {
                             e.getMatrixStack().popPose();
 
                             e.getMatrixStack().pushPose();
-                            scaleY = 1f;
-                            scaleX = 1f;
+                            scaleY = .8f;
+                            scaleX = .8f;
                             posY = ((y/scaleY)/2f) - ((float)sizeY*scaleY/2f);
                             posX = (x/scaleX) - (float)sizeX*scaleX-36;
                             e.getMatrixStack().scale(scaleX, scaleY, 1f);

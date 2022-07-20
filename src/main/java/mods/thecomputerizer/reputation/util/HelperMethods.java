@@ -138,6 +138,11 @@ public class HelperMethods {
         return ret;
     }
 
+    public static List<? extends LivingEntity> getEntitiesOfFactionNearPlayer(ServerLevel level, Player player, Faction faction, int range) {
+        List<LivingEntity> ret = level.getEntitiesOfClass(LivingEntity.class, new AABB(player.getX() - range, player.getY() - (range / 2f), player.getZ() - range, player.getX() + range, player.getY() + (range / 2f), player.getZ() + range));
+        return ret.stream().filter(entity -> faction.getMembers().contains(entity.getType())).collect(Collectors.toList());
+    }
+
     public static List<? extends LivingEntity> getSeenEntitiesOfTypeInRange(ServerLevel level, LivingEntity entity, EntityType<?> type, BlockPos pos, double range) {
         return level.getEntitiesOfClass(LivingEntity.class, new AABB(pos.getX()-range, pos.getY()-(range/2), pos.getZ()-range, pos.getX()+range, pos.getY()+(range/2), pos.getZ()+range)).stream()
                 .filter(e -> e.getType()==type)
