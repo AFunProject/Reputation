@@ -10,10 +10,11 @@ import net.minecraftforge.registries.RegistryObject;
 
 public class Sounds {
     public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, ModDefinitions.MODID);
-
     public static final RegistryObject<SoundEvent> INCREASE_REPUTATION = SOUNDS.register("increase_reputation", () -> new SoundEvent(new ResourceLocation(ModDefinitions.MODID,"increase_reputation")));
     public static final RegistryObject<SoundEvent> DECREASE_REPUTATION = SOUNDS.register("decrease_reputation", () -> new SoundEvent(new ResourceLocation(ModDefinitions.MODID,"decrease_reputation")));
     public static final RegistryObject<SoundEvent> FLEE = SOUNDS.register("flee", () -> new SoundEvent(new ResourceLocation(ModDefinitions.MODID,"flee")));
+    public static final RegistryObject<SoundEvent> LEDGER_PLACE = SOUNDS.register("ledger_place", () -> new SoundEvent(new ResourceLocation(ModDefinitions.MODID,"ledger_place")));
+    public static final RegistryObject<SoundEvent> LEDGER_SIGN = SOUNDS.register("ledger_sign", () -> new SoundEvent(new ResourceLocation(ModDefinitions.MODID,"ledger_sign")));
 
     public static void register(IEventBus bus) {
         SOUNDS.register(bus);

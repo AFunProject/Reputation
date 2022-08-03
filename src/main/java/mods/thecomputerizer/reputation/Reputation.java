@@ -1,19 +1,18 @@
 package mods.thecomputerizer.reputation;
 
 import com.google.gson.JsonElement;
-import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.api.capability.IPlacedContainer;
 import mods.thecomputerizer.reputation.api.capability.IPlayerFaction;
 import mods.thecomputerizer.reputation.api.capability.IReputation;
+import mods.thecomputerizer.reputation.client.ClientTrackers;
+import mods.thecomputerizer.reputation.client.event.RenderEvents;
+import mods.thecomputerizer.reputation.client.event.WorldEvents;
+import mods.thecomputerizer.reputation.client.render.RenderIcon;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.common.network.SyncChatIconsMessage;
-import mods.thecomputerizer.reputation.common.registration.Items;
 import mods.thecomputerizer.reputation.common.registration.RegistryHandler;
 import mods.thecomputerizer.reputation.config.ClientConfigHandler;
-import mods.thecomputerizer.reputation.util.HelperMethods;
-import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
@@ -27,14 +26,12 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,17 +57,10 @@ public class Reputation {
 	}
 
 	public void clientSetup(FMLClientSetupEvent event) {
-		ItemProperties.register(Items.FACTION_BAG.get(), new ResourceLocation(ModDefinitions.MODID, "faction_bag_type"),
-				(stack, level, entity, seed) -> {
-					float ret = HelperMethods.getOneAboveIntegerIndexOfMapForValue(ReputationHandler.FACTION_CURRENCY_MAP,
-							Collections.singletonList(ReputationHandler.FACTION_CURRENCY_MAP.get(
-									ForgeRegistries.ITEMS.getValue(
-											new ResourceLocation(
-													stack.getTag().getCompound("Item")
-															.get("id").getAsString())))));
-					if (stack.getTag().contains("Signed")) ret += 0.5f;
-					return ret;
-				});
+		MinecraftForge.EVENT_BUS.register(RenderIcon.class);
+		MinecraftForge.EVENT_BUS.register(ClientTrackers.class);
+		MinecraftForge.EVENT_BUS.register(RenderEvents.class);
+		MinecraftForge.EVENT_BUS.register(WorldEvents.class);
 	}
 
 	public void registerReload(RegisterClientReloadListenersEvent event) {

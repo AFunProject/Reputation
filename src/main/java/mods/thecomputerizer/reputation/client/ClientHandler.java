@@ -7,6 +7,9 @@ import mods.thecomputerizer.reputation.api.capability.IReputation;
 import mods.thecomputerizer.reputation.common.network.SyncFactionPlayersMessage;
 import mods.thecomputerizer.reputation.common.network.SyncReputationMessage;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.LazyOptional;
@@ -43,5 +46,9 @@ public class ClientHandler {
 				}
 			}
 		}
+	}
+
+	public static void playPacketSound(SoundEvent sound) {
+		Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(sound, Mth.randomBetween(ReputationHandler.random,0.88f,1.12f)));
 	}
 }

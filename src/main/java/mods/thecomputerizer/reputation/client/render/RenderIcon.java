@@ -1,7 +1,6 @@
 package mods.thecomputerizer.reputation.client.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import mods.thecomputerizer.reputation.common.ModDefinitions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -11,13 +10,11 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mod.EventBusSubscriber(modid = ModDefinitions.MODID)
 @OnlyIn(value = Dist.CLIENT)
 public class RenderIcon {
 
@@ -48,14 +45,14 @@ public class RenderIcon {
                     icon.startDelayCount++;
                     if (icon.startDelayCount > 0) {
                         if (icon.fadeCount > 1) {
-                            icon.fadeCount -= 7;
+                            icon.fadeCount -= 70;
                             if (icon.fadeCount < 1) icon.fadeCount = 1;
                         }
                     }
                     if (icon.timer > 100) icon.activated = false;
                 } else {
                     if (icon.fadeCount < 1000) {
-                        icon.fadeCount += 7;
+                        icon.fadeCount += 70;
                         if (icon.fadeCount > 1000) icon.ICON_LOCATION = null;
                     }
                 }
@@ -80,8 +77,8 @@ public class RenderIcon {
                             opacity = (opacity * 1.15f) / 15f;
                             int sizeX = 20;
                             int sizeY = 20;
-                            float scaleY = 0.48f;
-                            float scaleX = 0.48f;
+                            float scaleY = 0.36f;
+                            float scaleX = 0.36f;
                             float posY = ((y/scaleY)/2f) - ((float)sizeY*scaleY/2f);
                             float posX = (x/scaleX) - (float)sizeX*scaleX-(25/scaleX);
 
@@ -93,10 +90,10 @@ public class RenderIcon {
                             e.getMatrixStack().popPose();
 
                             e.getMatrixStack().pushPose();
-                            scaleY = .8f;
-                            scaleX = .8f;
+                            scaleY = .6f;
+                            scaleX = .6f;
                             posY = ((y/scaleY)/2f) - ((float)sizeY*scaleY/2f);
-                            posX = (x/scaleX) - (float)sizeX*scaleX-36;
+                            posX = (x/scaleX) - (float)sizeX*scaleX-16;
                             e.getMatrixStack().scale(scaleX, scaleY, 1f);
                             RenderSystem.setShaderColor(1F, 1F, 1F, Math.max(0, Math.min(0.95f, opacity)));
                             RenderSystem.setShaderTexture(0, icon.FACTION);

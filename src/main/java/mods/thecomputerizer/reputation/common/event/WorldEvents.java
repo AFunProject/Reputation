@@ -22,6 +22,7 @@ import mods.thecomputerizer.reputation.common.network.SyncFactionsMessage;
 import mods.thecomputerizer.reputation.common.objects.blocks.Ledger;
 import mods.thecomputerizer.reputation.common.objects.blocks.LedgerBook;
 import mods.thecomputerizer.reputation.util.HelperMethods;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -171,9 +172,12 @@ public class WorldEvents {
                     ChatTracker tracker = trackers.get(entity);
                     if (seed >= tracker.getSeed() && !tracker.getRecent() && !tracker.getRandom()) {
                         tracker.setRandom(true);
-                        for (Faction f : ReputationHandler.getEntityFactions(entity))
-                            if (!HelperMethods.getSeenEntitiesOfFaction(entity.getBrain(), f).isEmpty())
-                                tracker.setInRange(true);
+                        Level level = entity.getLevel();
+                        if(level instanceof ServerLevel serverLevel) {
+                            for (Faction f : ReputationHandler.getEntityFactions(entity))
+                                if (!HelperMethods.getNearEntitiesOfFaction(serverLevel,entity,f,16).isEmpty())
+                                    tracker.setInRange(true);
+                        }
                         tracker.setChanged(true);
                         tracker.setRecent(true);
                     }

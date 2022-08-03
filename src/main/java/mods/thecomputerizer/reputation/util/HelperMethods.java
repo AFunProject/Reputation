@@ -133,14 +133,16 @@ public class HelperMethods {
 
     public static List<? extends LivingEntity> getSeenEntitiesOfFaction(Brain<? extends LivingEntity> brain, Faction faction) {
         List<LivingEntity> ret = new ArrayList<>();
-        Optional<NearestVisibleLivingEntities> optional = brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
-        optional.ifPresent(nearestVisibleLivingEntities -> nearestVisibleLivingEntities.findAll(faction::isMember).iterator().forEachRemaining((ret::add)));
+        try {
+            Optional<NearestVisibleLivingEntities> optional = brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
+            optional.ifPresent(nearestVisibleLivingEntities -> nearestVisibleLivingEntities.findAll(faction::isMember).iterator().forEachRemaining((ret::add)));
+        } catch (NullPointerException ignored) {}
         return ret;
     }
 
-    public static List<? extends LivingEntity> getEntitiesOfFactionNearPlayer(ServerLevel level, Player player, Faction faction, int range) {
-        List<LivingEntity> ret = level.getEntitiesOfClass(LivingEntity.class, new AABB(player.getX() - range, player.getY() - (range / 2f), player.getZ() - range, player.getX() + range, player.getY() + (range / 2f), player.getZ() + range));
-        return ret.stream().filter(entity -> faction.getMembers().contains(entity.getType())).collect(Collectors.toList());
+    public static List<? extends LivingEntity> getNearEntitiesOfFaction(ServerLevel level, LivingEntity entity, Faction faction, int range) {
+        List<LivingEntity> ret = level.getEntitiesOfClass(LivingEntity.class, new AABB(entity.getX() - range, entity.getY() - (range / 2f), entity.getZ() - range, entity.getX() + range, entity.getY() + (range / 2f), entity.getZ() + range));
+        return ret.stream().filter(e -> faction.getMembers().contains(e.getType())).collect(Collectors.toList());
     }
 
     public static List<? extends LivingEntity> getSeenEntitiesOfTypeInRange(ServerLevel level, LivingEntity entity, EntityType<?> type, BlockPos pos, double range) {
