@@ -2,10 +2,11 @@ package mods.thecomputerizer.reputation.common.objects.blocks;
 
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
+import mods.thecomputerizer.reputation.client.ClientHandler;
 import mods.thecomputerizer.reputation.common.event.WorldEvents;
 import mods.thecomputerizer.reputation.common.objects.items.FactionCurrencyBag;
+import mods.thecomputerizer.reputation.common.registration.Sounds;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -43,12 +44,12 @@ public class Ledger extends Block {
         else {
             if(hand==InteractionHand.MAIN_HAND && player.getMainHandItem().getItem() instanceof FactionCurrencyBag) {
                 if(player.getMainHandItem().getTag().contains("Signed")) {
-                    player.sendMessage(new TextComponent("signed ledger lol"),player.getUUID());
                     Faction faction = ReputationHandler.FACTION_CURRENCY_MAP.get(ForgeRegistries.ITEMS.getValue(new ResourceLocation(player.getMainHandItem().getTag().getCompound("Item").getString("id"))));
                     depositedBags.putIfAbsent(player, new HashMap<>());
                     depositedBags.get(player).putIfAbsent(faction, 0);
                     depositedBags.get(player).put(faction, depositedBags.get(player).get(faction) + (int)player.getMainHandItem().getTag().getFloat("Signed"));
                     player.getMainHandItem().shrink(1);
+                    ClientHandler.playPacketSound(Sounds.LEDGER_PLACE.get());
                 }
             }
             else if(hand==InteractionHand.OFF_HAND && player.getOffhandItem().getItem() instanceof FactionCurrencyBag) {
@@ -58,6 +59,7 @@ public class Ledger extends Block {
                     depositedBags.get(player).putIfAbsent(faction, 0);
                     depositedBags.get(player).put(faction, depositedBags.get(player).get(faction) + (int)player.getMainHandItem().getTag().getFloat("Signed"));
                     player.getMainHandItem().shrink(1);
+                    ClientHandler.playPacketSound(Sounds.LEDGER_PLACE.get());
                 }
             }
             return InteractionResult.CONSUME;

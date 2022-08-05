@@ -1,6 +1,5 @@
 package mods.thecomputerizer.reputation.common.ai;
 
-import mods.thecomputerizer.reputation.Reputation;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
@@ -31,7 +30,7 @@ public class ChatTracker {
     public ChatTracker(LivingEntity entity) {
         this.entityUUID = entity.getUUID();
         this.entityType = entity.getType().getRegistryName();
-        this.seed = new Random().nextLong(Long.MAX_VALUE);
+        this.seed = new Random().nextLong(Long.MAX_VALUE/2);
         this.recentChat = false;
         this.changed = false;
         this.random = false;
