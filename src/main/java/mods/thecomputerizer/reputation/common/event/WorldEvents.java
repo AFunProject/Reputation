@@ -131,7 +131,7 @@ public class WorldEvents {
                     }
                 }
             }
-            if(!ReputationHandler.getEntityFactions(entity).isEmpty()) trackers.put(entity,new ChatTracker(entity));
+            if(!ReputationHandler.getEntityFactions(entity).isEmpty() && ServerTrackers.serverIconMap.containsKey(entity.getType())) trackers.put(entity,new ChatTracker(entity));
         }
     }
 
