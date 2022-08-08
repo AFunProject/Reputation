@@ -4,6 +4,7 @@ import mods.thecomputerizer.reputation.api.ContainerHandler;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
+import mods.thecomputerizer.reputation.common.ai.ServerTrackers;
 import mods.thecomputerizer.reputation.common.capability.PlacedContainerProvider;
 import mods.thecomputerizer.reputation.common.capability.ReputationProvider;
 import mods.thecomputerizer.reputation.util.HelperMethods;
@@ -85,7 +86,11 @@ public class ReputationEvents {
 	@SubscribeEvent
 	public static void setTarget(LivingSetAttackTargetEvent event) {
 		LivingEntity entity = event.getEntityLiving();
-		if(WorldEvents.trackers.containsKey(entity)) WorldEvents.trackers.get(entity).setEngage(true);
+		if(WorldEvents.trackers.containsKey(entity) && ServerTrackers.hasIconsForEvent(WorldEvents.trackers.get(entity).getEntityType(),"engage")) {
+			WorldEvents.trackers.get(entity).setEngage(true);
+			WorldEvents.trackers.get(entity).setChanged(true);
+			WorldEvents.trackers.get(entity).setRecent(true);
+		}
 	}
 
 	@SubscribeEvent

@@ -1,5 +1,6 @@
 package mods.thecomputerizer.reputation.client;
 
+import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.common.ai.ChatTracker;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
@@ -34,9 +35,13 @@ public class ClientTrackers {
     }
 
     public static void initTracker(ChatTracker tracker) {
+        Reputation.logInfo("initializing tracker");
         if(iconMap.get(tracker.getEntityType())!=null) {
+            Reputation.logInfo("tracker entity type was not null: "+tracker.getEntityType().getRegistryName());
+            Reputation.logInfo("tracker event is "+tracker.getEvent());
             List<ResourceLocation> icons = iconMap.get(tracker.getEntityType()).get(tracker.getEvent());
             if (!icons.isEmpty()) {
+                Reputation.logInfo("found some chat icons for entity type: "+tracker.getEntityType().getRegistryName());
                 trackerMap.put(tracker, 0);
                 selectedIconMap.put(tracker, icons.get(random.nextInt(icons.size())));
             }
@@ -56,5 +61,7 @@ public class ClientTrackers {
         return null;
     }
 
-
+    public boolean checkForIcons(EntityType<?> entityType, String event) {
+        return !iconMap.get(entityType).get(event).isEmpty();
+    }
 }

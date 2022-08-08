@@ -1,6 +1,5 @@
 package mods.thecomputerizer.reputation.common.event;
 
-import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.PlayerFactionHandler;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
@@ -8,6 +7,7 @@ import mods.thecomputerizer.reputation.api.capability.IReputation;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.common.ai.ChatTracker;
 import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
+import mods.thecomputerizer.reputation.common.ai.ServerTrackers;
 import mods.thecomputerizer.reputation.common.ai.goals.FleeGoal;
 import mods.thecomputerizer.reputation.common.ai.goals.ReputationAttackableTargetGoal;
 import mods.thecomputerizer.reputation.common.ai.goals.ReputationPacifyHostileCustomStandingGoal;
@@ -96,7 +96,7 @@ public class WorldEvents {
                     for(Faction f : toSync.keySet()) {
                         reputation.setReputation(player,f,toSync.get(f));
                     }
-                    Reputation.syncChatIcons(serverPlayer);
+                    ServerTrackers.syncChatIcons(serverPlayer);
                     players.add(serverPlayer);
                 }
             }
@@ -171,15 +171,23 @@ public class WorldEvents {
                 for (LivingEntity entity : trackers.keySet()) {
                     ChatTracker tracker = trackers.get(entity);
                     if (seed >= tracker.getSeed() && !tracker.getRecent() && !tracker.getRandom()) {
-                        tracker.setRandom(true);
-                        Level level = entity.getLevel();
-                        if(level instanceof ServerLevel serverLevel) {
-                            for (Faction f : ReputationHandler.getEntityFactions(entity))
-                                if (!HelperMethods.getNearEntitiesOfFaction(serverLevel,entity,f,16).isEmpty())
-                                    tracker.setInRange(true);
+                        if(ServerTrackers.hasIconsForEvent(tracker.getEntityType(),"idle")) {
+                            tracker.setRandom(true);
+                            tracker.setChanged(true);
+                            tracker.setRecent(true);
                         }
-                        tracker.setChanged(true);
-                        tracker.setRecent(true);
+                        if(!tracker.getInRange()) {
+                            Level level = entity.getLevel();
+                            if (level instanceof ServerLevel serverLevel) {
+                                for (Faction f : ReputationHandler.getEntityFactions(entity))
+                                    if (!HelperMethods.getNearEntitiesOfFaction(serverLevel, entity, f, 16).isEmpty())
+                                        if(ServerTrackers.hasIconsForEvent(tracker.getEntityType(),"idle_faction")) {
+                                            tracker.setInRange(true);
+                                            tracker.setChanged(true);
+                                            tracker.setRecent(true);
+                                        }
+                            }
+                        }
                     }
                     if (tracker.getChanged()) toUpdate.add(tracker);
                 }

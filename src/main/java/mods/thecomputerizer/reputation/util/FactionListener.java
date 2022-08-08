@@ -8,6 +8,7 @@ import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
+import mods.thecomputerizer.reputation.common.ai.ServerTrackers;
 import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
@@ -52,7 +53,7 @@ public class FactionListener extends SimplePreparableReloadListener<Void> {
             for (ResourceLocation resource : rm.listResources("chat", (location) -> location.endsWith("json"))) {
                 if(!checked.contains(resource)) {
                     InputStreamReader reader = new InputStreamReader(rm.getResource(resource).getInputStream(), StandardCharsets.UTF_8);
-                    Reputation.chatIconData.add(GSON.fromJson(reader, JsonElement.class));
+                    ServerTrackers.chatIconJsonData.add(GSON.fromJson(reader, JsonElement.class));
                     reader.close();
                     checked.add(resource);
                 }

@@ -1,5 +1,6 @@
 package mods.thecomputerizer.reputation.common.ai;
 
+import mods.thecomputerizer.reputation.Reputation;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
@@ -31,6 +32,7 @@ public class ChatTracker {
         this.entityUUID = entity.getUUID();
         this.entityType = entity.getType().getRegistryName();
         this.seed = new Random().nextLong(Long.MAX_VALUE/2);
+        Reputation.logInfo("registered tracker with seed: "+this.seed);
         this.recentChat = false;
         this.changed = false;
         this.random = false;

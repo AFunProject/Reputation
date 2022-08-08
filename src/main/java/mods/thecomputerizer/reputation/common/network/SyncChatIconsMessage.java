@@ -40,9 +40,11 @@ public class SyncChatIconsMessage {
             for(j = 0;j<k;j++) engage.add(buf.readResourceLocation());
             ClientTrackers.iconMap.get(type).put("engage",engage);
         }
+        Reputation.logInfo("Chat icons were synced");
     }
 
     public SyncChatIconsMessage(List<JsonElement> jsonData) {
+        Reputation.logInfo("Chat icons are getting synced now");
         this.jsonData.addAll(jsonData);
     }
 

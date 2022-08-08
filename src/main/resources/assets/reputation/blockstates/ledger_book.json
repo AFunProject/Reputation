@@ -1,7 +1,19 @@
 {
   "variants": {
-    "": [
-      { "model": "reputation:block/ledger_book" }
-    ]
+    "facing=north": {
+      "model": "reputation:block/ledger_book",
+      "y": 90
+    },
+    "facing=east": {
+      "model": "reputation:block/ledger_book",
+      "y": 180
+    },
+    "facing=south": {
+      "model": "reputation:block/ledger_book",
+      "y": 270
+    },
+    "facing=west": {
+      "model": "reputation:block/ledger_book"
+    }
   }
 }
