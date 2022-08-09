@@ -131,7 +131,7 @@ public class WorldEvents {
                     }
                 }
             }
-            if(!ReputationHandler.getEntityFactions(entity).isEmpty() && ServerTrackers.serverIconMap.containsKey(entity.getType())) trackers.put(entity,new ChatTracker(entity));
+            if(!ReputationHandler.getEntityFactions(entity).isEmpty()) trackers.put(entity,new ChatTracker(entity));
         }
     }
 
@@ -163,44 +163,47 @@ public class WorldEvents {
         if(e.phase== TickEvent.Phase.END) {
             for(LedgerBook book : books) book.tick();
             for(Ledger ledger : ledgers) ledger.tick();
-            tickTimer++;
-            for (ChatTracker tracker : trackers.values()) tracker.queryChatTimer();
-            if (tickTimer >= 20) {
-                long seed = random.nextLong(Long.MAX_VALUE);
-                ArrayList<ChatTracker> toUpdate = new ArrayList<>();
-                for (LivingEntity entity : trackers.keySet()) {
-                    ChatTracker tracker = trackers.get(entity);
-                    if (seed >= tracker.getSeed() && !tracker.getRecent() && !tracker.getRandom()) {
-                        if(ServerTrackers.hasIconsForEvent(tracker.getEntityType(),"idle")) {
-                            tracker.setRandom(true);
-                            tracker.setChanged(true);
-                            tracker.setRecent(true);
-                        }
-                        if(!tracker.getInRange()) {
-                            Level level = entity.getLevel();
-                            if (level instanceof ServerLevel serverLevel) {
-                                for (Faction f : ReputationHandler.getEntityFactions(entity))
-                                    if (!HelperMethods.getNearEntitiesOfFaction(serverLevel, entity, f, 16).isEmpty())
-                                        if(ServerTrackers.hasIconsForEvent(tracker.getEntityType(),"idle_faction")) {
-                                            tracker.setInRange(true);
-                                            tracker.setChanged(true);
-                                            tracker.setRecent(true);
-                                        }
+            if(ServerTrackers.iconsLoaded) {
+                tickTimer++;
+                trackers.entrySet().removeIf(tracker -> !ServerTrackers.serverIconMap.containsKey(tracker.getKey().getType()) || ServerTrackers.serverIconMap.get(tracker.getKey().getType()).isEmpty());
+                for (ChatTracker tracker : trackers.values()) tracker.queryChatTimer();
+                if (tickTimer >= 20) {
+                    long seed = random.nextLong(Long.MAX_VALUE);
+                    ArrayList<ChatTracker> toUpdate = new ArrayList<>();
+                    for (LivingEntity entity : trackers.keySet()) {
+                        ChatTracker tracker = trackers.get(entity);
+                        if (seed >= tracker.getSeed() && !tracker.getRecent() && !tracker.getRandom()) {
+                            if (ServerTrackers.hasIconsForEvent(tracker.getEntityType(), "idle")) {
+                                tracker.setRandom(true);
+                                tracker.setChanged(true);
+                                tracker.setRecent(true);
+                            }
+                            if (!tracker.getInRange()) {
+                                Level level = entity.getLevel();
+                                if (level instanceof ServerLevel serverLevel) {
+                                    for (Faction f : ReputationHandler.getEntityFactions(entity))
+                                        if (!HelperMethods.getNearEntitiesOfFaction(serverLevel, entity, f, 16).isEmpty())
+                                            if (ServerTrackers.hasIconsForEvent(tracker.getEntityType(), "idle_faction")) {
+                                                tracker.setInRange(true);
+                                                tracker.setChanged(true);
+                                                tracker.setRecent(true);
+                                            }
+                                }
                             }
                         }
+                        if (tracker.getChanged()) toUpdate.add(tracker);
                     }
-                    if (tracker.getChanged()) toUpdate.add(tracker);
-                }
-                if (!toUpdate.isEmpty()) {
-                    for (ServerPlayer player : players) PacketHandler.sendTo(new ChatIconMessage(toUpdate), player);
-                    for (ChatTracker tracker : toUpdate) {
-                        tracker.setRandom(false);
-                        tracker.setInRange(false);
-                        tracker.setEngage(false);
-                        tracker.setChanged(false);
+                    if (!toUpdate.isEmpty()) {
+                        for (ServerPlayer player : players) PacketHandler.sendTo(new ChatIconMessage(toUpdate), player);
+                        for (ChatTracker tracker : toUpdate) {
+                            tracker.setRandom(false);
+                            tracker.setInRange(false);
+                            tracker.setEngage(false);
+                            tracker.setChanged(false);
+                        }
                     }
+                    tickTimer = 0;
                 }
-                tickTimer = 0;
             }
             if (ServerLifecycleHooks.getCurrentServer().getLevel(Level.OVERWORLD).getDayTime() >= 12000) {
                 if (!checkedLedgers) checkedLedgers = true;

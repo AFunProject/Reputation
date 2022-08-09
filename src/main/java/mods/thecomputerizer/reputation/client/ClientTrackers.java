@@ -37,7 +37,8 @@ public class ClientTrackers {
     public static void initTracker(ChatTracker tracker) {
         if(iconMap.get(tracker.getEntityType())!=null) {
             List<ResourceLocation> icons = iconMap.get(tracker.getEntityType()).get(tracker.getEvent());
-            if (!icons.isEmpty()) {
+            Reputation.logInfo("initializing chat icon tracker for entity "+tracker.getEntityType()+" for event "+tracker.getEvent());
+            if (icons!=null && !icons.isEmpty()) {
                 trackerMap.put(tracker, 0);
                 selectedIconMap.put(tracker, icons.get(random.nextInt(icons.size())));
             }
@@ -55,9 +56,5 @@ public class ClientTrackers {
             if(tracker.getEntityUUID().toString().matches(entity.getUUID().toString())) return tracker;
         }
         return null;
-    }
-
-    public boolean checkForIcons(EntityType<?> entityType, String event) {
-        return !iconMap.get(entityType).get(event).isEmpty();
     }
 }

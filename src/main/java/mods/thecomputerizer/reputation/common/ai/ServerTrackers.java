@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 public class ServerTrackers {
     public static final List<JsonElement> chatIconJsonData = new ArrayList<>();
     public static final HashMap<EntityType<?>, HashMap<String, List<ResourceLocation>>> serverIconMap = new HashMap<>();
+    public static boolean iconsLoaded = false;
+
     public static void syncChatIcons(ServerPlayer player) {
         if(!chatIconJsonData.isEmpty()) {
             PacketHandler.sendTo(new SyncChatIconsMessage(chatIconJsonData.stream().distinct().collect(Collectors.toList())),player);
@@ -29,6 +31,7 @@ public class ServerTrackers {
                 serverIconMap.get(type).put("idle_faction",parseResourceArray("idle_faction",json));
                 serverIconMap.get(type).put("engage",parseResourceArray("engage",json));
             }
+            iconsLoaded = true;
         }
     }
 
@@ -44,7 +47,7 @@ public class ServerTrackers {
     }
 
     public static boolean hasIconsForEvent(EntityType<?> type, String event) {
-        if(serverIconMap.isEmpty() || serverIconMap.get(type).isEmpty()) return false;
-        return !serverIconMap.get(type).get(event).isEmpty();
+        if(serverIconMap.isEmpty()) return false;
+        return serverIconMap.containsKey(type) && !serverIconMap.get(type).isEmpty() && !serverIconMap.get(type).get(event).isEmpty();
     }
 }

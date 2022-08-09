@@ -86,7 +86,7 @@ public class ReputationEvents {
 	@SubscribeEvent
 	public static void setTarget(LivingSetAttackTargetEvent event) {
 		LivingEntity entity = event.getEntityLiving();
-		if(WorldEvents.trackers.containsKey(entity) && ServerTrackers.hasIconsForEvent(WorldEvents.trackers.get(entity).getEntityType(),"engage")) {
+		if(WorldEvents.trackers.containsKey(entity) && ServerTrackers.hasIconsForEvent(WorldEvents.trackers.get(entity).getEntityType(),"engage") && !WorldEvents.trackers.get(entity).getEngage()) {
 			WorldEvents.trackers.get(entity).setEngage(true);
 			WorldEvents.trackers.get(entity).setChanged(true);
 			WorldEvents.trackers.get(entity).setRecent(true);

@@ -110,10 +110,8 @@ public class ChatTracker {
 
     public String getPriorityChatEvent() {
         if(this.engage) return "engage";
-        else if(this.random) {
-            if(this.inRange) return "idle_faction";
-            else return "idle";
-        }
+        else if(this.inRange) return "idle_faction";
+        else if(this.random) return "idle";
         else return "none";
     }
 

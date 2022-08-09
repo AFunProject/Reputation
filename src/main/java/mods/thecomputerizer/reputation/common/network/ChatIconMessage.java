@@ -1,5 +1,6 @@
 package mods.thecomputerizer.reputation.common.network;
 
+import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.client.ClientTrackers;
 import mods.thecomputerizer.reputation.common.ai.ChatTracker;
 import net.minecraft.network.FriendlyByteBuf;
@@ -19,6 +20,7 @@ public class ChatIconMessage {
     }
 
     public ChatIconMessage(List<ChatTracker> trackers) {
+        Reputation.logInfo("SYNCING "+trackers.size()+" CHAT ICON TRACKERS TO THE CLIENT");
         this.trackers.addAll(trackers);
     }
 
