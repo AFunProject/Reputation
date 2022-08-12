@@ -172,22 +172,22 @@ public class WorldEvents {
                     ArrayList<ChatTracker> toUpdate = new ArrayList<>();
                     for (LivingEntity entity : trackers.keySet()) {
                         ChatTracker tracker = trackers.get(entity);
-                        if (seed >= tracker.getSeed() && !tracker.getRecent() && !tracker.getRandom()) {
-                            if (ServerTrackers.hasIconsForEvent(tracker.getEntityType(), "idle")) {
+                        if (seed >= tracker.getSeed() && !tracker.getRecent()) {
+                            if (!tracker.getRandom() && ServerTrackers.hasIconsForEvent(tracker.getEntityType(), "idle")) {
                                 tracker.setRandom(true);
                                 tracker.setChanged(true);
                                 tracker.setRecent(true);
                             }
-                            if (!tracker.getInRange()) {
+                            if (!tracker.getInRange() && ServerTrackers.hasIconsForEvent(tracker.getEntityType(), "idle_faction")) {
                                 Level level = entity.getLevel();
                                 if (level instanceof ServerLevel serverLevel) {
-                                    for (Faction f : ReputationHandler.getEntityFactions(entity))
-                                        if (!HelperMethods.getNearEntitiesOfFaction(serverLevel, entity, f, 16).isEmpty())
-                                            if (ServerTrackers.hasIconsForEvent(tracker.getEntityType(), "idle_faction")) {
-                                                tracker.setInRange(true);
-                                                tracker.setChanged(true);
-                                                tracker.setRecent(true);
-                                            }
+                                    for (Faction f : ReputationHandler.getEntityFactions(entity)) {
+                                        if (!HelperMethods.getNearEntitiesOfFaction(serverLevel, entity, f, 16).isEmpty()) {
+                                            tracker.setInRange(true);
+                                            tracker.setChanged(true);
+                                            tracker.setRecent(true);
+                                        }
+                                    }
                                 }
                             }
                         }

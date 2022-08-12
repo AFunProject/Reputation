@@ -4,6 +4,7 @@ import mods.thecomputerizer.reputation.api.ContainerHandler;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
+import mods.thecomputerizer.reputation.common.ai.ChatTracker;
 import mods.thecomputerizer.reputation.common.ai.ServerTrackers;
 import mods.thecomputerizer.reputation.common.capability.PlacedContainerProvider;
 import mods.thecomputerizer.reputation.common.capability.ReputationProvider;
@@ -18,7 +19,9 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.entity.BarrelBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.LidBlockEntity;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -49,7 +52,7 @@ public class ReputationEvents {
 	@SubscribeEvent
 	public static void attachBlockCapabilities(AttachCapabilitiesEvent<BlockEntity> event) {
 		BlockEntity block = event.getObject();
-		if (block instanceof Container) {
+		if (block instanceof LidBlockEntity || block instanceof BarrelBlockEntity) {
 			event.addCapability(ModDefinitions.getResource("container_placed"), new PlacedContainerProvider());
 		}
 	}
@@ -78,7 +81,7 @@ public class ReputationEvents {
 	@SubscribeEvent
 	public static void placeBlock(BlockEvent.EntityPlaceEvent event) {
 		LevelAccessor level = event.getWorld();
-		if(event.getEntity() instanceof Player && level.getBlockEntity(event.getPos()) instanceof Container) {
+		if(event.getEntity() instanceof Player && (level.getBlockEntity(event.getPos()) instanceof LidBlockEntity || level.getBlockEntity(event.getPos()) instanceof BarrelBlockEntity)) {
 			ContainerHandler.setChangesReputation(Objects.requireNonNull(level.getBlockEntity(event.getPos())), false);
 		}
 	}
@@ -86,10 +89,13 @@ public class ReputationEvents {
 	@SubscribeEvent
 	public static void setTarget(LivingSetAttackTargetEvent event) {
 		LivingEntity entity = event.getEntityLiving();
-		if(WorldEvents.trackers.containsKey(entity) && ServerTrackers.hasIconsForEvent(WorldEvents.trackers.get(entity).getEntityType(),"engage") && !WorldEvents.trackers.get(entity).getEngage()) {
-			WorldEvents.trackers.get(entity).setEngage(true);
-			WorldEvents.trackers.get(entity).setChanged(true);
-			WorldEvents.trackers.get(entity).setRecent(true);
+		if(WorldEvents.trackers.containsKey(entity)) {
+			ChatTracker tracker = WorldEvents.trackers.get(entity);
+			if(!tracker.getRecent() && !tracker.getEngage() && ServerTrackers.hasIconsForEvent(tracker.getEntityType(),"engage")) {
+				tracker.setEngage(true);
+				tracker.setChanged(true);
+				tracker.setRecent(true);
+			}
 		}
 	}
 

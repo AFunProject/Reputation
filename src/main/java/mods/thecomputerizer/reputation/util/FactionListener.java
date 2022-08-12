@@ -58,10 +58,14 @@ public class FactionListener extends SimplePreparableReloadListener<Void> {
                     checked.add(resource);
                 }
             }
+            Reputation.logInfo("Successfully attached "+ServerTrackers.chatIconJsonData.size()+" files to the chat icon data map");
             try {
-                Resource AI = rm.getResource(new ResourceLocation(ModDefinitions.MODID, "ai.json"));
-                InputStreamReader reader = new InputStreamReader(AI.getInputStream(), StandardCharsets.UTF_8);
-                ReputationAIPackages.buildMobLists(GSON.fromJson(reader, JsonElement.class));
+                ResourceLocation ai = new ResourceLocation(ModDefinitions.MODID, "ai.json");
+                if(rm.hasResource(ai)) {
+                    Resource AI = rm.getResource(ai);
+                    InputStreamReader reader = new InputStreamReader(AI.getInputStream(), StandardCharsets.UTF_8);
+                    ReputationAIPackages.buildMobLists(GSON.fromJson(reader, JsonElement.class));
+                }
             } catch (Exception e) {
                 Reputation.logError("Forcing error log to print for error: "+e.getMessage(),e);
                 for(StackTraceElement element : e.getStackTrace()) {

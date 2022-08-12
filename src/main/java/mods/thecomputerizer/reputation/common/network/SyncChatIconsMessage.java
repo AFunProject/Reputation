@@ -2,6 +2,7 @@ package mods.thecomputerizer.reputation.common.network;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.client.ClientTrackers;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import net.minecraft.network.FriendlyByteBuf;
@@ -20,23 +21,27 @@ public class SyncChatIconsMessage {
     private final List<JsonElement> jsonData = new ArrayList<>();
 
     public SyncChatIconsMessage(FriendlyByteBuf buf){
-        int k = buf.readInt();
-        for(int i = 0;i<k;i++) {
+        int files = buf.readInt();
+        for(int i = 0;i<files;i++) {
             ResourceLocation entity = buf.readResourceLocation();
+            Reputation.logInfo("syncing entity "+entity+" to the client side chat icon map");
             EntityType<?> type = getEntityFromResource(entity);
             ClientTrackers.iconMap.put(type,new HashMap<>());
-            int j;
-            k = buf.readInt();
+            int j,icons;
+            icons = buf.readInt();
             List<ResourceLocation> random = new ArrayList<>();
-            for(j = 0;j<k;j++) random.add(buf.readResourceLocation());
+            for(j = 0;j<icons;j++) random.add(buf.readResourceLocation());
+            Reputation.logInfo("entity "+entity+" has "+random.size()+" idle icons");
             ClientTrackers.iconMap.get(type).put("idle",random);
             List<ResourceLocation> random_faction = new ArrayList<>();
-            k = buf.readInt();
-            for(j = 0;j<k;j++) random_faction.add(buf.readResourceLocation());
+            icons = buf.readInt();
+            for(j = 0;j<icons;j++) random_faction.add(buf.readResourceLocation());
+            Reputation.logInfo("entity "+entity+" has "+random_faction.size()+" idle_faction icons");
             ClientTrackers.iconMap.get(type).put("idle_faction",random_faction);
             List<ResourceLocation> engage = new ArrayList<>();
-            k = buf.readInt();
-            for(j = 0;j<k;j++) engage.add(buf.readResourceLocation());
+            icons = buf.readInt();
+            for(j = 0;j<icons;j++) engage.add(buf.readResourceLocation());
+            Reputation.logInfo("entity "+entity+" has "+engage.size()+" engage icons");
             ClientTrackers.iconMap.get(type).put("engage",engage);
         }
     }
