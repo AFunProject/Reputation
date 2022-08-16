@@ -1,6 +1,8 @@
 package mods.thecomputerizer.reputation.util;
 
+import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.Faction;
+import mods.thecomputerizer.reputation.api.PlayerFactionHandler;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
@@ -9,6 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
@@ -64,6 +67,19 @@ public class HelperMethods {
             return list.get(0);
         }
         return null;
+    }
+
+    public static boolean ensureSeparateFactions(LivingEntity entity, Player player) {
+        for(Faction f : ReputationHandler.getEntityFactions(entity)) {
+            if(PlayerFactionHandler.isPlayerInFaction(f,player)) return false;
+        }
+        return true;
+    }
+
+    public static boolean isPlayerInCustomStanding(LivingEntity entity, Player player, String reputationStanding) {
+        if(reputationStanding.matches("good")) return isPlayerInGoodStanding(entity, player);
+        else if(reputationStanding.matches("neutral")) return isPlayerInNeutralStanding(entity, player);
+        return isPlayerInBadStanding(entity, player);
     }
 
     public static boolean isPlayerInGoodStanding(LivingEntity entity, Player player) {
@@ -131,12 +147,22 @@ public class HelperMethods {
         return 1f;
     }
 
-    public static List<? extends LivingEntity> getSeenEntitiesOfFaction(Brain<? extends LivingEntity> brain, Faction faction) {
+    public static List<? extends LivingEntity> getSeenEntitiesOfFaction(ServerLevel level, LivingEntity mob, int range, Brain<? extends LivingEntity> brain, Faction faction) {
         List<LivingEntity> ret = new ArrayList<>();
-        try {
-            Optional<NearestVisibleLivingEntities> optional = brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
-            optional.ifPresent(nearestVisibleLivingEntities -> nearestVisibleLivingEntities.findAll(faction::isMember).iterator().forEachRemaining((ret::add)));
-        } catch (NullPointerException ignored) {}
+        if(brain.memories.isEmpty()) {
+            ret.addAll(level.getEntitiesOfClass(LivingEntity.class, new AABB(mob.getX() - range, mob.getY() - (range / 2f), mob.getZ() - range, mob.getX() + range, mob.getY() + (range / 2f), mob.getZ() + range)));
+            ret.removeIf(e -> {
+                if(e.getStringUUID().matches(mob.getStringUUID()) || !faction.getMembers().contains(e.getType())) return true;
+                return e instanceof Mob m && !m.getSensing().hasLineOfSight(mob);
+            });
+        } else {
+            try {
+                Optional<NearestVisibleLivingEntities> optional = brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
+                optional.ifPresent(nearestVisibleLivingEntities -> nearestVisibleLivingEntities.findAll(faction::isMember).iterator().forEachRemaining((ret::add)));
+            } catch (Exception e) {
+                Reputation.logError("Failed to collect seen entities using a brain",e);
+            }
+        }
         return ret;
     }
 
@@ -148,7 +174,10 @@ public class HelperMethods {
     public static List<? extends LivingEntity> getSeenEntitiesOfTypeInRange(ServerLevel level, LivingEntity entity, EntityType<?> type, BlockPos pos, double range) {
         return level.getEntitiesOfClass(LivingEntity.class, new AABB(pos.getX()-range, pos.getY()-(range/2), pos.getZ()-range, pos.getX()+range, pos.getY()+(range/2), pos.getZ()+range)).stream()
                 .filter(e -> e.getType()==type && e!=entity)
-                .filter(e -> e.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).isPresent() && e.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).get().contains(entity))
+                .filter(e -> {
+                    if(!e.getBrain().memories.isEmpty()) return e.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).isPresent() && e.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).get().contains(entity);
+                    else return e instanceof Mob mob && mob.getSensing().hasLineOfSight(entity);
+                })
                 .collect(Collectors.toList());
     }
 

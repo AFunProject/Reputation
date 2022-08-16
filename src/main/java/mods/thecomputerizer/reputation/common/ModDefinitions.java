@@ -15,7 +15,7 @@ public class ModDefinitions {
 	public static List<EntityType<?>> PASSIVE_FLEEING_ENTITIES = new ArrayList<>();
 	public static List<EntityType<?>> HOSTILE_ENTITIES = new ArrayList<>();
 	public static List<EntityType<?>> PASSIVE_ENTITIES = new ArrayList<>();
-	public static List<EntityType<?>> HOSTILE_FLEEING_ENTITIES = new ArrayList<>();
+	public static List<EntityType<?>> INJURED_FLEEING_ENTITIES = new ArrayList<>();
 	public static List<EntityType<?>> TRADING_ENTITIES = new ArrayList<>();
 
 	public static String getName(String name) {

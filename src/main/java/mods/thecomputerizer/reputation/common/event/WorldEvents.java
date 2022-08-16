@@ -8,9 +8,7 @@ import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.common.ai.ChatTracker;
 import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
 import mods.thecomputerizer.reputation.common.ai.ServerTrackers;
-import mods.thecomputerizer.reputation.common.ai.goals.FleeGoal;
-import mods.thecomputerizer.reputation.common.ai.goals.ReputationAttackableTargetGoal;
-import mods.thecomputerizer.reputation.common.ai.goals.ReputationPacifyHostileCustomStandingGoal;
+import mods.thecomputerizer.reputation.common.ai.goals.*;
 import mods.thecomputerizer.reputation.common.capability.PlayerFactionProvider;
 import mods.thecomputerizer.reputation.common.command.AddPlayerToFactionCommand;
 import mods.thecomputerizer.reputation.common.command.AddReputationCommand;
@@ -27,6 +25,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
+import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
@@ -59,6 +58,7 @@ public class WorldEvents {
 
     @SubscribeEvent
     public static void attachLevelCapabilities(AttachCapabilitiesEvent<Level> event) {
+        //player factions have to be a separate capability attached to the overworld
         Level level = event.getObject();
         if(level.dimension()==Level.OVERWORLD && !level.isClientSide()) {
             for (Faction faction : ReputationHandler.getFactionMap().values()) {
@@ -71,22 +71,25 @@ public class WorldEvents {
 
     @SubscribeEvent
     public static void registerCommands(RegisterCommandsEvent event) {
+        //register commands
         SetReputationCommand.register(event.getDispatcher());
         AddReputationCommand.register(event.getDispatcher());
         AddPlayerToFactionCommand.register(event.getDispatcher());
         RemovePlayerFromFactionCommand.register(event.getDispatcher());
     }
 
-    //attach reputation based goals to AI upon spawning
     @SubscribeEvent
     public static void onJoin(EntityJoinWorldEvent event) {
         if(event.getEntity() instanceof LivingEntity entity && !event.getWorld().isClientSide) {
             Brain<? extends LivingEntity> brain = entity.getBrain();
-            if(!ReputationEvents.tickThese.contains(entity) && brain.memories.isEmpty()) ReputationEvents.tickThese.add(entity);
-            brain.sensors.putIfAbsent(SensorType.NEAREST_LIVING_ENTITIES, SensorType.NEAREST_LIVING_ENTITIES.create());
-            brain.memories.putIfAbsent(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, Optional.empty());
+            //only need to add sensors to mobs that actually use brains, otherwise goals are necessary
+            if(!brain.memories.isEmpty()) {
+                brain.sensors.putIfAbsent(SensorType.NEAREST_LIVING_ENTITIES, SensorType.NEAREST_LIVING_ENTITIES.create());
+                brain.memories.putIfAbsent(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, Optional.empty());
+                ReputationAIPackages.buildReputationSensor(brain);
+            }
             if(entity instanceof Player player) {
-                //sync faction data to players upon joining
+                //sync faction and chat icon data to players upon joining
                 LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
                 if (optional.isPresent() && optional.resolve().isPresent()) {
                     IReputation reputation = optional.resolve().get();
@@ -101,21 +104,37 @@ public class WorldEvents {
                 }
             }
             else {
-                ReputationAIPackages.buildReputationSensor(brain);
-                ReputationAIPackages.buildReputationInjuredAI(brain,0.5f);
+                //reputation based AI stuff
+                //makes faction members target mobs that hurt other members of the same faction
+                if(!brain.memories.isEmpty()) {
+                    //TODO
+                } else if(entity instanceof Mob mob)
+                    mob.targetSelector.addGoal(0, new AlertFactionMembersGoal(mob,true));
+                //makes hostile mobs not a part of the player's faction have a chance to flee from battle when injured
+                if (ModDefinitions.INJURED_FLEEING_ENTITIES.contains(entity.getType())) {
+                    if(!brain.memories.isEmpty()) ReputationAIPackages.buildReputationInjuredAI(brain,0.5f);
+                    else if (entity instanceof PathfinderMob mob) {
+                        FleeBattleGoal fleeBattleGoal = new FleeBattleGoal(mob, 0.5f);
+                        mob.goalSelector.addGoal(0, fleeBattleGoal);
+                        mob.targetSelector.addGoal(0,new FleeBattleTargetOverride(fleeBattleGoal,mob));
+                    }
+                }
+                //makes passive mobs flee from players with specific reputation standings
                 if (ModDefinitions.PASSIVE_FLEEING_ENTITIES.contains(entity.getType())) {
-                    ReputationAIPackages.buildReputationFleeAI(brain, HelperMethods.fleeFactor(entity), ReputationAIPackages.passive_fleeing_standings.get(entity.getType()));
-                    if (entity instanceof Mob mob)
+                    if(!brain.memories.isEmpty()) ReputationAIPackages.buildReputationFleeAI(brain, HelperMethods.fleeFactor(entity), ReputationAIPackages.passive_fleeing_standings.get(entity.getType()));
+                    else if (entity instanceof Mob mob)
                         mob.goalSelector.addGoal(0, new FleeGoal(mob, HelperMethods.fleeFactor(entity), true));
                 }
+                //makes neutral mobs angry at players based on reputation standings
                 if (ModDefinitions.HOSTILE_ENTITIES.contains(entity.getType()) && entity instanceof Mob mob) {
-                    ReputationAIPackages.buildReputationHostileAI(mob, brain,ReputationAIPackages.hostile_standings.get(entity.getType()));
-                    if (entity instanceof NeutralMob)
+                    if(!brain.memories.isEmpty()) ReputationAIPackages.buildReputationHostileAI(mob, brain,ReputationAIPackages.hostile_standings.get(entity.getType()));
+                    else if (entity instanceof NeutralMob)
                         mob.targetSelector.addGoal(2, new ReputationAttackableTargetGoal<>(mob, Player.class, true, false));
                 }
+                //conditionally removes players from the target selection of hostile mobs based on reputation standings
                 if (ModDefinitions.PASSIVE_ENTITIES.contains(entity.getType())) {
-                    ReputationAIPackages.buildReputationPassiveAI(brain, 1,ReputationAIPackages.passive_standings.get(entity.getType()));
-                    if (entity instanceof Mob mob) {
+                    if(!brain.memories.isEmpty()) ReputationAIPackages.buildReputationPassiveAI(brain, 1,ReputationAIPackages.passive_standings.get(entity.getType()));
+                    else if (entity instanceof Mob mob) {
                         Set<WrappedGoal> goalSet = mob.targetSelector.getAvailableGoals();
                         List<WrappedGoal> newGoals = goalSet.stream()
                                 .filter((g) -> {
@@ -131,12 +150,14 @@ public class WorldEvents {
                     }
                 }
             }
+            //finalize trackers for chat icons
             if(!ReputationHandler.getEntityFactions(entity).isEmpty()) trackers.put(entity,new ChatTracker(entity));
         }
     }
 
     @SubscribeEvent
     public static void onRespawn(PlayerEvent.Clone event) {
+        //reattach the reputation capability to respawning players
         Player original = event.getOriginal();
         Player respawned = event.getPlayer();
         if(original instanceof ServerPlayer serverOriginal && respawned instanceof  ServerPlayer serverRespawned) {
@@ -161,28 +182,33 @@ public class WorldEvents {
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent e) {
         if(e.phase== TickEvent.Phase.END) {
+            //tick ledgers manually
             for(LedgerBook book : books) book.tick();
             for(Ledger ledger : ledgers) ledger.tick();
             if(ServerTrackers.iconsLoaded) {
                 tickTimer++;
+                //remove trackers for entities that do not have any chat icons loaded
                 trackers.entrySet().removeIf(tracker -> !ServerTrackers.serverIconMap.containsKey(tracker.getKey().getType()) || ServerTrackers.serverIconMap.get(tracker.getKey().getType()).isEmpty());
                 for (ChatTracker tracker : trackers.values()) tracker.queryChatTimer();
+                //only check and sync chat icon trackers once a second for performance purposes
                 if (tickTimer >= 20) {
                     long seed = random.nextLong(Long.MAX_VALUE);
                     ArrayList<ChatTracker> toUpdate = new ArrayList<>();
                     for (LivingEntity entity : trackers.keySet()) {
                         ChatTracker tracker = trackers.get(entity);
                         if (seed >= tracker.getSeed() && !tracker.getRecent()) {
+                            //check and set the idle event
                             if (!tracker.getRandom() && ServerTrackers.hasIconsForEvent(tracker.getEntityType(), "idle")) {
                                 tracker.setRandom(true);
                                 tracker.setChanged(true);
                                 tracker.setRecent(true);
                             }
+                            //check and set the idle_faction event
                             if (!tracker.getInRange() && ServerTrackers.hasIconsForEvent(tracker.getEntityType(), "idle_faction")) {
                                 Level level = entity.getLevel();
                                 if (level instanceof ServerLevel serverLevel) {
                                     for (Faction f : ReputationHandler.getEntityFactions(entity)) {
-                                        if (!HelperMethods.getNearEntitiesOfFaction(serverLevel, entity, f, 16).isEmpty()) {
+                                        if (!HelperMethods.getSeenEntitiesOfFaction(serverLevel, entity, 16, entity.getBrain(), f).isEmpty()) {
                                             tracker.setInRange(true);
                                             tracker.setChanged(true);
                                             tracker.setRecent(true);
@@ -193,6 +219,7 @@ public class WorldEvents {
                         }
                         if (tracker.getChanged()) toUpdate.add(tracker);
                     }
+                    //only sync chat icon trackers with changes to the client for performance purposes
                     if (!toUpdate.isEmpty()) {
                         for (ServerPlayer player : players) PacketHandler.sendTo(new ChatIconMessage(toUpdate), player);
                         for (ChatTracker tracker : toUpdate) {
@@ -205,6 +232,7 @@ public class WorldEvents {
                     tickTimer = 0;
                 }
             }
+            //distribute reputation gains from ledgers when the sun sets
             if (ServerLifecycleHooks.getCurrentServer().getLevel(Level.OVERWORLD).getDayTime() >= 12000) {
                 if (!checkedLedgers) checkedLedgers = true;
             } else checkedLedgers = false;

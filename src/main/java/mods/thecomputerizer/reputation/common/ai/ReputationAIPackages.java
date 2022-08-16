@@ -28,7 +28,7 @@ public class ReputationAIPackages {
     public static HashMap<EntityType<?>, String> passive_fleeing_standings = new HashMap<>();
     public static HashMap<EntityType<?>, String> hostile_standings = new HashMap<>();
     public static HashMap<EntityType<?>, String> passive_standings = new HashMap<>();
-    public static HashMap<EntityType<?>, String> hostile_fleeing_standings = new HashMap<>();
+    public static HashMap<EntityType<?>, String> injured_fleeing_standings = new HashMap<>();
     public static HashMap<EntityType<?>, String> trading_standings = new HashMap<>();
 
     public static void buildMobLists(JsonElement data) {
@@ -37,7 +37,7 @@ public class ReputationAIPackages {
             ModDefinitions.PASSIVE_FLEEING_ENTITIES = parseResourceArray("passive_fleeing",json,"bad");
             ModDefinitions.HOSTILE_ENTITIES = parseResourceArray("hostile",json,"bad");
             ModDefinitions.PASSIVE_ENTITIES = parseResourceArray("passive",json,"good");
-            ModDefinitions.HOSTILE_FLEEING_ENTITIES = parseResourceArray("hostile_fleeing",json,"neutral");
+            ModDefinitions.INJURED_FLEEING_ENTITIES = parseResourceArray("injured_fleeing",json,"neutral");
             ModDefinitions.TRADING_ENTITIES = parseResourceArray("trading",json,"neutral");
             parseResourceArray("hostile_fleeing",json,"neutral");
         } catch (Exception e) {

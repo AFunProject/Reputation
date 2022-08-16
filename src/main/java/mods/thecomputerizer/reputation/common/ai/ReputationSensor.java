@@ -62,7 +62,7 @@ public class ReputationSensor extends Sensor<LivingEntity> {
                 }
             }
         }
-        if(ModDefinitions.HOSTILE_FLEEING_ENTITIES.contains(entity.getType()) && entity instanceof Mob mob) {
+        if(ModDefinitions.INJURED_FLEEING_ENTITIES.contains(entity.getType()) && entity instanceof Mob mob) {
             float percent = mob.getHealth()/mob.getMaxHealth();
             if(this.player!=null || mob.getLastHurtByMob() instanceof Player ) {
                 if(mob.getLastHurtByMob() instanceof Player p) this.player = p;
@@ -98,19 +98,8 @@ public class ReputationSensor extends Sensor<LivingEntity> {
                     PacketHandler.sendTo(new FleeIconMessage(mob.getUUID(), false), (ServerPlayer) this.player);
                 else RenderEvents.fleeingMobs.remove(mob.getUUID());
             }
-            if(this.startFlee) {
-                entity.getBrain().setMemory(ReputationMemoryModule.FLEE_FROM_PLAYER.get(), this.player);
-                this.goals = mob.goalSelector.getAvailableGoals();
-                mob.goalSelector.removeAllGoals();
-            }
-            else {
-                entity.getBrain().setMemory(ReputationMemoryModule.FLEE_FROM_PLAYER.get(), Optional.empty());
-                if(mob.goalSelector.getAvailableGoals().isEmpty() && this.goals!=null) {
-                    for (WrappedGoal goal : this.goals) {
-                        mob.goalSelector.addGoal(goal.getPriority(),goal.getGoal());
-                    }
-                }
-            }
+            if(this.startFlee) entity.getBrain().setMemory(ReputationMemoryModule.FLEE_FROM_PLAYER.get(), this.player);
+            else entity.getBrain().setMemory(ReputationMemoryModule.FLEE_FROM_PLAYER.get(), Optional.empty());
         }
     }
 }

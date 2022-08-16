@@ -111,7 +111,7 @@ public class ReputationEvents {
 			else if(source.getDirectEntity() instanceof Player) player = (Player) source.getDirectEntity();
 			if (player != null) {
 				for(Faction faction : ReputationHandler.getEntityFactions(entity)) {
-					for (LivingEntity e : HelperMethods.getSeenEntitiesOfFaction(entity.getBrain(), faction)) {
+					for (LivingEntity e : HelperMethods.getSeenEntitiesOfFaction((ServerLevel)level, entity, 16, entity.getBrain(), faction)) {
 						ReputationHandler.changeReputation(player, faction, -1 * faction.getActionWeighting("murder"));
 						for (Faction enemy : faction.getEnemies()) {
 							if (enemy.isMember(e))
