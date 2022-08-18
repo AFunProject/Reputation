@@ -105,11 +105,6 @@ public class WorldEvents {
             }
             else {
                 //reputation based AI stuff
-                //makes faction members target mobs that hurt other members of the same faction
-                if(!brain.memories.isEmpty()) {
-                    //TODO
-                } else if(entity instanceof Mob mob)
-                    mob.targetSelector.addGoal(0, new AlertFactionMembersGoal(mob,true));
                 //makes hostile mobs not a part of the player's faction have a chance to flee from battle when injured
                 if (ModDefinitions.INJURED_FLEEING_ENTITIES.contains(entity.getType())) {
                     if(!brain.memories.isEmpty()) ReputationAIPackages.buildReputationInjuredAI(brain,0.5f);
