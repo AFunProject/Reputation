@@ -18,12 +18,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class FactionArgument implements ArgumentType<ResourceLocation> {
+public class ReputationFactionArgument implements ArgumentType<ResourceLocation> {
     private static final List<ResourceLocation> FACTIONS = new ArrayList<>();
 
-    public static FactionArgument id() {
+    public static ReputationFactionArgument id() {
         for(Faction f : ReputationHandler.getFactionMap().values()) FACTIONS.add(f.getID());
-        return new FactionArgument();
+        return new ReputationFactionArgument();
     }
 
     @Override

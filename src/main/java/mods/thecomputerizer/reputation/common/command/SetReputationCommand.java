@@ -19,10 +19,10 @@ public class SetReputationCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("setreputation")
-                .then(Commands.argument("resourcelocation", FactionArgument.id())
+                .then(Commands.argument("resourcelocation", ReputationFactionArgument.id())
                 .then(Commands.argument("reputation", IntegerArgumentType.integer())
                 .executes((ctx) -> setReputation(ctx.getSource(), ResourceLocationArgument.getId(ctx,"resourcelocation"), IntegerArgumentType.getInteger(ctx,"reputation")))))
-                .then(Commands.argument("resourcelocation", FactionArgument.id())
+                .then(Commands.argument("resourcelocation", ReputationFactionArgument.id())
                 .then(Commands.argument("entity", EntityArgument.entity())
                 .then(Commands.argument("reputation", IntegerArgumentType.integer())
                 .executes((ctx) -> setReputationPlayer(EntityArgument.getEntity(ctx, "entity"), ResourceLocationArgument.getId(ctx,"resourcelocation"), IntegerArgumentType.getInteger(ctx,"reputation")))))));

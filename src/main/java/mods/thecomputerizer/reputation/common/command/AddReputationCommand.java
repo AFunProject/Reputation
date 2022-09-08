@@ -16,10 +16,10 @@ import net.minecraft.world.entity.player.Player;
 public class AddReputationCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("addreputation")
-                .then(Commands.argument("resourcelocation", FactionArgument.id())
+                .then(Commands.argument("resourcelocation", ReputationFactionArgument.id())
                 .then(Commands.argument("reputation", IntegerArgumentType.integer())
                 .executes((ctx) -> addReputation(ctx.getSource(), ResourceLocationArgument.getId(ctx,"resourcelocation"), IntegerArgumentType.getInteger(ctx,"reputation")))))
-                .then(Commands.argument("resourcelocation", FactionArgument.id())
+                .then(Commands.argument("resourcelocation", ReputationFactionArgument.id())
                 .then(Commands.argument("entity", EntityArgument.entity())
                 .then(Commands.argument("reputation", IntegerArgumentType.integer())
                 .executes((ctx) -> addReputationPlayer(EntityArgument.getEntity(ctx, "entity"), ResourceLocationArgument.getId(ctx,"resourcelocation"), IntegerArgumentType.getInteger(ctx,"reputation")))))));

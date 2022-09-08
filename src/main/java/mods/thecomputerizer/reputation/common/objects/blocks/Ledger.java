@@ -2,13 +2,14 @@ package mods.thecomputerizer.reputation.common.objects.blocks;
 
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
-import mods.thecomputerizer.reputation.client.ClientHandler;
 import mods.thecomputerizer.reputation.common.event.WorldEvents;
 import mods.thecomputerizer.reputation.common.objects.items.FactionCurrencyBag;
 import mods.thecomputerizer.reputation.common.registration.Sounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -53,7 +54,7 @@ public class Ledger extends Block {
                     depositedBags.get(player).putIfAbsent(faction, 0);
                     depositedBags.get(player).put(faction, depositedBags.get(player).get(faction) + (int)player.getMainHandItem().getTag().getFloat("Signed"));
                     player.getMainHandItem().shrink(1);
-                    ClientHandler.playPacketSound(Sounds.LEDGER_PLACE.get());
+                    level.playLocalSound(pos.getX(),pos.getY(),pos.getZ(),Sounds.LEDGER_PLACE.get(), SoundSource.BLOCKS,1f, Mth.randomBetween(ReputationHandler.random,0.88f,1.12f),false);
                 }
             }
             else if(hand==InteractionHand.OFF_HAND && player.getOffhandItem().getItem() instanceof FactionCurrencyBag) {
@@ -63,7 +64,7 @@ public class Ledger extends Block {
                     depositedBags.get(player).putIfAbsent(faction, 0);
                     depositedBags.get(player).put(faction, depositedBags.get(player).get(faction) + (int)player.getMainHandItem().getTag().getFloat("Signed"));
                     player.getMainHandItem().shrink(1);
-                    ClientHandler.playPacketSound(Sounds.LEDGER_PLACE.get());
+                    level.playLocalSound(pos.getX(),pos.getY(),pos.getZ(),Sounds.LEDGER_PLACE.get(), SoundSource.BLOCKS,1f, Mth.randomBetween(ReputationHandler.random,0.88f,1.12f),false);
                 }
             }
             return InteractionResult.CONSUME;

@@ -17,9 +17,9 @@ public class RemovePlayerFromFactionCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("removeplayerfaction")
-                .then(Commands.argument("resourcelocation", FactionArgument.id())
+                .then(Commands.argument("resourcelocation", ReputationFactionArgument.id())
                         .executes((ctx) -> removeSelf(ctx.getSource(), ResourceLocationArgument.getId(ctx,"resourcelocation"))))
-                .then(Commands.argument("resourcelocation", FactionArgument.id())
+                .then(Commands.argument("resourcelocation", ReputationFactionArgument.id())
                         .then(Commands.argument("entity", EntityArgument.entity())
                                 .executes((ctx) -> removePlayer(EntityArgument.getEntity(ctx, "entity"), ResourceLocationArgument.getId(ctx,"resourcelocation"))))));
     }

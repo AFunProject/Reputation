@@ -16,9 +16,9 @@ import net.minecraft.world.entity.player.Player;
 public class AddPlayerToFactionCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("addplayerfaction")
-                .then(Commands.argument("resourcelocation", FactionArgument.id())
+                .then(Commands.argument("resourcelocation", ReputationFactionArgument.id())
                         .executes((ctx) -> addSelf(ctx.getSource(), ResourceLocationArgument.getId(ctx,"resourcelocation"))))
-                .then(Commands.argument("resourcelocation", FactionArgument.id())
+                .then(Commands.argument("resourcelocation", ReputationFactionArgument.id())
                         .then(Commands.argument("entity", EntityArgument.entity())
                                 .executes((ctx) -> addPlayer(EntityArgument.getEntity(ctx, "entity"), ResourceLocationArgument.getId(ctx,"resourcelocation"))))));
     }
