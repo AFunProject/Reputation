@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import java.util.UUID;
 
+@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 public class ChatTracker {
 
     private UUID entityUUID;
@@ -20,6 +21,7 @@ public class ChatTracker {
     private boolean random;
     private boolean inRange;
     private boolean engage;
+    private boolean flee;
     private String event;
     private ResourceLocation entityType;
 
@@ -36,6 +38,7 @@ public class ChatTracker {
         this.random = false;
         this.inRange = false;
         this.engage = false;
+        this.flee = false;
     }
 
     private void setUUID(UUID uuid) {
@@ -65,6 +68,11 @@ public class ChatTracker {
     public void setEngage(boolean engage) {
         this.engage = engage;
     }
+
+    public void setFlee(boolean flee) {
+        this.flee = flee;
+    }
+
 
     public UUID getEntityUUID() {
         return this.entityUUID;
@@ -98,6 +106,10 @@ public class ChatTracker {
         return this.engage;
     }
 
+    public boolean getFlee() {
+        return this.flee;
+    }
+
     public void queryChatTimer() {
         if(this.recentChat) {
             this.chatTimer++;
@@ -109,7 +121,8 @@ public class ChatTracker {
     }
 
     public String getPriorityChatEvent() {
-        if(this.engage) return "engage";
+        if(this.flee) return "flee";
+        else if(this.engage) return "engage";
         else if(this.inRange) return "idle_faction";
         else if(this.random) return "idle";
         else return "none";

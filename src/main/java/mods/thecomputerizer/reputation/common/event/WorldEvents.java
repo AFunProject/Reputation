@@ -46,6 +46,7 @@ import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.*;
 
+@SuppressWarnings("rawtypes")
 @Mod.EventBusSubscriber(modid = ModDefinitions.MODID)
 public class WorldEvents {
     private static int tickTimer = 0;
@@ -93,12 +94,10 @@ public class WorldEvents {
                 LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
                 if (optional.isPresent() && optional.resolve().isPresent()) {
                     IReputation reputation = optional.resolve().get();
-                    Map<Faction, Integer> toSync = reputation.allReputations();
+                    HashMap<Faction, Integer> toSync = reputation.allReputations();
                     ServerPlayer serverPlayer = (ServerPlayer)player;
-                    PacketHandler.sendTo(new SyncFactionsMessage(toSync.keySet()),serverPlayer);
-                    for(Faction f : toSync.keySet()) {
-                        reputation.setReputation(player,f,toSync.get(f));
-                    }
+                    PacketHandler.sendTo(new SyncFactionsMessage(toSync),serverPlayer);
+                    for(Faction f : toSync.keySet()) reputation.setReputation(player,f,toSync.get(f));
                     ServerTrackers.syncChatIcons(serverPlayer);
                     players.add(serverPlayer);
                 }
@@ -221,6 +220,7 @@ public class WorldEvents {
                             tracker.setRandom(false);
                             tracker.setInRange(false);
                             tracker.setEngage(false);
+                            tracker.setFlee(false);
                             tracker.setChanged(false);
                         }
                     }

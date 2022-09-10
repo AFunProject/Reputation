@@ -2,7 +2,10 @@ package mods.thecomputerizer.reputation.common.ai.goals;
 
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
+import mods.thecomputerizer.reputation.common.ai.ChatTracker;
 import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
+import mods.thecomputerizer.reputation.common.ai.ServerTrackers;
+import mods.thecomputerizer.reputation.common.event.WorldEvents;
 import mods.thecomputerizer.reputation.common.network.FleeIconMessage;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.util.HelperMethods;
@@ -99,6 +102,14 @@ public class FleeBattleGoal extends Goal {
                     this.path = this.pathNav.createPath(vec3.x, vec3.y, vec3.z, 0);
                 this.pathNav.moveTo(this.path, this.fleeFactor);
             } else this.mob.getNavigation().setSpeedModifier(this.fleeFactor);
+            if(WorldEvents.trackers.containsKey(mob)) {
+                ChatTracker tracker = WorldEvents.trackers.get(mob);
+                if(!tracker.getRecent() && !tracker.getFlee() && ServerTrackers.hasIconsForEvent(tracker.getEntityType(),"flee")) {
+                    tracker.setFlee(true);
+                    tracker.setChanged(true);
+                    tracker.setRecent(true);
+                }
+            }
         }
     }
 }

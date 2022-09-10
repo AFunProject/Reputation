@@ -35,6 +35,7 @@ public class RenderEvents {
     public static final ResourceLocation GOOD_REPUTATION = new ResourceLocation(ModDefinitions.MODID,"textures/icons/reputation_increase.png");
     public static final ResourceLocation FLEE = new ResourceLocation(ModDefinitions.MODID,"textures/icons/flee.png");
     public static HashMap<ResourceLocation, Faction> CLIENT_FACTIONS = new HashMap<>();
+    public static HashMap<Faction, Integer> CLIENT_FACTIONS_REPUTATION = new HashMap<>();
     public static ArrayList<UUID> fleeingMobs = new ArrayList<>();
 
     private static int tickTimer = 0;
@@ -109,7 +110,7 @@ public class RenderEvents {
     public static void debugInfo(RenderGameOverlayEvent.Text e) {
         if(ClientConfigHandler.debug.get() && Minecraft.getInstance().player!=null) {
             for (Faction f : CLIENT_FACTIONS.values()) {
-                e.getLeft().add("Reputation for the "+f.getID()+" faction: "+ ReputationHandler.getReputation(Minecraft.getInstance().player,f));
+                e.getLeft().add("Reputation for the "+f.getID()+" faction: "+ CLIENT_FACTIONS_REPUTATION.get(f));
             }
         }
     }

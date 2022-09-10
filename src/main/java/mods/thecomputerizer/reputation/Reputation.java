@@ -8,9 +8,12 @@ import mods.thecomputerizer.reputation.client.event.RenderEvents;
 import mods.thecomputerizer.reputation.client.event.WorldEvents;
 import mods.thecomputerizer.reputation.client.render.RenderIcon;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
+import mods.thecomputerizer.reputation.common.command.ReputationFactionArgument;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.common.registration.RegistryHandler;
 import mods.thecomputerizer.reputation.config.ClientConfigHandler;
+import net.minecraft.commands.synchronization.ArgumentTypes;
+import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -41,6 +44,7 @@ public class Reputation {
 
 	public void commonSetup(FMLCommonSetupEvent event) {
 		PacketHandler.initPackets();
+		ArgumentTypes.register("reputation:faction_argument", ReputationFactionArgument.class, new EmptyArgumentSerializer<>(ReputationFactionArgument::id));
 	}
 
 	public void clientSetup(FMLClientSetupEvent event) {

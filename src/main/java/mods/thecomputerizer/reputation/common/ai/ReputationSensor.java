@@ -6,6 +6,7 @@ import mods.thecomputerizer.reputation.api.PlayerFactionHandler;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.client.event.RenderEvents;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
+import mods.thecomputerizer.reputation.common.event.WorldEvents;
 import mods.thecomputerizer.reputation.common.network.FleeIconMessage;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import net.minecraft.server.level.ServerLevel;
@@ -13,7 +14,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.player.Player;
@@ -26,7 +26,6 @@ public class ReputationSensor extends Sensor<LivingEntity> {
     private boolean startFlee = false;
     private final Random random = new Random();
     private Player player = null;
-    private Set<WrappedGoal> goals;
 
 
     @Override
@@ -77,6 +76,14 @@ public class ReputationSensor extends Sensor<LivingEntity> {
                             PacketHandler.sendTo(new FleeIconMessage(mob.getUUID(), true), (ServerPlayer) this.player);
                         else if (!RenderEvents.fleeingMobs.contains(mob.getUUID()))
                             RenderEvents.fleeingMobs.add(mob.getUUID());
+                    }
+                    if(this.startFlee && WorldEvents.trackers.containsKey(mob)) {
+                        ChatTracker tracker = WorldEvents.trackers.get(mob);
+                        if(!tracker.getRecent() && !tracker.getFlee() && ServerTrackers.hasIconsForEvent(tracker.getEntityType(),"flee")) {
+                            tracker.setFlee(true);
+                            tracker.setChanged(true);
+                            tracker.setRecent(true);
+                        }
                     }
                 }
                 else if(this.startFlee) {

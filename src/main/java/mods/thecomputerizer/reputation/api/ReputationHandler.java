@@ -43,11 +43,7 @@ public class ReputationHandler {
 
 	public static Collection<Faction> getEntityFactions(LivingEntity entity) {
 		Set<Faction> factions = new HashSet<>();
-		for (Faction faction : getFactionMap().values()) {
-			if (faction.isMember(entity)) {
-				factions.add(faction);
-			}
-		}
+		for (Faction faction : getFactionMap().values()) if (faction.isMember(entity)) factions.add(faction);
 		return factions;
 	}
 
@@ -66,7 +62,7 @@ public class ReputationHandler {
 			if (optional.isPresent()) {
 				IReputation reputation = optional.resolve().get();
 				reputation.changeReputation(player, faction, amount);
-				PacketHandler.sendTo(new SetIconMessage(amount>0,faction.getID()),(ServerPlayer)player);
+				PacketHandler.sendTo(new SetIconMessage(amount>0,faction.getID(),amount),(ServerPlayer)player);
 			}
 		}
 	}
@@ -92,9 +88,10 @@ public class ReputationHandler {
 		FACTIONS = new HashMap<>();
 	}
 
-	public static void readPacketData(Collection<Faction> factions) {
-		for (Faction faction : factions) {
+	public static void readPacketData(HashMap<Faction, Integer> factions) {
+		for (Faction faction : factions.keySet()) {
 			RenderEvents.CLIENT_FACTIONS.put(faction.getID(),faction);
+			RenderEvents.CLIENT_FACTIONS_REPUTATION.put(faction, factions.get(faction));
 		}
 	}
 }

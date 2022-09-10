@@ -38,6 +38,10 @@ public class SyncChatIconsMessage {
             icons = buf.readInt();
             for(j = 0;j<icons;j++) engage.add(buf.readResourceLocation());
             ClientTrackers.iconMap.get(type).put("engage",engage);
+            List<ResourceLocation> flee = new ArrayList<>();
+            icons = buf.readInt();
+            for(j = 0;j<icons;j++) flee.add(buf.readResourceLocation());
+            ClientTrackers.iconMap.get(type).put("flee",flee);
         }
     }
 
@@ -69,6 +73,9 @@ public class SyncChatIconsMessage {
             List<ResourceLocation> combat = parseResourceArray("engage",json);
             buf.writeInt(combat.size());
             for(ResourceLocation rl : combat) buf.writeResourceLocation(rl);
+            List<ResourceLocation> flee = parseResourceArray("flee",json);
+            buf.writeInt(flee.size());
+            for(ResourceLocation rl : flee) buf.writeResourceLocation(rl);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to parse chat icon data!");
