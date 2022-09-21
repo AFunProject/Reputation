@@ -25,10 +25,12 @@ public abstract class MixinVillager {
     private void updateSpecialPrices(Player player, CallbackInfo callback) {
         if(player.getCapability(ReputationHandler.REPUTATION_CAPABILITY).isPresent()) {
             Villager villager = (Villager)(Object)this;
-            double multiplier = HelperMethods.tradePrices(villager,player);
             for(MerchantOffer merchantoffer : villager.getOffers()) {
-                int j = (int)Math.floor(multiplier * (double)merchantoffer.getBaseCostA().getCount());
-                merchantoffer.addToSpecialPriceDiff(j);
+                double multiplier = HelperMethods.tradePrices(villager,player,merchantoffer.getBaseCostA().getCount(),merchantoffer.getBaseCostA().getMaxStackSize());
+                if(multiplier!=0d && multiplier!=1d) {
+                    int totalCount = (int) Math.floor(multiplier * (double) merchantoffer.getBaseCostA().getCount());
+                    merchantoffer.addToSpecialPriceDiff(totalCount - merchantoffer.getBaseCostA().getCount());
+                }
             }
         }
     }
@@ -39,7 +41,6 @@ public abstract class MixinVillager {
         Villager villager = (Villager)(Object)this;
         if (itemstack.getItem() != Items.VILLAGER_SPAWN_EGG && villager.isAlive() && !villager.isTrading() && !villager.isSleeping() && !player.isSecondaryUseActive()) {
             try {
-                Reputation.logError(villager.getType().getRegistryName().toString(),null);
                 if (ReputationAIPackages.trading_standings.get(villager.getType()).matches("bad") && HelperMethods.isPlayerInBadStanding(villager, player)) {
                     villager.setUnhappy();
                     callback.setReturnValue(InteractionResult.sidedSuccess(villager.level.isClientSide));
