@@ -55,13 +55,17 @@ public class ReputationAIPackages {
                 if(name.length==1) entity = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(name[0]));
                 else if(name.length==2) entity = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(name[0],name[1]));
                 else if(name.length==3) {
+                    if(element.matches("trading"))
+                        Reputation.logInfo(name[0]+" "+name[1]+" "+name[2]);
                     if(checkValidStanding(name[0])) defaultStanding = name[0];
-                    entity = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(name[1],name[2]));
+                    entity = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(name[0],name[1]));
                 }
                 if(entity!=null) {
                     members.add(entity);
                     try {
                         ((HashMap<EntityType<?>, String>)ReputationAIPackages.class.getField(element+"_standings").get(null)).put(entity,defaultStanding);
+                        if(element.matches("trading"))
+                            Reputation.logInfo(entity.getRegistryName()+" "+((HashMap<EntityType<?>, String>)ReputationAIPackages.class.getField(element+"_standings").get(null)).get(entity));
                     } catch (Exception e) {
                         Reputation.logError("Could not read standings map for element: "+element,e);
                     }

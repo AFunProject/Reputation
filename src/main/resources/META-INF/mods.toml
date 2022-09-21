@@ -4,7 +4,7 @@ license="GNU LESSER GENERAL PUBLIC LICENSE Version 2.1"
 
 [[mods]]
 modId="reputation"
-version="0.9.2"
+version="0.9.3"
 displayName="Reputation"
 displayURL=""
 updateJSONURL=""

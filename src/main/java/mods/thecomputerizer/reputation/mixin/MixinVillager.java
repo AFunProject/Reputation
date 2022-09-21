@@ -1,5 +1,6 @@
 package mods.thecomputerizer.reputation.mixin;
 
+import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
 import mods.thecomputerizer.reputation.util.HelperMethods;
@@ -38,19 +39,25 @@ public abstract class MixinVillager {
         Villager villager = (Villager)(Object)this;
         if (itemstack.getItem() != Items.VILLAGER_SPAWN_EGG && villager.isAlive() && !villager.isTrading() && !villager.isSleeping() && !player.isSecondaryUseActive()) {
             try {
+                Reputation.logError(villager.getType().getRegistryName().toString(),null);
                 if (ReputationAIPackages.trading_standings.get(villager.getType()).matches("bad") && HelperMethods.isPlayerInBadStanding(villager, player)) {
                     villager.setUnhappy();
                     callback.setReturnValue(InteractionResult.sidedSuccess(villager.level.isClientSide));
-                } else if (HelperMethods.isPlayerInBadStanding(villager, player) || HelperMethods.isPlayerInNeutralStanding(villager, player)) {
+                } else if (ReputationAIPackages.trading_standings.get(villager.getType()).matches("neutral") && HelperMethods.isPlayerInBadStanding(villager, player) || HelperMethods.isPlayerInNeutralStanding(villager, player)) {
+                    villager.setUnhappy();
+                    callback.setReturnValue(InteractionResult.sidedSuccess(villager.level.isClientSide));
+                } else if (ReputationAIPackages.trading_standings.get(villager.getType()).matches("good")) {
                     villager.setUnhappy();
                     callback.setReturnValue(InteractionResult.sidedSuccess(villager.level.isClientSide));
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                Reputation.logError(e.getCause().toString(),e);
+                for(StackTraceElement element : e.getStackTrace()) Reputation.logError(element,e);
+                Reputation.logError("Something went wrong fetching trade standings, defaulting to bad standing",e);
                 player.sendMessage(new TextComponent("Something went wrong fetching trade standings, defaulting to bad standing"),player.getUUID());
                 villager.setUnhappy();
                 callback.setReturnValue(InteractionResult.sidedSuccess(villager.level.isClientSide));
-                ReputationAIPackages.trading_standings.put(villager.getType(), "bad");
+                ReputationAIPackages.trading_standings.put(villager.getType(), "neutral");
             }
         }
     }
