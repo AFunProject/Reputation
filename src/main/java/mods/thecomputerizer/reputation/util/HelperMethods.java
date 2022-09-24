@@ -119,8 +119,8 @@ public class HelperMethods {
             }
             if(lowest!=null) {
                 float percentage = getPercentageAwayFromLowerBound(lowest,player);
-                if(percentage<=.5f || ReputationAIPackages.trading_standings.get(entity.getType()).matches("good")) return 999d;
-                if(ReputationAIPackages.trading_standings.get(entity.getType()).matches("bad")) {
+                if(percentage<=.5f || ReputationAIPackages.standings.getTrading(entity.getType()).matches("good")) return 999d;
+                if(ReputationAIPackages.standings.getTrading(entity.getType()).matches("bad")) {
                     if(percentage==1f) return 1d;
                     else if(percentage>.5 && percentage<1) {
                         float maxStackSizePercent = ((float) stackSize/(float) initialCount);
@@ -129,7 +129,7 @@ public class HelperMethods {
                     }
                     double exponential = 1f/percentage;
                     return Math.pow(2d,exponential)/2d;
-                } else if (ReputationAIPackages.trading_standings.get(entity.getType()).matches("neutral")) {
+                } else if (ReputationAIPackages.standings.getTrading(entity.getType()).matches("neutral")) {
                     percentage-=0.5f;
                     if(percentage<=.5f) return 999d;
                     if(percentage==1f) return 1d;
@@ -210,11 +210,5 @@ public class HelperMethods {
                     else return e instanceof Mob mob && mob.getSensing().hasLineOfSight(entity);
                 })
                 .collect(Collectors.toList());
-    }
-
-    public static int getOneAboveIntegerIndexOfMapForValue(Map<?, ?> map, List<?> valueAsList) {
-        for (int i = 0; i < map.values().size(); i++)
-            if (map.values().stream().toList().get(i) == valueAsList.get(0)) return i+1;
-        return 0;
     }
 }

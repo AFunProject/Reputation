@@ -96,7 +96,7 @@ public class WorldEvents {
                     IReputation reputation = optional.resolve().get();
                     HashMap<Faction, Integer> toSync = reputation.allReputations();
                     ServerPlayer serverPlayer = (ServerPlayer)player;
-                    PacketHandler.sendTo(new SyncFactionsMessage(toSync),serverPlayer);
+                    PacketHandler.sendTo(new SyncFactionsMessage(toSync,ReputationAIPackages.standings.getData()),serverPlayer);
                     for(Faction f : toSync.keySet()) reputation.setReputation(player,f,toSync.get(f));
                     ServerTrackers.syncChatIcons(serverPlayer);
                     players.add(serverPlayer);
@@ -115,19 +115,19 @@ public class WorldEvents {
                 }
                 //makes passive mobs flee from players with specific reputation standings
                 if (ModDefinitions.PASSIVE_FLEEING_ENTITIES.contains(entity.getType())) {
-                    if(!brain.memories.isEmpty()) ReputationAIPackages.buildReputationFleeAI(brain, HelperMethods.fleeFactor(entity), ReputationAIPackages.passive_fleeing_standings.get(entity.getType()));
+                    if(!brain.memories.isEmpty()) ReputationAIPackages.buildReputationFleeAI(brain, HelperMethods.fleeFactor(entity), ReputationAIPackages.standings.getPassiveFleeing(entity.getType()));
                     else if (entity instanceof Mob mob)
                         mob.goalSelector.addGoal(0, new FleeGoal(mob, HelperMethods.fleeFactor(entity), true));
                 }
                 //makes neutral mobs angry at players based on reputation standings
                 if (ModDefinitions.HOSTILE_ENTITIES.contains(entity.getType()) && entity instanceof Mob mob) {
-                    if(!brain.memories.isEmpty()) ReputationAIPackages.buildReputationHostileAI(mob, brain,ReputationAIPackages.hostile_standings.get(entity.getType()));
+                    if(!brain.memories.isEmpty()) ReputationAIPackages.buildReputationHostileAI(mob, brain,ReputationAIPackages.standings.getHostile(entity.getType()));
                     else if (entity instanceof NeutralMob)
                         mob.targetSelector.addGoal(2, new ReputationAttackableTargetGoal<>(mob, Player.class, true, false));
                 }
                 //conditionally removes players from the target selection of hostile mobs based on reputation standings
                 if (ModDefinitions.PASSIVE_ENTITIES.contains(entity.getType())) {
-                    if(!brain.memories.isEmpty()) ReputationAIPackages.buildReputationPassiveAI(brain, 1,ReputationAIPackages.passive_standings.get(entity.getType()));
+                    if(!brain.memories.isEmpty()) ReputationAIPackages.buildReputationPassiveAI(brain, 1,ReputationAIPackages.standings.getPassive(entity.getType()));
                     else if (entity instanceof Mob mob) {
                         Set<WrappedGoal> goalSet = mob.targetSelector.getAvailableGoals();
                         List<WrappedGoal> newGoals = goalSet.stream()
@@ -140,7 +140,7 @@ public class WorldEvents {
                         for (WrappedGoal wrappedGoal : newGoals) {
                             mob.targetSelector.addGoal(wrappedGoal.getPriority(), wrappedGoal.getGoal());
                         }
-                        mob.targetSelector.addGoal(2, new ReputationPacifyHostileCustomStandingGoal<>(mob, Player.class, true, false,ReputationAIPackages.passive_standings.get(entity.getType())));
+                        mob.targetSelector.addGoal(2, new ReputationPacifyHostileCustomStandingGoal<>(mob, Player.class, true, false,ReputationAIPackages.standings.getPassive(entity.getType())));
                     }
                 }
             }

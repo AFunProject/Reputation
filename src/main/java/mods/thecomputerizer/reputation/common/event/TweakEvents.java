@@ -29,6 +29,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.registries.ForgeRegistries;
 
+@SuppressWarnings("deprecation")
 @EventBusSubscriber(modid=ModDefinitions.MODID)
 public class TweakEvents {
 

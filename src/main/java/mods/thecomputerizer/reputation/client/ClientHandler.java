@@ -4,6 +4,7 @@ import mods.thecomputerizer.reputation.api.PlayerFactionHandler;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.api.capability.IPlayerFaction;
 import mods.thecomputerizer.reputation.api.capability.IReputation;
+import mods.thecomputerizer.reputation.common.ai.ReputationStandings;
 import mods.thecomputerizer.reputation.common.network.SyncFactionPlayersMessage;
 import mods.thecomputerizer.reputation.common.network.SyncReputationMessage;
 import net.minecraft.client.Minecraft;
@@ -19,6 +20,7 @@ import java.util.UUID;
 
 @SuppressWarnings("OptionalGetWithoutIsPresent")
 public class ClientHandler {
+	public static ReputationStandings standings;
 
 	public static void readReputationMessage(SyncReputationMessage message) {
 		Minecraft mc = Minecraft.getInstance();

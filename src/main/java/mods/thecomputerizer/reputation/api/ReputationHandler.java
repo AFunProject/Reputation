@@ -1,8 +1,11 @@
 package mods.thecomputerizer.reputation.api;
 
+import com.google.gson.JsonElement;
 import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.capability.IReputation;
+import mods.thecomputerizer.reputation.client.ClientHandler;
 import mods.thecomputerizer.reputation.client.event.RenderEvents;
+import mods.thecomputerizer.reputation.common.ai.ReputationStandings;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.common.network.SetIconMessage;
 import net.minecraft.resources.ResourceLocation;
@@ -88,7 +91,8 @@ public class ReputationHandler {
 		FACTIONS = new HashMap<>();
 	}
 
-	public static void readPacketData(HashMap<Faction, Integer> factions) {
+	public static void readPacketData(HashMap<Faction, Integer> factions, JsonElement reputationStandingsData) {
+		ClientHandler.standings = new ReputationStandings(reputationStandingsData);
 		for (Faction faction : factions.keySet()) {
 			RenderEvents.CLIENT_FACTIONS.put(faction.getID(),faction);
 			RenderEvents.CLIENT_FACTIONS_REPUTATION.put(faction, factions.get(faction));

@@ -51,7 +51,7 @@ public class FleeBattleGoal extends Goal {
         return (this.mob.getHealth() / this.mob.getMaxHealth()) <= .5f
                 && this.mob.distanceTo(player)<=32
                 && HelperMethods.ensureSeparateFactions(this.mob,player)
-                && HelperMethods.isPlayerInCustomStanding(this.mob,player, ReputationAIPackages.injured_fleeing_standings.get(this.mob.getType()));
+                && HelperMethods.isPlayerInCustomStanding(this.mob,player, ReputationAIPackages.standings.getInjured(this.mob.getType()));
     }
 
     @Override

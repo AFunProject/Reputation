@@ -1,5 +1,7 @@
 package mods.thecomputerizer.reputation.common.network;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.client.ClientHandler;
@@ -9,6 +11,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
+import javax.json.Json;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -20,7 +24,7 @@ public class SyncFactionPlayersMessage {
     private final List<UUID> uuids;
     private final int uuidSize;
 
-    public SyncFactionPlayersMessage(FriendlyByteBuf buf){
+    public SyncFactionPlayersMessage(FriendlyByteBuf buf) {
         faction = new ResourceLocation(buf.readUtf());
         uuidSize = buf.readInt();
         uuids = new ArrayList<>();
@@ -52,10 +56,10 @@ public class SyncFactionPlayersMessage {
     }
 
     public Faction getFaction() {
-        return ReputationHandler.getFaction(faction);
+        return ReputationHandler.getFaction(this.faction);
     }
 
     public List<UUID> getPlayerUUIDS() {
-        return uuids;
+        return this.uuids;
     }
 }

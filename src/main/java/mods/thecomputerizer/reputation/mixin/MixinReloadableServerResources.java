@@ -1,6 +1,5 @@
 package mods.thecomputerizer.reputation.mixin;
 
-import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.util.FactionListener;
 import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.ServerAdvancementManager;
@@ -54,7 +53,6 @@ public class MixinReloadableServerResources {
 
     @Inject(at = @At("HEAD"), method = "listeners()Ljava/util/List;", cancellable = true)
     private void listeners(CallbackInfoReturnable<List<PreparableReloadListener>> cir) {
-        Reputation.logInfo("huh");
         cir.setReturnValue(List.of(new FactionListener(), this.f_206849_, this.f_206850_, this.f_206848_, this.f_206851_, this.f_206852_, this.f_206854_, this.f_206853_));
     }
 }
