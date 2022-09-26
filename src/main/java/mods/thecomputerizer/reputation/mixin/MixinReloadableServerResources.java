@@ -1,5 +1,6 @@
 package mods.thecomputerizer.reputation.mixin;
 
+import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.util.FactionListener;
 import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.ServerAdvancementManager;
@@ -19,40 +20,40 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
 
-@SuppressWarnings("MixinAnnotationTarget")
 @Mixin(ReloadableServerResources.class)
 public class MixinReloadableServerResources {
 
     @Final
     @Shadow
-    private RecipeManager f_206848_;
+    private RecipeManager recipes;
 
     @Final
     @Shadow
-    private TagManager f_206849_;
+    private TagManager tagManager;
 
     @Final
     @Shadow
-    private PredicateManager f_206850_;
+    private PredicateManager predicateManager;
 
     @Final
     @Shadow
-    private LootTables f_206851_;
+    private LootTables lootTables;
 
     @Final
     @Shadow
-    private ItemModifierManager f_206852_;
+    private ItemModifierManager itemModifierManager;
 
     @Final
     @Shadow
-    private ServerAdvancementManager f_206853_;
+    private ServerAdvancementManager advancements;
 
     @Final
     @Shadow
-    private ServerFunctionLibrary f_206854_;
+    private ServerFunctionLibrary functionLibrary;
 
     @Inject(at = @At("HEAD"), method = "listeners()Ljava/util/List;", cancellable = true)
     private void listeners(CallbackInfoReturnable<List<PreparableReloadListener>> cir) {
-        cir.setReturnValue(List.of(new FactionListener(), this.f_206849_, this.f_206850_, this.f_206848_, this.f_206851_, this.f_206852_, this.f_206854_, this.f_206853_));
+        Reputation.logInfo("bruh");
+        cir.setReturnValue(List.of(new FactionListener(), this.tagManager, this.predicateManager, this.recipes, this.lootTables, this.itemModifierManager, this.functionLibrary, this.advancements));
     }
 }

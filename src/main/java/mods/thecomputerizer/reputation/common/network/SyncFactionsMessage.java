@@ -2,6 +2,7 @@ package mods.thecomputerizer.reputation.common.network;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
 import net.minecraft.network.FriendlyByteBuf;
@@ -16,7 +17,7 @@ public class SyncFactionsMessage {
 	private final HashMap<String, Integer> factionJsons;
 	private final JsonElement reputationStandingsData;
 
-	public SyncFactionsMessage(FriendlyByteBuf buf){
+	public SyncFactionsMessage(FriendlyByteBuf buf) {
 		this.reputationStandingsData = JsonParser.parseString((String) buf.readCharSequence(buf.readInt(),StandardCharsets.UTF_8));
 		this.factionJsons = new HashMap<>();
 		int size = buf.readInt();
@@ -27,19 +28,18 @@ public class SyncFactionsMessage {
 		this.factionJsons = new HashMap<>();
 		for(Faction f : factions.keySet()) this.factionJsons.put(f.toJsonString(), factions.get(f));
 		this.reputationStandingsData = reputationStandingsData;
+		Reputation.logInfo("Syncing {} factions to the client",factions.keySet().size());
 	}
 
 	public void encode(FriendlyByteBuf buf) {
 		String jsonAsString = this.reputationStandingsData.toString();
 		buf.writeInt(jsonAsString.length());
 		buf.writeCharSequence(jsonAsString, StandardCharsets.UTF_8);
-		if (!this.factionJsons.keySet().isEmpty()) {
-			buf.writeInt(this.factionJsons.keySet().size());
-			for(String jsonString : this.factionJsons.keySet()) {
-				buf.writeInt(jsonString.length());
-				buf.writeCharSequence(jsonString, StandardCharsets.UTF_8);
-				buf.writeInt(this.factionJsons.get(jsonString));
-			}
+		buf.writeInt(this.factionJsons.keySet().size());
+		for (String jsonString : this.factionJsons.keySet()) {
+			buf.writeInt(jsonString.length());
+			buf.writeCharSequence(jsonString, StandardCharsets.UTF_8);
+			buf.writeInt(this.factionJsons.get(jsonString));
 		}
 	}
 

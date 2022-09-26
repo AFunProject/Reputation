@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Map;
+import java.util.Objects;
 
 @Mixin(RecipeManager.class)
 public class MixinRecipeManager {
@@ -37,7 +38,7 @@ public class MixinRecipeManager {
                     JsonObject result = output.getAsJsonObject("result");
                     JsonObject nbtData = new JsonObject();
                     JsonObject nbtItemData = new JsonObject();
-                    nbtItemData.addProperty("id",item.getRegistryName().toString());
+                    nbtItemData.addProperty("id", Objects.requireNonNull(item.getRegistryName()).toString());
                     nbtData.add("Item",nbtItemData);
                     result.add("nbt",nbtData);
                     output.remove("result");

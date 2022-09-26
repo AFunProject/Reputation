@@ -65,7 +65,7 @@ minecraft {
 }
 
 mixin {
-    add sourceSets.main, "reputation.refmap.json"
+    add sourceSets.main, "reputation.mixin.refmap.json"
     config "reputation.mixin.json"
 }
 
@@ -81,9 +81,13 @@ repositories {
 }
 
 dependencies {
+    //minecraft
     minecraft 'net.minecraftforge:forge:1.18.2-40.1.47'
-
-    implementation fg.deobf("curse.maven:guard-villagers-360203:3802013")
+    //mixin
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    //mods
+    implementation fg.deobf("curse.maven:guard-villagers-360203:3823106")
+    compileOnly fileTree(dir: 'libs', includes: ['Quest_Giver-1.18.2-1.0.1.jar'])
 }
 
 jar {

@@ -37,13 +37,13 @@ public class ReputationStandings {
             ModDefinitions.INJURED_FLEEING_ENTITIES = parseResourceArray("injured_fleeing",json,"neutral",this.injured_fleeing_standings);
             ModDefinitions.TRADING_ENTITIES = parseResourceArray("trading",json,"neutral",this.trading_standings);
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Failed to parse faction ai!");
+            throw new RuntimeException("Failed to parse faction AI!");
         }
     }
 
     private List<EntityType<?>> parseResourceArray(String element, JsonObject json, String defaultStanding, HashMap<EntityType<?>, String> map) {
         List<EntityType<?>> members = new ArrayList<>();
+        Reputation.logInfo("Checking for mobs with {} attribute",element);
         if(json.has(element)) {
             for (JsonElement index : json.get(element).getAsJsonArray()) {
                 String[] name = index.getAsString().split(":");
@@ -51,16 +51,14 @@ public class ReputationStandings {
                 if(name.length==1) entity = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(name[0]));
                 else if(name.length==2) entity = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(name[0], name[1]));
                 else if(name.length==3) {
-                    if(element.matches("trading"))
-                        Reputation.logInfo(name[0]+" "+name[1]+" "+name[2]);
-                    if(checkValidStanding(name[0])) defaultStanding = name[0];
+                    if(checkValidStanding(name[2])) defaultStanding = name[2];
                     entity = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(name[0],name[1]));
                 }
                 if(entity!=null) {
+                    Reputation.logInfo("Adding attribute to entity {} with custom standing {}",entity.getRegistryName(),defaultStanding);
                     members.add(entity);
                     map.put(entity,defaultStanding);
-                    if(element.matches("trading")) Reputation.logInfo(map.get(entity));
-                } else Reputation.logError("Could not read standings map for element: "+element,null);
+                } else Reputation.logError("Could not read standings map for element {}",element);
             }
         }
         return members;

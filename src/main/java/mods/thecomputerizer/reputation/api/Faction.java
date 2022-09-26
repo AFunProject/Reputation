@@ -129,9 +129,9 @@ public class Faction {
 			List<ResourceLocation> enemies = parseResourceArray("enemies", json);
 			return new Faction(faction_id, name, defaultRep, lowerRep, higherRep, currency, weighting, enemies, members);
 		} catch (Exception e) {
-			Reputation.logError("Forcing error log to print for error: "+e.getMessage(),e);
+			Reputation.logError("Forcing error log to print for error {} ",e,e.getMessage());
 			for(StackTraceElement element : e.getStackTrace()) {
-				Reputation.logError(element,e);
+				Reputation.logError(element.toString(),e);
 			}
 			throw new RuntimeException("Failed to parse faction with id "+id+"! Error was "+e.getMessage());
 		}
@@ -165,7 +165,7 @@ public class Faction {
 		builder.append("\"default_reputation\": ").append(this.defaultRep).append(", ").append("\n");
 		builder.append("\"lower_reputation_bound\": ").append(this.lowerRep).append(", ").append("\n");
 		builder.append("\"upper_reputation_bound\": ").append(this.higherRep).append(", ").append("\n");
-		builder.append("\"currency\": \"").append(this.currencyItem.getRegistryName().toString()).append("\", ").append("\n");
+		builder.append("\"currency\": \"").append(Objects.requireNonNull(this.currencyItem.getRegistryName())).append("\", ").append("\n");
 		builder.append("\"weighted_murder\": ").append(this.weightedActions.get("murder")).append(", ").append("\n");
 		builder.append("\"weighted_looting\": ").append(this.weightedActions.get("looting")).append(", ").append("\n");
 		builder.append("\"weighted_fleeing\": ").append(this.weightedActions.get("fleeing")).append(", ").append("\n");

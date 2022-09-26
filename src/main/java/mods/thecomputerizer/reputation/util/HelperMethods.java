@@ -109,7 +109,19 @@ public class HelperMethods {
         return false;
     }
 
-    public static double tradePrices(LivingEntity entity, Player player, int initialCount, int stackSize) {
+    public static double tradePrice(float percentage, int initialCount, int stackSize) {
+        if(percentage<=.5f) return 999d;
+        else if(percentage>=1f && percentage<1.5f) return 1d;
+        else if(percentage>.5 && percentage<1) {
+            float maxStackSizePercent = ((float) stackSize/(float) initialCount);
+            float itemPercentage = 1f-((percentage-.5f)*2f);
+            return 1d+((maxStackSizePercent-1f)*itemPercentage);
+        }
+        double exponential = 1f/(percentage-0.5f);
+        return Math.pow(2d,exponential)/2d;
+    }
+
+    public static float tradeMultiplier(LivingEntity entity, Player player) {
         Collection<Faction> factions = ReputationHandler.getEntityFactions(entity);
         if(!factions.isEmpty() && ModDefinitions.TRADING_ENTITIES.contains(entity.getType())) {
             Faction lowest = null;
@@ -119,31 +131,12 @@ public class HelperMethods {
             }
             if(lowest!=null) {
                 float percentage = getPercentageAwayFromLowerBound(lowest,player);
-                if(percentage<=.5f || ReputationAIPackages.standings.getTrading(entity.getType()).matches("good")) return 999d;
-                if(ReputationAIPackages.standings.getTrading(entity.getType()).matches("bad")) {
-                    if(percentage==1f) return 1d;
-                    else if(percentage>.5 && percentage<1) {
-                        float maxStackSizePercent = ((float) stackSize/(float) initialCount);
-                        float itemPercentage = (percentage-.5f)*2f;
-                        return 1d+((maxStackSizePercent-1f)*itemPercentage);
-                    }
-                    double exponential = 1f/percentage;
-                    return Math.pow(2d,exponential)/2d;
-                } else if (ReputationAIPackages.standings.getTrading(entity.getType()).matches("neutral")) {
-                    percentage-=0.5f;
-                    if(percentage<=.5f) return 999d;
-                    if(percentage==1f) return 1d;
-                    else if(percentage>.5 && percentage<1) {
-                        float maxStackSizePercent = ((float) stackSize/(float) initialCount);
-                        float itemPercentage = (percentage-.5f)*2f;
-                        return 1d+((maxStackSizePercent-1f)*itemPercentage);
-                    }
-                    double exponential = 1f/percentage;
-                    return Math.pow(2d,exponential)/2d;
-                }
+                if(ReputationAIPackages.standings.getTrading(entity.getType()).matches("bad")) return percentage;
+                else if (ReputationAIPackages.standings.getTrading(entity.getType()).matches("neutral")) return percentage-0.5f;
+                else return percentage-1f;
             }
         }
-        return 0d;
+        return 1f;
     }
 
     public static float getPercentageAwayFromLowerBound(Faction faction, Player player) {

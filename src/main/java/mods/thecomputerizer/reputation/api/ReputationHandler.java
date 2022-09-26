@@ -30,7 +30,7 @@ public class ReputationHandler {
 
 	public static void registerFaction(Faction faction) {
 		if(!faction.getID().toString().isEmpty() && !FACTIONS.containsKey(faction.getID())) {
-			Reputation.logInfo("registered faction at location " + faction.getID().toString());
+			Reputation.logInfo("registered faction at location {}",faction.getID().toString());
 			FACTIONS.put(faction.getID(), faction);
 			FACTION_CURRENCY_MAP.put(faction.getCurrencyItem(), faction);
 		}

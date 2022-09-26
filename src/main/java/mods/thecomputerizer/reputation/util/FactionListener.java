@@ -3,6 +3,7 @@ package mods.thecomputerizer.reputation.util;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
@@ -39,7 +40,7 @@ public class FactionListener extends SimplePreparableReloadListener<Void> {
 
     @Override
     protected void apply(@Nonnull Void value, @Nonnull ResourceManager rm, @Nonnull ProfilerFiller profiler) {
-        for(String string : rm.getNamespaces()) Reputation.logInfo(string);
+        Reputation.logInfo("Beginning to read reputation datapack");
         try {
             List<ResourceLocation> checked = new ArrayList<>();
             for (ResourceLocation resource : rm.listResources("factions", (location) -> location.endsWith("json"))) {
@@ -58,26 +59,20 @@ public class FactionListener extends SimplePreparableReloadListener<Void> {
                     checked.add(resource);
                 }
             }
-            Reputation.logInfo("Successfully attached "+ServerTrackers.chatIconJsonData.size()+" files to the chat icon data map");
+            Reputation.logInfo("Successfully attached {} files to the chat icon data map",ServerTrackers.chatIconJsonData.size());
             try {
                 ResourceLocation ai = new ResourceLocation(ModDefinitions.MODID, "ai.json");
                 if(rm.hasResource(ai)) {
                     Resource AI = rm.getResource(ai);
                     InputStreamReader reader = new InputStreamReader(AI.getInputStream(), StandardCharsets.UTF_8);
                     ReputationAIPackages.buildMobLists(GSON.fromJson(reader, JsonElement.class));
-                }
+                } else ReputationAIPackages.buildMobLists(JsonParser.parseString("{ }"));
             } catch (Exception e) {
-                Reputation.logError("Forcing error log to print for error: "+e.getMessage(),e);
-                for(StackTraceElement element : e.getStackTrace()) {
-                    Reputation.logError(element,e);
-                }
+                Reputation.logError("'{}'",e.getMessage(),e);
                 throw new RuntimeException("Failed to read AI data!");
             }
         } catch (Exception e) {
-            Reputation.logError("Forcing error log to print for error: "+e.getMessage(),e);
-            for(StackTraceElement element : e.getStackTrace()) {
-                Reputation.logError(element,e);
-            }
+            Reputation.logError("'{}'",e.getMessage(),e);
             throw new RuntimeException("Failed to read faction data!");
         }
     }

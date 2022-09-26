@@ -25,8 +25,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.annotation.Nullable;
-
 @Mod(value = ModDefinitions.MODID)
 @Mod.EventBusSubscriber(modid = ModDefinitions.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Reputation {
@@ -60,12 +58,11 @@ public class Reputation {
 		event.register(IPlayerFaction.class);
 	}
 
-	public static void logInfo(Object message) {
-		logger.info(message);
+	public static void logInfo(String message, Object... vars) {
+		logger.info(message, vars);
 	}
 
-	public static void logError(Object message, @Nullable Exception e) {
-		logger.error(message);
-		if(e!=null) e.printStackTrace();
+	public static void logError(String message, Object... vars) {
+		logger.error(message,vars);
 	}
 }
