@@ -12,10 +12,13 @@ import mods.thecomputerizer.reputation.common.command.ReputationFactionArgument;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.common.registration.RegistryHandler;
 import mods.thecomputerizer.reputation.config.ClientConfigHandler;
+import mods.thecomputerizer.reputation.util.FactionListener;
 import net.minecraft.commands.synchronization.ArgumentTypes;
 import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
+import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -37,6 +40,7 @@ public class Reputation {
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::registerCapabilities);
 		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ClientConfigHandler.CONFIG, "reputation/client.toml");
 		MinecraftForge.EVENT_BUS.register(this);
+		MinecraftForge.EVENT_BUS.addListener(this::reloadData);
 		RegistryHandler.registerCommonObjects(FMLJavaModLoadingContext.get().getModEventBus());
 	}
 
@@ -56,6 +60,11 @@ public class Reputation {
 		event.register(IReputation.class);
 		event.register(IPlacedContainer.class);
 		event.register(IPlayerFaction.class);
+	}
+
+	@SubscribeEvent
+	public void reloadData(AddReloadListenerEvent event) {
+		event.addListener(new FactionListener());
 	}
 
 	public static void logInfo(String message, Object... vars) {

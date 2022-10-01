@@ -10,6 +10,7 @@ import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
 import mods.thecomputerizer.reputation.common.ai.ServerTrackers;
+import mods.thecomputerizer.reputation.common.registration.Recipes;
 import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
@@ -42,6 +43,7 @@ public class FactionListener extends SimplePreparableReloadListener<Void> {
     protected void apply(@Nonnull Void value, @Nonnull ResourceManager rm, @Nonnull ProfilerFiller profiler) {
         Reputation.logInfo("Beginning to read reputation datapack");
         try {
+            Recipes.resetCurrencyList();
             List<ResourceLocation> checked = new ArrayList<>();
             for (ResourceLocation resource : rm.listResources("factions", (location) -> location.endsWith("json"))) {
                 if(!checked.contains(resource)) {

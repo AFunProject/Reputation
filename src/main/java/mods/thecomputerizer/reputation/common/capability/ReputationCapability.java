@@ -16,6 +16,13 @@ public class ReputationCapability implements IReputation {
 	private HashMap<Faction, Integer> FACTIONS = new HashMap<>();
 	private HashMap<String, Integer> FACTION_IDS = new HashMap<>();
 
+	public ReputationCapability() {
+		for (Faction f : ReputationHandler.getFactionMap().values()) {
+			FACTIONS.put(f, f.getDefaultRep());
+			FACTION_IDS.put(f.getID().toString(), f.getDefaultRep());
+		}
+	}
+
 	@Override
 	public HashMap<Faction, Integer> allReputations() {
 		return FACTIONS;
@@ -31,9 +38,8 @@ public class ReputationCapability implements IReputation {
 	public void setReputation(Player player, Faction faction, int reputation) {
 		FACTIONS.put(faction, reputation);
 		FACTION_IDS.put(faction.getID().toString(),reputation);
-		if (player instanceof ServerPlayer) {
+		if (player instanceof ServerPlayer)
 			PacketHandler.sendTo(new SyncReputationMessage(faction, reputation),(ServerPlayer)player);
-		}
 	}
 
 	@Override
@@ -41,18 +47,15 @@ public class ReputationCapability implements IReputation {
 		int base = FACTION_IDS.containsKey(faction.getID().toString()) ? FACTION_IDS.get(faction.getID().toString()) : faction.getDefaultRep();
 		FACTION_IDS.put(faction.getID().toString(), base + reputation);
 		FACTIONS.put(faction, base + reputation);
-		if (player instanceof ServerPlayer) {
+		if (player instanceof ServerPlayer)
 			PacketHandler.sendTo(new SyncReputationMessage(faction, base + reputation),(ServerPlayer)player);
-		}
 	}
 
 	@Override
 	public CompoundTag writeNBT(CompoundTag nbt) {
-		for (Faction entry : FACTIONS.keySet()) {
-			if(!nbt.contains(entry.getID().toString())) {
+		for (Faction entry : FACTIONS.keySet())
+			if(!nbt.contains(entry.getID().toString()))
 				nbt.putInt(entry.getID().toString(), FACTIONS.get(entry));
-			}
-		}
 		return nbt;
 	}
 
@@ -62,11 +65,8 @@ public class ReputationCapability implements IReputation {
 		FACTION_IDS = new HashMap<>();
 		for (Faction f : ReputationHandler.getFactionMap().values()) {
 			if (nbt.contains(f.getID().toString())) {
-				FACTIONS.putIfAbsent(f, nbt.getInt(f.getID().toString()));
-				FACTION_IDS.putIfAbsent(f.getID().toString(), nbt.getInt(f.getID().toString()));
-			} else {
-				FACTIONS.putIfAbsent(f, f.getDefaultRep());
-				FACTION_IDS.putIfAbsent(f.getID().toString(), f.getDefaultRep());
+				FACTIONS.put(f, nbt.getInt(f.getID().toString()));
+				FACTION_IDS.put(f.getID().toString(), nbt.getInt(f.getID().toString()));
 			}
 		}
 	}

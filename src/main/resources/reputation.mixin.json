@@ -4,8 +4,6 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "reputation.mixin.refmap.json",
   "mixins": [
-    "MixinRecipeManager",
-    "MixinReloadableServerResources",
     "MixinVillager"
   ],
   "minVersion": "0.8"

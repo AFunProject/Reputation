@@ -21,7 +21,8 @@ public class SyncFactionsMessage {
 		this.reputationStandingsData = JsonParser.parseString((String) buf.readCharSequence(buf.readInt(),StandardCharsets.UTF_8));
 		this.factionJsons = new HashMap<>();
 		int size = buf.readInt();
-		for(int i=0;i<size;i++) this.factionJsons.put((String)buf.readCharSequence(buf.readInt(), StandardCharsets.UTF_8),buf.readInt());
+		for(int i=0;i<size;i++)
+			this.factionJsons.put((String)buf.readCharSequence(buf.readInt(), StandardCharsets.UTF_8),buf.readInt());
 	}
 
 	public SyncFactionsMessage(HashMap<Faction, Integer> factions, JsonElement reputationStandingsData) {

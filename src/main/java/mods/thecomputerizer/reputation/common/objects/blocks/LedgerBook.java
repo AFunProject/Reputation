@@ -54,11 +54,11 @@ public class LedgerBook extends Block {
         if (level.isClientSide) return InteractionResult.SUCCESS;
         else {
             if (this.tick >= 10 && level instanceof ServerLevel) {
-                if (player.getMainHandItem().getItem() instanceof FactionCurrencyBag && player.getOffhandItem().getItem().getRegistryName().toString().matches(Items.INK_SAC.getRegistryName().toString())
-                        & !player.getMainHandItem().getOrCreateTag().contains("Signed") && player.getMainHandItem().getOrCreateTag().contains("Item")
-                        && ForgeRegistries.ITEMS.getValue(new ResourceLocation(player.getMainHandItem().getOrCreateTag().getCompound("Item").getString("id"))) != null) {
+                if (player.getMainHandItem().getItem() instanceof FactionCurrencyBag && player.getOffhandItem().getItem() == Items.INK_SAC
+                        && !player.getMainHandItem().getOrCreateTag().contains("Signed") && player.getMainHandItem().getOrCreateTag().contains("currency_item")
+                        && ForgeRegistries.ITEMS.getValue(new ResourceLocation(player.getMainHandItem().getOrCreateTag().getString("currency_item"))) != null) {
                     float factor = 2f;
-                    if (HelperMethods.getNearEntitiesOfFaction((ServerLevel) level, player, ReputationHandler.FACTION_CURRENCY_MAP.get(ForgeRegistries.ITEMS.getValue(new ResourceLocation(player.getMainHandItem().getOrCreateTag().getCompound("Item").getString("id")))), 8).isEmpty()) {
+                    if (HelperMethods.getNearEntitiesOfFaction((ServerLevel) level, player, ReputationHandler.FACTION_CURRENCY_MAP.get(ForgeRegistries.ITEMS.getValue(new ResourceLocation(player.getMainHandItem().getOrCreateTag().getString("currency_item")))), 8).isEmpty()) {
                         player.sendMessage(new TextComponent("The book acknowledges the tribute"), Util.NIL_UUID);
                         factor = 1f;
                         level.playLocalSound(pos.getX(),pos.getY(),pos.getZ(),Sounds.LEDGER_SIGN.get(), SoundSource.BLOCKS,1f, Mth.randomBetween(ReputationHandler.random,0.88f,1.12f),false);

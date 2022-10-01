@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
+import mods.thecomputerizer.reputation.common.registration.Recipes;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -38,6 +39,7 @@ public class Faction {
 		this.higherRep = higherRep;
 		if(currencyItem!=null) this.currencyItem = currencyItem;
 		else this.currencyItem = Items.DIAMOND;
+		Recipes.addCurrencyItem(this.currencyItem);
 		this.weightedActions = weightedActions;
 		this.enemy_names.addAll(enemies);
 		this.members.addAll(members);
@@ -61,6 +63,7 @@ public class Faction {
 		return this.enemies;
 	}
 
+	@SuppressWarnings("unused")
 	public boolean isEnemy(Faction faction) {
 		return getEnemies().contains(faction);
 	}
