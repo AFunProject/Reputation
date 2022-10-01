@@ -53,9 +53,9 @@ public class Recipes {
             Item topLeft = container.getItem(0).getItem();
             if(CURRENCY_ITEMS.contains(topLeft)) {
                 for (int i = 1; i < container.getContainerSize(); ++i) {
-                    if(i==4) {
-                        if(container.getItem(i) == ItemStack.EMPTY || container.getItem(i).getItem() != Items.EMERALD) return false;
-                    } else if(container.getItem(i) == ItemStack.EMPTY || container.getItem(i).getItem() != topLeft) return false;
+                    if(container.getItem(i) == ItemStack.EMPTY) return false;
+                    if(i==4 && container.getItem(i).getItem() != Items.LEATHER) return false;
+                    if(i!=4 && container.getItem(i).getItem() != topLeft) return false;
                 }
             } else return false;
             return true;

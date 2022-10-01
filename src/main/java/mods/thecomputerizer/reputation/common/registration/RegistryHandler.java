@@ -9,6 +9,7 @@ public class RegistryHandler {
     public static void registerCommonObjects(IEventBus bus) {
         Blocks.register(bus);
         Items.register(bus);
+        Recipes.register(bus);
         Entities.register(bus);
         Sounds.register(bus);
         ReputationMemoryModule.MEMORY_MODULES.register(bus);
