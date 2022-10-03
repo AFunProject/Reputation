@@ -16,6 +16,10 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
+import static mods.thecomputerizer.reputation.common.registration.Items.FACTION_BAG;
+
 public class Recipes {
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_REGISTRY = DeferredRegister.create(Registry.RECIPE_SERIALIZER_REGISTRY, ModDefinitions.MODID);
     public static RegistryObject<RecipeSerializer<?>> CURRENCY_RECIPE_SERIALIZER = register("currency_recipe");
@@ -29,6 +33,7 @@ public class Recipes {
         return RECIPE_REGISTRY.register(name,() -> new SimpleRecipeSerializer<>(DoughnutRecipe::new));
     }
     private static class DoughnutRecipe extends CustomRecipe {
+        private String assembledWith;
 
         public DoughnutRecipe(ResourceLocation id) {
             super(id);
@@ -55,20 +60,18 @@ public class Recipes {
                         if((j<x || j>x+2 || i<y || i>y+2) && !container.getItem(temp).isEmpty()) return false;
                         if(!container.getItem(temp).is(topLeft.getItem())) return false;
                     }
-                } return true;
+                }
+                this.assembledWith = Objects.requireNonNull(topLeft.getItem().getRegistryName()).toString();
+                return true;
             } return false;
         }
 
         @Override
         @NotNull
         public ItemStack assemble(@NotNull CraftingContainer container) {
-            ItemStack stack = new ItemStack(mods.thecomputerizer.reputation.common.registration.Items.FACTION_BAG.get());
-            ResourceLocation topLeft = container.getItem(0).getItem().getRegistryName();
-            if(topLeft!=null) {
-                stack.getOrCreateTag().putString("currency_item",topLeft.toString());
-                return stack;
-            }
-            return ItemStack.EMPTY;
+            ItemStack stack = new ItemStack(FACTION_BAG.get());
+            if(Objects.nonNull(this.assembledWith)) stack.getOrCreateTag().putString("currency_item",this.assembledWith);
+            return stack;
         }
 
         @Override
