@@ -205,6 +205,7 @@ public class HelperMethods {
                 .collect(Collectors.toList());
     }
 
+    //converts an element of a 2D array to its 1D counterpart
     public static int flatIndex(int width, int x, int y) {
         return width*y+x;
     }

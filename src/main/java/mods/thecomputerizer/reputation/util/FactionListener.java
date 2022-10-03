@@ -10,7 +10,7 @@ import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
 import mods.thecomputerizer.reputation.common.ai.ServerTrackers;
-import mods.thecomputerizer.reputation.common.registration.Tags;
+import mods.thecomputerizer.reputation.common.registration.Recipes;
 import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
@@ -73,7 +73,7 @@ public class FactionListener extends SimplePreparableReloadListener<Void> {
                 Reputation.logError("'{}'",e.getMessage(),e);
                 throw new RuntimeException("Failed to read AI data!");
             }
-            Tags.queueCurrencyTagUpdate(ReputationHandler.FACTION_CURRENCY_MAP.keySet().toArray(new Item[0]));
+            Recipes.updateCurrencySet(ReputationHandler.FACTION_CURRENCY_MAP.keySet().toArray(new Item[0]));
         } catch (Exception e) {
             Reputation.logError("'{}'",e.getMessage(),e);
             throw new RuntimeException("Failed to read faction data!");

@@ -1,10 +1,12 @@
 package mods.thecomputerizer.reputation.common.registration;
 
+import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.util.HelperMethods;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CustomRecipe;
@@ -16,13 +18,27 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static mods.thecomputerizer.reputation.common.registration.Items.FACTION_BAG;
 
 public class Recipes {
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_REGISTRY = DeferredRegister.create(Registry.RECIPE_SERIALIZER_REGISTRY, ModDefinitions.MODID);
     public static RegistryObject<RecipeSerializer<?>> CURRENCY_RECIPE_SERIALIZER = register("currency_recipe");
+
+    private static Set<Item> CURRENCY_SET = Set.of();
+
+    public static void updateCurrencySet(Item ... items) {
+        CURRENCY_SET = Arrays.stream(items).filter(Objects::nonNull).collect(Collectors.toSet());
+        Reputation.logStringCollection(org.apache.logging.log4j.Level.INFO,"Adding items to the currency set",
+                CURRENCY_SET.stream().map((item) -> Optional.ofNullable(item.getRegistryName())
+                                .map(ResourceLocation::toString).orElse(null)).filter(Objects::nonNull)
+                        .collect(Collectors.toSet()),10);
+    }
 
     public static void register(IEventBus bus) {
         RECIPE_REGISTRY.register(bus);
@@ -32,6 +48,7 @@ public class Recipes {
     private static RegistryObject<RecipeSerializer<?>> register(String name) {
         return RECIPE_REGISTRY.register(name,() -> new SimpleRecipeSerializer<>(DoughnutRecipe::new));
     }
+
     private static class DoughnutRecipe extends CustomRecipe {
         private String assembledWith;
 
@@ -51,12 +68,12 @@ public class Recipes {
         }
 
         private boolean matches(@NotNull CraftingContainer container, ItemStack topLeft, int x, int y) {
-            if(!topLeft.isEmpty() && topLeft.is(Tags.CURRENCY_ITEMS) && x>=0) {
+            if(!topLeft.isEmpty() && CURRENCY_SET.contains(topLeft.getItem()) && x>=0) {
                 if(!container.getItem(HelperMethods.flatIndex(container.getWidth(),x+1,y+1)).is(Items.LEATHER)) return false;
                 for(int i = 0; i <= y; i++) {
                     for(int j = 0; j <= container.getWidth()-3; j++) {
                         if(j==x+1 && i==y+1) continue;
-                        int temp = i*container.getWidth()+j;
+                        int temp = HelperMethods.flatIndex(container.getWidth(),j,i);
                         if((j<x || j>x+2 || i<y || i>y+2) && !container.getItem(temp).isEmpty()) return false;
                         if(!container.getItem(temp).is(topLeft.getItem())) return false;
                     }
