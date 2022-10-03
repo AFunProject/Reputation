@@ -1,10 +1,10 @@
 package mods.thecomputerizer.reputation.common.registration;
 
 import mods.thecomputerizer.reputation.common.ModDefinitions;
+import mods.thecomputerizer.reputation.util.HelperMethods;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CustomRecipe;
@@ -16,14 +16,9 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Recipes {
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_REGISTRY = DeferredRegister.create(Registry.RECIPE_SERIALIZER_REGISTRY, ModDefinitions.MODID);
     public static RegistryObject<RecipeSerializer<?>> CURRENCY_RECIPE_SERIALIZER = register("currency_recipe");
-
-    private static final List<Item> CURRENCY_ITEMS = new ArrayList<>();
 
     public static void register(IEventBus bus) {
         RECIPE_REGISTRY.register(bus);
@@ -33,15 +28,6 @@ public class Recipes {
     private static RegistryObject<RecipeSerializer<?>> register(String name) {
         return RECIPE_REGISTRY.register(name,() -> new SimpleRecipeSerializer<>(DoughnutRecipe::new));
     }
-
-    public static void addCurrencyItem(Item item) {
-        CURRENCY_ITEMS.add(item);
-    }
-
-    public static void resetCurrencyList() {
-        CURRENCY_ITEMS.clear();
-    }
-
     private static class DoughnutRecipe extends CustomRecipe {
 
         public DoughnutRecipe(ResourceLocation id) {
@@ -50,15 +36,26 @@ public class Recipes {
 
         @Override
         public boolean matches(@NotNull CraftingContainer container, @NotNull Level level) {
-            Item topLeft = container.getItem(0).getItem();
-            if(CURRENCY_ITEMS.contains(topLeft)) {
-                for (int i = 1; i < container.getContainerSize(); ++i) {
-                    if(container.getItem(i) == ItemStack.EMPTY) return false;
-                    if(i==4) {
-                        if(container.getItem(i).getItem() != Items.LEATHER) return false;
-                    } else if(container.getItem(i).getItem() != topLeft) return false;
+            for(int i = 0; i <= container.getHeight()-3; i++)
+                for(int j = 0; j <= container.getWidth()-3; j++) {
+                    int flatIndex = HelperMethods.flatIndex(container.getWidth(),j,i);
+                    if (!container.getItem(flatIndex).isEmpty())
+                        return matches(container, container.getItem(flatIndex), j, i);
                 }
-                return true;
+            return false;
+        }
+
+        private boolean matches(@NotNull CraftingContainer container, ItemStack topLeft, int x, int y) {
+            if(!topLeft.isEmpty() && topLeft.is(Tags.CURRENCY_ITEMS) && x>=0) {
+                if(!container.getItem(HelperMethods.flatIndex(container.getWidth(),x+1,y+1)).is(Items.LEATHER)) return false;
+                for(int i = 0; i <= y; i++) {
+                    for(int j = 0; j <= container.getWidth()-3; j++) {
+                        if(j==x+1 && i==y+1) continue;
+                        int temp = i*container.getWidth()+j;
+                        if((j<x || j>x+2 || i<y || i>y+2) && !container.getItem(temp).isEmpty()) return false;
+                        if(!container.getItem(temp).is(topLeft.getItem())) return false;
+                    }
+                } return true;
             } return false;
         }
 
@@ -76,7 +73,7 @@ public class Recipes {
 
         @Override
         public boolean canCraftInDimensions(int width, int height) {
-            return width==3 && height==3;
+            return width >= 3 && height >= 3;
         }
 
         @Override

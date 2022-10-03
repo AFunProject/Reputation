@@ -204,4 +204,8 @@ public class HelperMethods {
                 })
                 .collect(Collectors.toList());
     }
+
+    public static int flatIndex(int width, int x, int y) {
+        return width*y+x;
+    }
 }

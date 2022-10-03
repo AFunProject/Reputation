@@ -11,10 +11,12 @@ import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.common.command.ReputationFactionArgument;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.common.registration.RegistryHandler;
+import mods.thecomputerizer.reputation.common.registration.Tags;
 import mods.thecomputerizer.reputation.config.ClientConfigHandler;
 import mods.thecomputerizer.reputation.util.FactionListener;
 import net.minecraft.commands.synchronization.ArgumentTypes;
 import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
+import net.minecraft.core.Registry;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AddReloadListenerEvent;
@@ -25,6 +27,7 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -38,6 +41,7 @@ public class Reputation {
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::commonSetup);
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::clientSetup);
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::registerCapabilities);
+		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::dataGen);
 		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ClientConfigHandler.CONFIG, "reputation/client.toml");
 		MinecraftForge.EVENT_BUS.register(this);
 		MinecraftForge.EVENT_BUS.addListener(this::reloadData);
@@ -60,6 +64,13 @@ public class Reputation {
 		event.register(IReputation.class);
 		event.register(IPlacedContainer.class);
 		event.register(IPlayerFaction.class);
+	}
+
+	@SuppressWarnings("deprecation")
+	public void dataGen(GatherDataEvent event) {
+		if(event.includeServer())
+			event.getGenerator().addProvider(Tags.createProvider(event.getGenerator(), Registry.ITEM,
+					ModDefinitions.MODID, event.getExistingFileHelper()));
 	}
 
 	@SubscribeEvent

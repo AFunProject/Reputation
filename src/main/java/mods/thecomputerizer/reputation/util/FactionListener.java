@@ -10,13 +10,14 @@ import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
 import mods.thecomputerizer.reputation.common.ai.ServerTrackers;
-import mods.thecomputerizer.reputation.common.registration.Recipes;
+import mods.thecomputerizer.reputation.common.registration.Tags;
 import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.item.Item;
 
 import javax.annotation.Nonnull;
 import java.io.InputStreamReader;
@@ -43,7 +44,6 @@ public class FactionListener extends SimplePreparableReloadListener<Void> {
     protected void apply(@Nonnull Void value, @Nonnull ResourceManager rm, @Nonnull ProfilerFiller profiler) {
         Reputation.logInfo("Beginning to read reputation datapack");
         try {
-            Recipes.resetCurrencyList();
             List<ResourceLocation> checked = new ArrayList<>();
             for (ResourceLocation resource : rm.listResources("factions", (location) -> location.endsWith("json"))) {
                 if(!checked.contains(resource)) {
@@ -73,6 +73,7 @@ public class FactionListener extends SimplePreparableReloadListener<Void> {
                 Reputation.logError("'{}'",e.getMessage(),e);
                 throw new RuntimeException("Failed to read AI data!");
             }
+            Tags.queueCurrencyTagUpdate(ReputationHandler.FACTION_CURRENCY_MAP.keySet().toArray(new Item[0]));
         } catch (Exception e) {
             Reputation.logError("'{}'",e.getMessage(),e);
             throw new RuntimeException("Failed to read faction data!");
