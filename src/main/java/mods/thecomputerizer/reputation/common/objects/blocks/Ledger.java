@@ -29,6 +29,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.Objects;
 
 @SuppressWarnings("deprecation")
 public class Ledger extends Block {
@@ -48,7 +49,7 @@ public class Ledger extends Block {
         if (level.isClientSide) return InteractionResult.SUCCESS;
         else {
             if(hand==InteractionHand.MAIN_HAND && player.getMainHandItem().getItem() instanceof FactionCurrencyBag) {
-                if(player.getMainHandItem().getTag().contains("Signed")) {
+                if(player.getMainHandItem().hasTag() && Objects.requireNonNull(player.getMainHandItem().getTag()).contains("Signed")) {
                     Faction faction = ReputationHandler.FACTION_CURRENCY_MAP.get(ForgeRegistries.ITEMS.getValue(new ResourceLocation(player.getMainHandItem().getTag().getCompound("Item").getString("id"))));
                     depositedBags.putIfAbsent(player, new HashMap<>());
                     depositedBags.get(player).putIfAbsent(faction, 0);
@@ -58,11 +59,11 @@ public class Ledger extends Block {
                 }
             }
             else if(hand==InteractionHand.OFF_HAND && player.getOffhandItem().getItem() instanceof FactionCurrencyBag) {
-                if(player.getOffhandItem().getTag().contains("Signed")) {
-                    Faction faction = ReputationHandler.FACTION_CURRENCY_MAP.get(ForgeRegistries.ITEMS.getValue(new ResourceLocation(player.getMainHandItem().getTag().getCompound("Item").getString("id"))));
+                if(player.getOffhandItem().hasTag() && Objects.requireNonNull(player.getOffhandItem().getTag()).contains("Signed")) {
+                    Faction faction = ReputationHandler.FACTION_CURRENCY_MAP.get(ForgeRegistries.ITEMS.getValue(new ResourceLocation(player.getOffhandItem().getTag().getCompound("Item").getString("id"))));
                     depositedBags.putIfAbsent(player, new HashMap<>());
                     depositedBags.get(player).putIfAbsent(faction, 0);
-                    depositedBags.get(player).put(faction, depositedBags.get(player).get(faction) + (int)player.getMainHandItem().getTag().getFloat("Signed"));
+                    depositedBags.get(player).put(faction, depositedBags.get(player).get(faction) + (int)player.getOffhandItem().getTag().getFloat("Signed"));
                     player.getMainHandItem().shrink(1);
                     level.playLocalSound(pos.getX(),pos.getY(),pos.getZ(),Sounds.LEDGER_PLACE.get(), SoundSource.BLOCKS,1f, Mth.randomBetween(ReputationHandler.random,0.88f,1.12f),false);
                 }
