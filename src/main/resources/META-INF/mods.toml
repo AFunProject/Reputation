@@ -1,10 +1,10 @@
 modLoader="javafml" #mandatory
 loaderVersion="[34,)"
-license="GNU LESSER GENERAL PUBLIC LICENSE Version 2.1"
+license="MIT"
 
 [[mods]]
 modId="reputation"
-version="0.9.3"
+version="0.9.5"
 displayName="Reputation"
 displayURL=""
 updateJSONURL=""
