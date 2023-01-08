@@ -33,7 +33,9 @@ public class ReputationFactionArgument implements ArgumentType<ResourceLocation>
 
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
-        return context.getSource() instanceof SharedSuggestionProvider ? (Minecraft.getInstance().player!=null ? SharedSuggestionProvider.suggestResource(RenderEvents.CLIENT_FACTIONS.keySet().stream(), builder) : SharedSuggestionProvider.suggestResource(FACTIONS.stream(), builder)) : Suggestions.empty();
+        return context.getSource() instanceof SharedSuggestionProvider ? (Minecraft.getInstance().player!=null ?
+                SharedSuggestionProvider.suggestResource(RenderEvents.CLIENT_FACTIONS.keySet().stream(), builder) :
+                SharedSuggestionProvider.suggestResource(FACTIONS.stream(), builder)) : Suggestions.empty();
     }
 
     @Override

@@ -17,13 +17,14 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.world.item.Item;
 
 import javax.annotation.Nonnull;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class FactionListener extends SimplePreparableReloadListener<Void> {
     private static final Gson GSON = Util.make(() -> {
@@ -73,7 +74,8 @@ public class FactionListener extends SimplePreparableReloadListener<Void> {
                 Reputation.logError("'{}'",e.getMessage(),e);
                 throw new RuntimeException("Failed to read AI data!");
             }
-            Recipes.updateCurrencySet(ReputationHandler.FACTION_CURRENCY_MAP.keySet().toArray(new Item[0]));
+            Recipes.updateCurrencySet(ReputationHandler.getFactionMap().values().stream().map(Faction::getCurrencyItem)
+                    .filter(Objects::nonNull).collect(Collectors.toSet()));
         } catch (Exception e) {
             Reputation.logError("'{}'",e.getMessage(),e);
             throw new RuntimeException("Failed to read faction data!");

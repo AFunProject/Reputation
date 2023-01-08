@@ -20,19 +20,17 @@ import net.minecraftforge.common.util.LazyOptional;
 
 import java.util.*;
 
-@SuppressWarnings("OptionalGetWithoutIsPresent")
+
 public class ReputationHandler {
 
 	public static Capability<IReputation> REPUTATION_CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {});
 	private static HashMap<ResourceLocation, Faction> FACTIONS = new HashMap<>();
-	public static HashMap<Item, Faction> FACTION_CURRENCY_MAP = new HashMap<>();
-	public static Random random = new Random();
+	public static Random RANDOM = new Random();
 
 	public static void registerFaction(Faction faction) {
 		if(!faction.getID().toString().isEmpty() && !FACTIONS.containsKey(faction.getID())) {
 			Reputation.logInfo("registered faction at location {}",faction.getID().toString());
 			FACTIONS.put(faction.getID(), faction);
-			FACTION_CURRENCY_MAP.put(faction.getCurrencyItem(), faction);
 		}
 	}
 
@@ -50,41 +48,42 @@ public class ReputationHandler {
 		return factions;
 	}
 
-	public static int getReputation(Player player, Faction faction) {
+	public static Faction getFactionFromCurrency(Item currencyItem) {
+		for(Faction faction : FACTIONS.values())
+			if(faction.getCurrencyItem()==currencyItem)
+				return faction;
+		return null;
+	}
+
+	public static IReputation getCapability(Player player) {
 		LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
-		if (optional.isPresent()) {
-			IReputation reputation = optional.resolve().get();
-			return reputation.getReputation(faction);
-		}
-		return 0;
+		return optional.isPresent() ? optional.resolve().isPresent() ? optional.resolve().get() : null : null;
+	}
+
+	public static int getReputation(Player player, Faction faction) {
+		IReputation reputation = getCapability(player);
+		return Objects.nonNull(reputation) ? reputation.getReputation(faction) : 0;
 	}
 
 	public static void changeReputation(Player player, Faction faction, int amount) {
 		if(amount!=0 && player instanceof ServerPlayer) {
-			LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
-			if (optional.isPresent()) {
-				IReputation reputation = optional.resolve().get();
+			IReputation reputation = getCapability(player);
+			if (Objects.nonNull(reputation)) {
 				reputation.changeReputation(player, faction, amount);
 				PacketHandler.sendTo(new SetIconMessage(amount>0,faction.getID(),amount),(ServerPlayer)player);
 			}
 		}
 	}
 	public static boolean isGoodReputation(Player player, Faction faction) {
-		LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
-		if (optional.isPresent()) {
-			IReputation reputation = optional.resolve().get();
-			return reputation.getReputation(faction)>=faction.getHigherRep();
-		}
-		return false;
+		IReputation reputation = getCapability(player);
+		if(Objects.isNull(reputation)) return false;
+		return getReputation(player, faction)>=faction.getHigherRep();
 	}
 
 	public static boolean isBadReputation(Player player, Faction faction) {
-		LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
-		if (optional.isPresent()) {
-			IReputation reputation = optional.resolve().get();
-			return reputation.getReputation(faction)<=faction.getLowerRep();
-		}
-		return false;
+		IReputation reputation = getCapability(player);
+		if(Objects.isNull(reputation)) return false;
+		return getReputation(player, faction)<=faction.getHigherRep();
 	}
 
 	public static void emptyMaps() {

@@ -1,6 +1,8 @@
 package mods.thecomputerizer.reputation.common.registration;
 
 import mods.thecomputerizer.reputation.Reputation;
+import mods.thecomputerizer.reputation.api.Faction;
+import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.util.HelperMethods;
 import net.minecraft.core.Registry;
@@ -18,10 +20,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static mods.thecomputerizer.reputation.common.registration.Items.FACTION_BAG;
@@ -32,8 +31,8 @@ public class Recipes {
 
     private static Set<Item> CURRENCY_SET = Set.of();
 
-    public static void updateCurrencySet(Item ... items) {
-        CURRENCY_SET = Arrays.stream(items).filter(Objects::nonNull).collect(Collectors.toSet());
+    public static void updateCurrencySet(Set<Item> items) {
+        CURRENCY_SET = items;
         Reputation.logStringCollection(org.apache.logging.log4j.Level.INFO,"Adding items to the currency set",
                 CURRENCY_SET.stream().map((item) -> Optional.ofNullable(item.getRegistryName())
                                 .map(ResourceLocation::toString).orElse(null)).filter(Objects::nonNull)
@@ -50,7 +49,7 @@ public class Recipes {
     }
 
     private static class DoughnutRecipe extends CustomRecipe {
-        private String assembledWith;
+        private String faction;
 
         public DoughnutRecipe(ResourceLocation id) {
             super(id);
@@ -78,7 +77,8 @@ public class Recipes {
                         if(!container.getItem(temp).is(topLeft.getItem())) return false;
                     }
                 }
-                this.assembledWith = Objects.requireNonNull(topLeft.getItem().getRegistryName()).toString();
+                Faction faction = ReputationHandler.getFactionFromCurrency(topLeft.getItem());
+                if(Objects.nonNull(faction)) this.faction = faction.getID().toString();
                 return true;
             } return false;
         }
@@ -87,7 +87,7 @@ public class Recipes {
         @NotNull
         public ItemStack assemble(@NotNull CraftingContainer container) {
             ItemStack stack = new ItemStack(FACTION_BAG.get());
-            if(Objects.nonNull(this.assembledWith)) stack.getOrCreateTag().putString("currency_item",this.assembledWith);
+            if(Objects.nonNull(this.faction)) stack.getOrCreateTag().putString("factionID",this.faction);
             return stack;
         }
 

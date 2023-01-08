@@ -91,7 +91,7 @@ public class FleeGoal extends Goal {
             if (this.mob.distanceTo(this.player)<=28 && percent <= .5f) {
                 boolean inFaction = ReputationHandler.getEntityFactions(this.mob).isEmpty();
                 for (Faction f : ReputationHandler.getEntityFactions(this.mob)) {
-                    if (PlayerFactionHandler.isPlayerInFaction(f, this.player)) inFaction = true;
+                    if (PlayerFactionHandler.isPlayerInFaction(this.player, f)) inFaction = true;
                 }
                 if (!inFaction && this.random.nextFloat(51f)>=0f && !this.startFlee) {
                     this.startFlee = true;

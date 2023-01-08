@@ -10,7 +10,7 @@ public class RegistryHandler {
         Blocks.register(bus);
         Items.register(bus);
         Recipes.register(bus);
-        Entities.register(bus);
+        BlockEntities.register(bus);
         Sounds.register(bus);
         ReputationMemoryModule.MEMORY_MODULES.register(bus);
         ReputationSenorType.SENSOR_TYPES.register(bus);

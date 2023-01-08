@@ -26,7 +26,7 @@ public class AddPlayerToFactionCommand {
     private static int addSelf(CommandSourceStack cs, ResourceLocation faction) throws CommandRuntimeException {
         try {
             Player player = cs.getPlayerOrException();
-            if (PlayerFactionHandler.addPlayerToFaction(ReputationHandler.getFaction(faction), player))
+            if (PlayerFactionHandler.addPlayerToFaction(player, ReputationHandler.getFaction(faction)))
                 player.sendMessage(new TextComponent("Added player " + player.getDisplayName() + " to the faction '" + faction + "'"), player.getUUID());
             else
                 player.sendMessage(new TextComponent("Player " + player.getDisplayName() + " is already in faction '" + faction + "'!"), player.getUUID());
@@ -40,7 +40,7 @@ public class AddPlayerToFactionCommand {
     private static int addPlayer(Entity e, ResourceLocation faction) throws CommandRuntimeException {
         try {
             if(!(e instanceof Player player)) throw new CommandRuntimeException(new TextComponent("Entity was not a player!"));
-            PlayerFactionHandler.addPlayerToFaction(ReputationHandler.getFaction(faction), player);
+            PlayerFactionHandler.addPlayerToFaction(player, ReputationHandler.getFaction(faction));
             player.sendMessage(new TextComponent("Added player "+player.getDisplayName()+" to the faction '"+faction+"'"),player.getUUID());
         }
         catch(Exception ex) {

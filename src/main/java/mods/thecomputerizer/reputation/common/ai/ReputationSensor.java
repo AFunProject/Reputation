@@ -68,7 +68,7 @@ public class ReputationSensor extends Sensor<LivingEntity> {
                 if (mob.distanceTo(this.player)<=28 && percent <= .5f) {
                     boolean inFaction = ReputationHandler.getEntityFactions(mob).isEmpty();
                     for (Faction f : ReputationHandler.getEntityFactions(mob)) {
-                        if (PlayerFactionHandler.isPlayerInFaction(f, this.player)) inFaction = true;
+                        if (PlayerFactionHandler.isPlayerInFaction(this.player, f)) inFaction = true;
                     }
                     if (!inFaction && this.random.nextFloat(21f)>=2f && !this.startFlee) {
                         this.startFlee = true;

@@ -16,13 +16,6 @@ public class ReputationCapability implements IReputation {
 	private HashMap<Faction, Integer> FACTIONS = new HashMap<>();
 	private HashMap<String, Integer> FACTION_IDS = new HashMap<>();
 
-	public ReputationCapability() {
-		for (Faction f : ReputationHandler.getFactionMap().values()) {
-			FACTIONS.put(f, f.getDefaultRep());
-			FACTION_IDS.put(f.getID().toString(), f.getDefaultRep());
-		}
-	}
-
 	@Override
 	public HashMap<Faction, Integer> allReputations() {
 		return FACTIONS;
@@ -67,6 +60,9 @@ public class ReputationCapability implements IReputation {
 			if (nbt.contains(f.getID().toString())) {
 				FACTIONS.put(f, nbt.getInt(f.getID().toString()));
 				FACTION_IDS.put(f.getID().toString(), nbt.getInt(f.getID().toString()));
+			} else {
+				FACTIONS.put(f, f.getDefaultRep());
+				FACTION_IDS.put(f.getID().toString(), f.getDefaultRep());
 			}
 		}
 	}

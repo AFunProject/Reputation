@@ -71,7 +71,7 @@ public class HelperMethods {
 
     public static boolean ensureSeparateFactions(LivingEntity entity, Player player) {
         for(Faction f : ReputationHandler.getEntityFactions(entity)) {
-            if(PlayerFactionHandler.isPlayerInFaction(f,player)) return false;
+            if(PlayerFactionHandler.isPlayerInFaction(player,f)) return false;
         }
         return true;
     }

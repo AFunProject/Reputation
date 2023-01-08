@@ -17,8 +17,6 @@ import mods.thecomputerizer.reputation.common.command.SetReputationCommand;
 import mods.thecomputerizer.reputation.common.network.ChatIconMessage;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.common.network.SyncFactionsMessage;
-import mods.thecomputerizer.reputation.common.objects.blocks.Ledger;
-import mods.thecomputerizer.reputation.common.objects.blocks.LedgerBook;
 import mods.thecomputerizer.reputation.util.HelperMethods;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -33,7 +31,6 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
@@ -42,7 +39,6 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.*;
 
@@ -51,11 +47,8 @@ import java.util.*;
 public class WorldEvents {
     private static int tickTimer = 0;
     public static final HashMap<LivingEntity, ChatTracker> trackers = new HashMap<>();
-    public static final List<LedgerBook> books = new ArrayList<>();
-    public static final List<Ledger> ledgers = new ArrayList<>();
     private static final Random random = new Random();
     private static final List<ServerPlayer> players = new ArrayList<>();
-    public static boolean checkedLedgers = false;
 
     @SubscribeEvent
     public static void attachLevelCapabilities(AttachCapabilitiesEvent<Level> event) {
@@ -91,9 +84,8 @@ public class WorldEvents {
             }
             if(entity instanceof Player player) {
                 //sync faction and chat icon data to players upon joining
-                LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
-                if (optional.isPresent() && optional.resolve().isPresent()) {
-                    IReputation reputation = optional.resolve().get();
+                IReputation reputation = ReputationHandler.getCapability(player);
+                if (Objects.nonNull(reputation)) {
                     HashMap<Faction, Integer> toSync = reputation.allReputations();
                     ServerPlayer serverPlayer = (ServerPlayer)player;
                     PacketHandler.sendTo(new SyncFactionsMessage(toSync,ReputationAIPackages.standings.getData()),serverPlayer);
@@ -176,9 +168,6 @@ public class WorldEvents {
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent e) {
         if(e.phase== TickEvent.Phase.END) {
-            //tick ledgers manually
-            for(LedgerBook book : books) book.tick();
-            for(Ledger ledger : ledgers) ledger.tick();
             if(ServerTrackers.iconsLoaded) {
                 tickTimer++;
                 //remove trackers for entities that do not have any chat icons loaded
@@ -227,10 +216,6 @@ public class WorldEvents {
                     tickTimer = 0;
                 }
             }
-            //distribute reputation gains from ledgers when the sun sets
-            if (ServerLifecycleHooks.getCurrentServer().getLevel(Level.OVERWORLD).getDayTime() >= 12000) {
-                if (!checkedLedgers) checkedLedgers = true;
-            } else checkedLedgers = false;
         }
     }
 }

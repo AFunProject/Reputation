@@ -1,5 +1,7 @@
 package mods.thecomputerizer.reputation.common.event;
 
+import mods.thecomputerizer.reputation.api.Faction;
+import mods.thecomputerizer.reputation.api.ReputationHandler;
 import mods.thecomputerizer.reputation.common.ModDefinitions;
 import mods.thecomputerizer.reputation.common.objects.items.FactionCurrencyBag;
 import net.minecraft.core.BlockPos;
@@ -14,7 +16,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
 import net.minecraft.world.entity.monster.WitherSkeleton;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -27,7 +28,8 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import net.minecraftforge.registries.ForgeRegistries;
+
+import java.util.Objects;
 
 @SuppressWarnings("deprecation")
 @EventBusSubscriber(modid=ModDefinitions.MODID)
@@ -91,10 +93,14 @@ public class TweakEvents {
 		ItemStack stack = event.getCrafting();
 		if(stack.getItem() instanceof FactionCurrencyBag) {
 			if (event.getCrafting().hasTag()) {
-				CompoundTag nbt = event.getCrafting().getTag();
-				if(nbt.contains("item") && nbt.getCompound("item").contains("id")) {
-					Item craftedWith = ForgeRegistries.ITEMS.getValue(new ResourceLocation(nbt.getCompound("item").get("id").getAsString()));
-					if(craftedWith!=null) stack.setHoverName(new TextComponent("Bag of "+new TranslatableComponent(craftedWith.getDescriptionId()).getString()));
+				CompoundTag tag = event.getCrafting().getOrCreateTag();
+				if(tag.contains("factionID")) {
+					Faction faction = ReputationHandler.getFaction(new ResourceLocation(tag.getString("factionID")));
+					if(Objects.nonNull(faction)) {
+						tag.putUUID("playerUUID",event.getPlayer().getUUID());
+						stack.setHoverName(new TextComponent("Bag of "+
+								new TranslatableComponent(faction.getCurrencyItem().getDescriptionId()).getString()));
+					}
 				}
 			}
 		}

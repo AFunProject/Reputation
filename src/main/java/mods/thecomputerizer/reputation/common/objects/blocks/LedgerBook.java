@@ -2,8 +2,9 @@ package mods.thecomputerizer.reputation.common.objects.blocks;
 
 import mods.thecomputerizer.reputation.api.Faction;
 import mods.thecomputerizer.reputation.api.ReputationHandler;
-import mods.thecomputerizer.reputation.common.event.WorldEvents;
+import mods.thecomputerizer.reputation.common.objects.blockentities.LedgerBookEntity;
 import mods.thecomputerizer.reputation.common.objects.items.FactionCurrencyBag;
+import mods.thecomputerizer.reputation.common.registration.BlockEntities;
 import mods.thecomputerizer.reputation.common.registration.Sounds;
 import mods.thecomputerizer.reputation.util.HelperMethods;
 import net.minecraft.Util;
@@ -18,82 +19,92 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.HorizontalDirectionalBlock;
-import net.minecraft.world.level.block.Mirror;
-import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nullable;
+import java.util.Objects;
+
 @SuppressWarnings("deprecation")
-public class LedgerBook extends Block {
+public class LedgerBook extends BaseEntityBlock {
 
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
-    public int tick;
 
     public LedgerBook(Properties properties) {
         super(properties);
-        WorldEvents.books.add(this);
-        this.tick = 10;
     }
 
     @Override
     public @NotNull InteractionResult use(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hit) {
         if (level.isClientSide) return InteractionResult.SUCCESS;
         else {
-            if (this.tick >= 10 && level instanceof ServerLevel) {
-                if (player.getMainHandItem().getItem() instanceof FactionCurrencyBag && player.getOffhandItem().getItem() == Items.INK_SAC
-                        && !player.getMainHandItem().getOrCreateTag().contains("Signed") && player.getMainHandItem().getOrCreateTag().contains("currency_item")
-                        && ForgeRegistries.ITEMS.getValue(new ResourceLocation(player.getMainHandItem().getOrCreateTag().getString("currency_item"))) != null) {
-                    float factor = 2f;
-                    if (HelperMethods.getNearEntitiesOfFaction((ServerLevel) level, player, ReputationHandler.FACTION_CURRENCY_MAP.get(ForgeRegistries.ITEMS.getValue(new ResourceLocation(player.getMainHandItem().getOrCreateTag().getString("currency_item")))), 8).isEmpty()) {
-                        player.sendMessage(new TextComponent("The book acknowledges the tribute"), Util.NIL_UUID);
-                        factor = 1f;
-                        level.playLocalSound(pos.getX(),pos.getY(),pos.getZ(),Sounds.LEDGER_SIGN.get(), SoundSource.BLOCKS,1f, Mth.randomBetween(ReputationHandler.random,0.88f,1.12f),false);
+            BlockEntity entity = level.getBlockEntity(pos);
+            if(entity instanceof LedgerBookEntity ledgerBookEntity) {
+                if (ledgerBookEntity.canUse() && level instanceof ServerLevel) {
+                    ItemStack stack = player.getMainHandItem();
+                    CompoundTag tag = stack.getOrCreateTag();
+                    if (stack.getItem() instanceof FactionCurrencyBag && player.getOffhandItem().getItem() == Items.INK_SAC
+                            && tag.contains("factionID")) {
+                        Faction faction = ReputationHandler.getFaction(new ResourceLocation(tag.getString("factionID")));
+                        if(Objects.nonNull(faction) && !tag.contains("signed")) {
+                            float factor = 2f;
+                            if (HelperMethods.getNearEntitiesOfFaction((ServerLevel) level, player, faction, 8).isEmpty()) {
+                                player.sendMessage(new TextComponent("The book acknowledges the tribute"), Util.NIL_UUID);
+                                factor = 1f;
+                                level.playLocalSound(pos.getX(), pos.getY(), pos.getZ(), Sounds.LEDGER_SIGN.get(),
+                                        SoundSource.BLOCKS, 1f, Mth.randomBetween(ReputationHandler.RANDOM, 0.88f, 1.12f), false);
+                            } else {
+                                player.sendMessage(new TextComponent("The book acknowledges the tribute and the presence of a fitting 3rd party"), Util.NIL_UUID);
+                                if (!player.getMainHandItem().getOrCreateTag().contains("Enchantments")) {
+                                    player.getMainHandItem().getOrCreateTag().put("Enchantments", new ListTag());
+                                    CompoundTag compoundtag = new CompoundTag();
+                                    compoundtag.putString("id", "signed");
+                                    compoundtag.putShort("lvl", (short) 1);
+                                    player.getMainHandItem().getOrCreateTag().getList("Enchantments", 10).add(compoundtag);
+                                    level.playLocalSound(pos.getX(), pos.getY(), pos.getZ(), Sounds.LEDGER_SIGN.get(),
+                                            SoundSource.BLOCKS, 1f, Mth.randomBetween(ReputationHandler.RANDOM, 0.88f, 1.12f), false);
+                                }
+                            }
+                            player.getMainHandItem().getOrCreateTag().putFloat("signed", factor);
+                            player.getOffhandItem().shrink(1);
+                            ledgerBookEntity.setCooldown();
+                            return InteractionResult.CONSUME_PARTIAL;
+                        }
                     } else {
-                        player.sendMessage(new TextComponent("The book acknowledges the tribute and the presence of a fitting 3rd party"), Util.NIL_UUID);
-                        if (!player.getMainHandItem().getOrCreateTag().contains("Enchantments")) {
-                            player.getMainHandItem().getOrCreateTag().put("Enchantments", new ListTag());
-                            CompoundTag compoundtag = new CompoundTag();
-                            compoundtag.putString("id", "signed");
-                            compoundtag.putShort("lvl", (short) 1);
-                            player.getMainHandItem().getOrCreateTag().getList("Enchantments", 10).add(compoundtag);
-                            level.playLocalSound(pos.getX(),pos.getY(),pos.getZ(),Sounds.LEDGER_SIGN.get(), SoundSource.BLOCKS,1f, Mth.randomBetween(ReputationHandler.random,0.88f,1.12f),false);
+                        Faction faction = ReputationHandler.getFactionFromCurrency(player.getMainHandItem().getItem());
+                        if(Objects.isNull(faction))
+                            faction = ReputationHandler.getFactionFromCurrency(player.getOffhandItem().getItem());
+                        if(Objects.nonNull(faction)) {
+                            String builder = "The writing in the book seems to be shifting but briefly settles on some numbers as you look at it: \n" +
+                                    faction.getName() + " -> " + ReputationHandler.getReputation(player, faction);
+                            player.sendMessage(new TextComponent(builder), Util.NIL_UUID);
+                            ledgerBookEntity.setCooldown();
                         }
                     }
-                    player.getMainHandItem().getOrCreateTag().putFloat("Signed", factor);
-                    player.getOffhandItem().shrink(1);
-                    this.tick = 0;
-                    return InteractionResult.CONSUME_PARTIAL;
-                } else if (ReputationHandler.FACTION_CURRENCY_MAP.containsKey(player.getMainHandItem().getItem())) {
-                    Faction f = ReputationHandler.FACTION_CURRENCY_MAP.get(player.getMainHandItem().getItem());
-                    String builder = "The writing in the book seems to be shifting but briefly settles on some numbers as you look at it: \n" +
-                            f.getName() + " -> " + ReputationHandler.getReputation(player, f);
-                    player.sendMessage(new TextComponent(builder), Util.NIL_UUID);
-                    this.tick = 0;
-                } else if (ReputationHandler.FACTION_CURRENCY_MAP.containsKey(player.getOffhandItem().getItem())) {
-                    Faction f = ReputationHandler.FACTION_CURRENCY_MAP.get(player.getOffhandItem().getItem());
-                    String builder = "The writing in the book seems to be shifting but briefly settles on some numbers as you look at it: \n" +
-                            f.getName() + " -> " + ReputationHandler.getReputation(player, f);
-                    player.sendMessage(new TextComponent(builder), Util.NIL_UUID);
-                    this.tick = 0;
+                    return InteractionResult.PASS;
                 }
-                return InteractionResult.PASS;
             }
             return InteractionResult.FAIL;
         }
+    }
+
+    @Override
+    public @NotNull RenderShape getRenderShape(@NotNull BlockState state) {
+        return RenderShape.MODEL;
     }
 
     @Override
@@ -122,16 +133,22 @@ public class LedgerBook extends Block {
     }
 
     @Override
-    public void destroy(@NotNull LevelAccessor pLevel, @NotNull BlockPos pPos, @NotNull BlockState pState) {
-        WorldEvents.books.remove(this);
+    @Nullable
+    public  <T extends BlockEntity> BlockEntityTicker<T> getTicker(@NotNull Level level, @NotNull BlockState state,
+                                                                   @NotNull BlockEntityType<T> type) {
+        return createTicker(level, type, BlockEntities.LEDGER_BOOK_ENTITY.get());
     }
 
+    @Nullable
+    protected static <T extends BlockEntity> BlockEntityTicker<T> createTicker(Level level,
+                                                                               @NotNull BlockEntityType<T> type,
+                                                                               BlockEntityType<? extends LedgerBookEntity> bookType) {
+        return level.isClientSide ? null : createTickerHelper(type, bookType, LedgerBookEntity::tick);
+    }
+
+    @Nullable
     @Override
-    public void wasExploded(@NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Explosion pExplosion) {
-        WorldEvents.books.remove(this);
-    }
-
-    public void tick() {
-        if(this.tick<10) this.tick++;
+    public BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
+        return new LedgerBookEntity(pos,state);
     }
 }

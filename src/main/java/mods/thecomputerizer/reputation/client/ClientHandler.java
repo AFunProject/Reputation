@@ -16,6 +16,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @SuppressWarnings("OptionalGetWithoutIsPresent")
@@ -26,11 +27,9 @@ public class ClientHandler {
 		Minecraft mc = Minecraft.getInstance();
 		Player player = mc.player;
 		if(player!=null) {
-			LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
-			if (optional.isPresent() && message.getFaction() != null) {
-				IReputation cap = optional.resolve().get();
-				cap.setReputation(player, message.getFaction(), message.getReputation());
-			}
+			IReputation reputation = ReputationHandler.getCapability(player);
+			if (Objects.nonNull(reputation) && message.getFaction() != null)
+				reputation.setReputation(player, message.getFaction(), message.getReputation());
 		}
 	}
 
@@ -51,6 +50,6 @@ public class ClientHandler {
 	}
 
 	public static void playPacketSound(SoundEvent sound) {
-		Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(sound, Mth.randomBetween(ReputationHandler.random,0.88f,1.12f)));
+		Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(sound, Mth.randomBetween(ReputationHandler.RANDOM,0.88f,1.12f)));
 	}
 }
