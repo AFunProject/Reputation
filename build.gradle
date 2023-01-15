@@ -17,7 +17,7 @@ apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.18-0.9.5'
+version = '1.18-0.9.6'
 group = 'mods.thecomputerizer.reputation' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'Reputation'
 
@@ -82,7 +82,7 @@ repositories {
 
 dependencies {
     //minecraft
-    minecraft 'net.minecraftforge:forge:1.18.2-40.1.47'
+    minecraft 'net.minecraftforge:forge:1.18.2-40.1.84'
     //mixin
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     //mods
