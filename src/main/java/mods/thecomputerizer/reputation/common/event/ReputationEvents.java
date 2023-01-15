@@ -89,12 +89,14 @@ public class ReputationEvents {
 	@SubscribeEvent
 	public static void setTarget(LivingSetAttackTargetEvent event) {
 		LivingEntity entity = event.getEntityLiving();
-		if(WorldEvents.trackers.containsKey(entity)) {
-			ChatTracker tracker = WorldEvents.trackers.get(entity);
-			if(!tracker.getRecent() && !tracker.getEngage() && ServerTrackers.hasIconsForEvent(tracker.getEntityType(),"engage")) {
-				tracker.setEngage(true);
-				tracker.setChanged(true);
-				tracker.setRecent(true);
+		synchronized (WorldEvents.TRACKER_MAP) {
+			if (WorldEvents.TRACKER_MAP.containsKey(entity)) {
+				ChatTracker tracker = WorldEvents.TRACKER_MAP.get(entity);
+				if (!tracker.getRecent() && !tracker.getEngage() && ServerTrackers.hasIconsForEvent(tracker.getEntityType(), "engage")) {
+					tracker.setEngage(true);
+					tracker.setChanged(true);
+					tracker.setRecent(true);
+				}
 			}
 		}
 	}

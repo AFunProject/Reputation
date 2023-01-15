@@ -64,8 +64,8 @@ public class TweakEvents {
 				level.addFreshEntity(newentity);
 			}
 			LivingEntity toRemove = null;
-			for(LivingEntity living : WorldEvents.trackers.keySet()) if(entity.getUUID()==WorldEvents.trackers.get(living).getEntityUUID()) toRemove = living;
-			if(toRemove!=null) WorldEvents.trackers.remove(toRemove);
+			for(LivingEntity living : WorldEvents.TRACKER_MAP.keySet()) if(entity.getUUID()==WorldEvents.TRACKER_MAP.get(living).getEntityUUID()) toRemove = living;
+			if(toRemove!=null) WorldEvents.TRACKER_MAP.remove(toRemove);
 		}
 	}
 

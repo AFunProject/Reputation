@@ -46,7 +46,7 @@ import java.util.*;
 @Mod.EventBusSubscriber(modid = ModDefinitions.MODID)
 public class WorldEvents {
     private static int tickTimer = 0;
-    public static final HashMap<LivingEntity, ChatTracker> trackers = new HashMap<>();
+    public static final Map<LivingEntity, ChatTracker> TRACKER_MAP = Collections.synchronizedMap(new HashMap<>());
     private static final Random random = new Random();
     private static final List<ServerPlayer> players = new ArrayList<>();
 
@@ -137,7 +137,10 @@ public class WorldEvents {
                 }
             }
             //finalize trackers for chat icons
-            if(!ReputationHandler.getEntityFactions(entity).isEmpty()) trackers.put(entity,new ChatTracker(entity));
+            synchronized (TRACKER_MAP) {
+                if (!ReputationHandler.getEntityFactions(entity).isEmpty())
+                    TRACKER_MAP.put(entity, new ChatTracker(entity));
+            }
         }
     }
 
@@ -169,51 +172,58 @@ public class WorldEvents {
     public static void onServerTick(TickEvent.ServerTickEvent e) {
         if(e.phase== TickEvent.Phase.END) {
             if(ServerTrackers.iconsLoaded) {
-                tickTimer++;
-                //remove trackers for entities that do not have any chat icons loaded
-                trackers.entrySet().removeIf(tracker -> !ServerTrackers.serverIconMap.containsKey(tracker.getKey().getType()) || ServerTrackers.serverIconMap.get(tracker.getKey().getType()).isEmpty());
-                for (ChatTracker tracker : trackers.values()) tracker.queryChatTimer();
-                //only check and sync chat icon trackers once a second for performance purposes
-                if (tickTimer >= 20) {
-                    long seed = random.nextLong(Long.MAX_VALUE);
-                    ArrayList<ChatTracker> toUpdate = new ArrayList<>();
-                    for (LivingEntity entity : trackers.keySet()) {
-                        ChatTracker tracker = trackers.get(entity);
-                        if (seed >= tracker.getSeed() && !tracker.getRecent()) {
-                            //check and set the idle event
-                            if (!tracker.getRandom() && ServerTrackers.hasIconsForEvent(tracker.getEntityType(), "idle")) {
-                                tracker.setRandom(true);
-                                tracker.setChanged(true);
-                                tracker.setRecent(true);
-                            }
-                            //check and set the idle_faction event
-                            if (!tracker.getInRange() && ServerTrackers.hasIconsForEvent(tracker.getEntityType(), "idle_faction")) {
-                                Level level = entity.getLevel();
-                                if (level instanceof ServerLevel serverLevel) {
-                                    for (Faction f : ReputationHandler.getEntityFactions(entity)) {
-                                        if (!HelperMethods.getSeenEntitiesOfFaction(serverLevel, entity, 16, entity.getBrain(), f).isEmpty()) {
-                                            tracker.setInRange(true);
-                                            tracker.setChanged(true);
-                                            tracker.setRecent(true);
+                //synchronize the tracker map to stop cmod errors
+                synchronized (TRACKER_MAP) {
+                    tickTimer++;
+                    //remove trackers for entities that do not have any chat icons loaded
+                    TRACKER_MAP.entrySet().removeIf(tracker ->
+                            !ServerTrackers.serverIconMap.containsKey(tracker.getKey().getType()) ||
+                                    ServerTrackers.serverIconMap.get(tracker.getKey().getType()).isEmpty());
+                    for (ChatTracker tracker : TRACKER_MAP.values())
+                        tracker.queryChatTimer();
+                    //only check and sync chat icon trackers once a second for performance purposes
+                    if (tickTimer >= 20) {
+                        long seed = random.nextLong(Long.MAX_VALUE);
+                        ArrayList<ChatTracker> toUpdate = new ArrayList<>();
+                        for (LivingEntity entity : TRACKER_MAP.keySet()) {
+                            ChatTracker tracker = TRACKER_MAP.get(entity);
+                            if (seed >= tracker.getSeed() && !tracker.getRecent()) {
+                                //check and set the idle event
+                                if (!tracker.getRandom() && ServerTrackers.hasIconsForEvent(tracker.getEntityType(), "idle")) {
+                                    tracker.setRandom(true);
+                                    tracker.setChanged(true);
+                                    tracker.setRecent(true);
+                                }
+                                //check and set the idle_faction event
+                                if (!tracker.getInRange() && ServerTrackers.hasIconsForEvent(tracker.getEntityType(), "idle_faction")) {
+                                    Level level = entity.getLevel();
+                                    if (level instanceof ServerLevel serverLevel) {
+                                        for (Faction f : ReputationHandler.getEntityFactions(entity)) {
+                                            if (!HelperMethods.getSeenEntitiesOfFaction(serverLevel, entity, 16, entity.getBrain(), f).isEmpty()) {
+                                                tracker.setInRange(true);
+                                                tracker.setChanged(true);
+                                                tracker.setRecent(true);
+                                            }
                                         }
                                     }
                                 }
                             }
+                            if (tracker.getChanged()) toUpdate.add(tracker);
                         }
-                        if (tracker.getChanged()) toUpdate.add(tracker);
-                    }
-                    //only sync chat icon trackers with changes to the client for performance purposes
-                    if (!toUpdate.isEmpty()) {
-                        for (ServerPlayer player : players) PacketHandler.sendTo(new ChatIconMessage(toUpdate), player);
-                        for (ChatTracker tracker : toUpdate) {
-                            tracker.setRandom(false);
-                            tracker.setInRange(false);
-                            tracker.setEngage(false);
-                            tracker.setFlee(false);
-                            tracker.setChanged(false);
+                        //only sync chat icon trackers with changes to the client for performance purposes
+                        if (!toUpdate.isEmpty()) {
+                            for (ServerPlayer player : players)
+                                PacketHandler.sendTo(new ChatIconMessage(toUpdate), player);
+                            for (ChatTracker tracker : toUpdate) {
+                                tracker.setRandom(false);
+                                tracker.setInRange(false);
+                                tracker.setEngage(false);
+                                tracker.setFlee(false);
+                                tracker.setChanged(false);
+                            }
                         }
+                        tickTimer = 0;
                     }
-                    tickTimer = 0;
                 }
             }
         }

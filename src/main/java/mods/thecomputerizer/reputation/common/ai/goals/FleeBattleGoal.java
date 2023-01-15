@@ -102,12 +102,14 @@ public class FleeBattleGoal extends Goal {
                     this.path = this.pathNav.createPath(vec3.x, vec3.y, vec3.z, 0);
                 this.pathNav.moveTo(this.path, this.fleeFactor);
             } else this.mob.getNavigation().setSpeedModifier(this.fleeFactor);
-            if(WorldEvents.trackers.containsKey(mob)) {
-                ChatTracker tracker = WorldEvents.trackers.get(mob);
-                if(!tracker.getRecent() && !tracker.getFlee() && ServerTrackers.hasIconsForEvent(tracker.getEntityType(),"flee")) {
-                    tracker.setFlee(true);
-                    tracker.setChanged(true);
-                    tracker.setRecent(true);
+            synchronized (WorldEvents.TRACKER_MAP) {
+                if (WorldEvents.TRACKER_MAP.containsKey(mob)) {
+                    ChatTracker tracker = WorldEvents.TRACKER_MAP.get(mob);
+                    if (!tracker.getRecent() && !tracker.getFlee() && ServerTrackers.hasIconsForEvent(tracker.getEntityType(), "flee")) {
+                        tracker.setFlee(true);
+                        tracker.setChanged(true);
+                        tracker.setRecent(true);
+                    }
                 }
             }
         }

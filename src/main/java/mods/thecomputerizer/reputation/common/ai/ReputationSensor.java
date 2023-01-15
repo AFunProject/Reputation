@@ -77,12 +77,14 @@ public class ReputationSensor extends Sensor<LivingEntity> {
                         else if (!RenderEvents.fleeingMobs.contains(mob.getUUID()))
                             RenderEvents.fleeingMobs.add(mob.getUUID());
                     }
-                    if(this.startFlee && WorldEvents.trackers.containsKey(mob)) {
-                        ChatTracker tracker = WorldEvents.trackers.get(mob);
-                        if(!tracker.getRecent() && !tracker.getFlee() && ServerTrackers.hasIconsForEvent(tracker.getEntityType(),"flee")) {
-                            tracker.setFlee(true);
-                            tracker.setChanged(true);
-                            tracker.setRecent(true);
+                    synchronized (WorldEvents.TRACKER_MAP) {
+                        if (this.startFlee && WorldEvents.TRACKER_MAP.containsKey(mob)) {
+                            ChatTracker tracker = WorldEvents.TRACKER_MAP.get(mob);
+                            if (!tracker.getRecent() && !tracker.getFlee() && ServerTrackers.hasIconsForEvent(tracker.getEntityType(), "flee")) {
+                                tracker.setFlee(true);
+                                tracker.setChanged(true);
+                                tracker.setRecent(true);
+                            }
                         }
                     }
                 }
