@@ -41,12 +41,13 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("rawtypes")
 @Mod.EventBusSubscriber(modid = ModDefinitions.MODID)
 public class WorldEvents {
     private static int tickTimer = 0;
-    public static final Map<LivingEntity, ChatTracker> TRACKER_MAP = Collections.synchronizedMap(new HashMap<>());
+    public static final Map<LivingEntity, ChatTracker> TRACKER_MAP = new ConcurrentHashMap<>();
     private static final Random random = new Random();
     private static final List<ServerPlayer> players = new ArrayList<>();
 
