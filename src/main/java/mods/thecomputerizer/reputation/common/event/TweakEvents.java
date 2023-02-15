@@ -66,7 +66,7 @@ public class TweakEvents {
 			LivingEntity toRemove = null;
 			synchronized (WorldEvents.TRACKER_MAP) {
 				for (LivingEntity living : WorldEvents.TRACKER_MAP.keySet())
-					if (entity.getUUID() == WorldEvents.TRACKER_MAP.get(living).getEntityUUID()) toRemove = living;
+					if (entity.getId() == WorldEvents.TRACKER_MAP.get(living).getEntityID()) toRemove = living;
 				if (toRemove != null) WorldEvents.TRACKER_MAP.remove(toRemove);
 			}
 		}

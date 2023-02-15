@@ -1,20 +1,17 @@
 package mods.thecomputerizer.reputation.common.ai;
 
+import mods.thecomputerizer.reputation.util.NetworkUtil;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Random;
-import java.util.UUID;
 
 @SuppressWarnings("BooleanMethodIsAlwaysInverted")
 public class ChatTracker {
 
-    private UUID entityUUID;
-    private long seed;
+    private long queryTimer;
+    private int entityID;
     private boolean recentChat;
     private int chatTimer = 0;
     private boolean changed;
@@ -23,16 +20,16 @@ public class ChatTracker {
     private boolean engage;
     private boolean flee;
     private String event;
-    private ResourceLocation entityType;
+    private EntityType<?> entityType;
 
     private ChatTracker() {
         this.changed = false;
     }
 
     public ChatTracker(LivingEntity entity) {
-        this.entityUUID = entity.getUUID();
-        this.entityType = entity.getType().getRegistryName();
-        this.seed = new Random().nextLong(Long.MAX_VALUE/2);
+        this.queryTimer = ServerTrackers.getQuery(entity.getType());
+        this.entityID = entity.getId();
+        this.entityType = entity.getType();
         this.recentChat = false;
         this.changed = false;
         this.random = false;
@@ -41,12 +38,8 @@ public class ChatTracker {
         this.flee = false;
     }
 
-    private void setUUID(UUID uuid) {
-        this.entityUUID = uuid;
-    }
-
-    private void setSeed(long seed) {
-        this.seed = seed;
+    private void setID(int id) {
+        this.entityID = id;
     }
 
     public void setRecent(boolean recent) {
@@ -74,16 +67,12 @@ public class ChatTracker {
     }
 
 
-    public UUID getEntityUUID() {
-        return this.entityUUID;
+    public int getEntityID() {
+        return this.entityID;
     }
 
     public EntityType<?> getEntityType() {
-        return ForgeRegistries.ENTITIES.getValue(this.entityType);
-    }
-
-    public long getSeed() {
-        return this.seed;
+        return this.entityType;
     }
 
     public boolean getRecent() {
@@ -113,8 +102,8 @@ public class ChatTracker {
     public void queryChatTimer() {
         if(this.recentChat) {
             this.chatTimer++;
-            if (chatTimer >= 200) {
-                chatTimer = 0;
+            if (this.chatTimer >= this.queryTimer) {
+                this.chatTimer = 0;
                 this.recentChat = false;
             }
         }
@@ -133,19 +122,17 @@ public class ChatTracker {
     }
 
     public void encode(FriendlyByteBuf buf) {
-        buf.writeUUID(this.entityUUID);
-        buf.writeLong(this.seed);
+        buf.writeInt(this.entityID);
         buf.writeInt(this.getPriorityChatEvent().length());
         buf.writeCharSequence(this.getPriorityChatEvent(), StandardCharsets.UTF_8);
-        buf.writeResourceLocation(this.entityType);
+        NetworkUtil.writeEntityType(buf,this.entityType);
     }
 
     public static ChatTracker decode(FriendlyByteBuf buf) {
         ChatTracker ret = new ChatTracker();
-        ret.setUUID(buf.readUUID());
-        ret.setSeed(buf.readLong());
+        ret.setID(buf.readInt());
         ret.event = (String)buf.readCharSequence(buf.readInt(), StandardCharsets.UTF_8);
-        ret.entityType = buf.readResourceLocation();
+        ret.entityType = NetworkUtil.readEntityType(buf).orElse(null);
         return ret;
     }
 }

@@ -46,7 +46,7 @@ public class FactionListener extends SimplePreparableReloadListener<Void> {
         Reputation.logInfo("Beginning to read reputation datapack");
         try {
             List<ResourceLocation> checked = new ArrayList<>();
-            for (ResourceLocation resource : rm.listResources("factions", (location) -> location.endsWith("json"))) {
+            for(ResourceLocation resource : rm.listResources("factions", (location) -> location.endsWith("json"))) {
                 if(!checked.contains(resource)) {
                     InputStreamReader reader = new InputStreamReader(rm.getResource(resource).getInputStream(), StandardCharsets.UTF_8);
                     ReputationHandler.registerFaction(Faction.fromJson(resource, GSON.fromJson(reader, JsonElement.class)));
@@ -54,15 +54,19 @@ public class FactionListener extends SimplePreparableReloadListener<Void> {
                     checked.add(resource);
                 }
             }
-            for (ResourceLocation resource : rm.listResources("chat", (location) -> location.endsWith("json"))) {
+            List<JsonElement> iconData = new ArrayList<>();
+            for(ResourceLocation resource : rm.listResources("chat", (location) -> location.endsWith("json"))) {
                 if(!checked.contains(resource)) {
                     InputStreamReader reader = new InputStreamReader(rm.getResource(resource).getInputStream(), StandardCharsets.UTF_8);
-                    ServerTrackers.chatIconJsonData.add(GSON.fromJson(reader, JsonElement.class));
+                    JsonElement element = GSON.fromJson(reader, JsonElement.class);
+                    if(resource.getPath().endsWith("timings.json")) ServerTrackers.initTimers(element);
+                    else iconData.add(element);
                     reader.close();
                     checked.add(resource);
                 }
             }
-            Reputation.logInfo("Successfully attached {} files to the chat icon data map",ServerTrackers.chatIconJsonData.size());
+            ServerTrackers.parseChatIcons(iconData);
+            Reputation.logInfo("Successfully attached {} files to the chat icon data map",iconData.size());
             try {
                 ResourceLocation ai = new ResourceLocation(ModDefinitions.MODID, "ai.json");
                 if(rm.hasResource(ai)) {

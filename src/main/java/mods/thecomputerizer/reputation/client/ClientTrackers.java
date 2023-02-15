@@ -1,59 +1,104 @@
 package mods.thecomputerizer.reputation.client;
 
-import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.common.ai.ChatTracker;
+import mods.thecomputerizer.reputation.util.NetworkUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import org.apache.commons.lang3.mutable.MutableInt;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ClientTrackers {
-    private static final Random random = new Random();
-    public static final HashMap<ChatTracker, Integer> trackerMap = new HashMap<>();
-    public static HashMap<ChatTracker, ResourceLocation> selectedIconMap = new HashMap<>();
-    public static HashMap<EntityType<?>, HashMap<String, List<ResourceLocation>>> iconMap = new HashMap<>();
+    private static final HashMap<EntityType<?>, Data> CLIENT_ICON_DATA = new HashMap<>();
 
     @SubscribeEvent
     public static void tickTrackers(TickEvent.ClientTickEvent e) {
-        if(e.phase==TickEvent.Phase.END) {
-            List<ChatTracker> toRemove = new ArrayList<>();
-            for (ChatTracker tracker : trackerMap.keySet()) {
-                trackerMap.put(tracker, trackerMap.get(tracker) + 1);
-                if (trackerMap.get(tracker) >= 50) toRemove.add(tracker);
-            }
-            if (!toRemove.isEmpty()) for (ChatTracker tracker : toRemove) {
-                trackerMap.remove(tracker);
-                selectedIconMap.remove(tracker);
+        if(e.phase==TickEvent.Phase.END)
+            for(Data clientData : CLIENT_ICON_DATA.values())
+                clientData.tick();
+    }
+
+    public static void onSync(FriendlyByteBuf buf) {
+        CLIENT_ICON_DATA.clear();
+        CLIENT_ICON_DATA.putAll(NetworkUtil.readGenericList(buf,Data::new).stream().filter(Data::isValid)
+                .collect(Collectors.toMap(Data::getType,data -> data)));
+    }
+
+    public static void setIcons(List<ChatTracker> trackers) {
+        if(Objects.nonNull(Minecraft.getInstance().player)) {
+            for(ChatTracker tracker : trackers) {
+                Entity entity = Minecraft.getInstance().player.level.getEntity(tracker.getEntityID());
+                if (entity instanceof LivingEntity living && CLIENT_ICON_DATA.containsKey(entity.getType()))
+                    CLIENT_ICON_DATA.get(entity.getType()).set(living, tracker.getEvent());
             }
         }
     }
 
-    public static void initTracker(ChatTracker tracker) {
-        if(iconMap.get(tracker.getEntityType())!=null) {
-            List<ResourceLocation> icons = iconMap.get(tracker.getEntityType()).get(tracker.getEvent());
-            if (icons!=null && !icons.isEmpty()) {
-                trackerMap.put(tracker, 0);
-                selectedIconMap.put(tracker, icons.get(random.nextInt(icons.size())));
-            }
-        }
+    public static boolean hasIcon(EntityType<?> type) {
+        return CLIENT_ICON_DATA.containsKey(type) && CLIENT_ICON_DATA.get(type).isTicking();
     }
 
     public static ResourceLocation getChatIcon(LivingEntity entity) {
-        ChatTracker tracker = getEntityTrackerOrNull(entity);
-        if(tracker==null) return null;
-        return selectedIconMap.get(tracker);
+        return hasIcon(entity.getType()) ? CLIENT_ICON_DATA.get(entity.getType()).currentIcons.get(entity) : null;
     }
 
-    public static ChatTracker getEntityTrackerOrNull(LivingEntity entity) {
-        for(ChatTracker tracker : trackerMap.keySet()) {
-            if(tracker.getEntityUUID().toString().matches(entity.getUUID().toString())) return tracker;
+    public static class Data {
+        private final Random selector;
+        private final EntityType<?> type;
+        private final Map<String, List<ResourceLocation>> iconMap;
+        private final long displayTimer;
+        private final Map<LivingEntity, ResourceLocation> currentIcons;
+        private final Map<LivingEntity, MutableInt> currentTimers;
+        private Data(FriendlyByteBuf buf) {
+            this.selector = new Random();
+            this.type = NetworkUtil.readEntityType(buf).orElse(null);
+            this.iconMap = NetworkUtil.readGenericMap(buf,NetworkUtil::readString,
+                    buf1 -> NetworkUtil.readGenericList(buf1,FriendlyByteBuf::readResourceLocation));
+            this.displayTimer = buf.readLong();
+            this.currentIcons = new HashMap<>();
+            this.currentTimers = new HashMap<>();
         }
-        return null;
+
+        private void set(LivingEntity entity, String event) {
+            if(Objects.nonNull(this.type) && this.iconMap.containsKey(event) && !this.iconMap.get(event).isEmpty()
+                    && this.displayTimer>0) {
+                this.currentIcons.put(entity,this.iconMap.get(event).get(this.selector.nextInt(this.iconMap.get(event).size())));
+                this.currentTimers.put(entity,new MutableInt(this.displayTimer));
+            }
+        }
+
+        private boolean isTicking() {
+            return !this.currentIcons.isEmpty();
+        }
+
+        private void tick() {
+            if(!this.currentTimers.isEmpty()) {
+                for (MutableInt timer : this.currentTimers.values())
+                    timer.decrement();
+                Iterator<Map.Entry<LivingEntity, MutableInt>> itr = this.currentTimers.entrySet().iterator();
+                while (itr.hasNext()) {
+                    Map.Entry<LivingEntity, MutableInt> entry = itr.next();
+                    if (entry.getValue().getValue() <= 0) {
+                        this.currentIcons.remove(entry.getKey());
+                        itr.remove();
+                    }
+                }
+            }
+        }
+
+        public boolean isValid() {
+            return Objects.nonNull(this.type);
+        }
+
+        public EntityType<?> getType() {
+            return this.type;
+        }
     }
 }
