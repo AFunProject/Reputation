@@ -139,7 +139,7 @@ public class WorldEvents {
             }
             //finalize trackers for chat icons
             synchronized (TRACKER_MAP) {
-                if (!ReputationHandler.getEntityFactions(entity).isEmpty())
+                if (ServerTrackers.hasAnyIcons(entity.getType()))
                     TRACKER_MAP.put(entity, new ChatTracker(entity));
             }
         }
