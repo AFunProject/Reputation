@@ -55,16 +55,18 @@ public class FactionListener extends SimplePreparableReloadListener<Void> {
                 }
             }
             List<JsonElement> iconData = new ArrayList<>();
+            JsonElement timings = null;
             for(ResourceLocation resource : rm.listResources("chat", (location) -> location.endsWith("json"))) {
                 if(!checked.contains(resource)) {
                     InputStreamReader reader = new InputStreamReader(rm.getResource(resource).getInputStream(), StandardCharsets.UTF_8);
                     JsonElement element = GSON.fromJson(reader, JsonElement.class);
-                    if(resource.getPath().endsWith("timings.json")) ServerTrackers.initTimers(element);
+                    if(resource.getPath().endsWith("timings.json")) timings = element;
                     else iconData.add(element);
                     reader.close();
                     checked.add(resource);
                 }
             }
+            ServerTrackers.initTimers(timings);
             ServerTrackers.parseChatIcons(iconData);
             Reputation.logInfo("Successfully attached {} files to the chat icon data map",iconData.size());
             try {

@@ -2,6 +2,7 @@ package mods.thecomputerizer.reputation.common.ai;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.common.network.PacketHandler;
 import mods.thecomputerizer.reputation.common.network.SyncChatIconsMessage;
 import mods.thecomputerizer.reputation.util.JsonUtil;
@@ -20,7 +21,6 @@ public class ServerTrackers {
     private static float DEFAULT_CHANCE_VARIATION;
     public static long DEFAULT_COOLDOWN;
     public static long DEFAULT_DISPLAY;
-    public static boolean iconsLoaded = false;
 
     public static void initTimers(JsonElement element) {
         JsonObject json = element instanceof JsonObject ? element.getAsJsonObject() : null;
@@ -41,6 +41,12 @@ public class ServerTrackers {
             PacketHandler.sendTo(new SyncChatIconsMessage(new ArrayList<>(SERVER_ICON_DATA.values())),player);
     }
 
+    public static boolean hasAnyIcons() {
+        for(EntityType<?> type : SERVER_ICON_DATA.keySet())
+            if(hasAnyIcons(type)) return true;
+        return false;
+    }
+
     public static boolean hasAnyIcons(EntityType<?> type) {
         return SERVER_ICON_DATA.containsKey(type);
     }
@@ -56,7 +62,10 @@ public class ServerTrackers {
     public static boolean rollRandom(Random rand, EntityType<?> type) {
         float min = Math.max(0f,SERVER_ICON_DATA.get(type).chance-SERVER_ICON_DATA.get(type).chanceVariation);
         float max = Math.min(1f,SERVER_ICON_DATA.get(type).chance+SERVER_ICON_DATA.get(type).chanceVariation);
-        return rand.nextFloat(min,max)>rand.nextFloat();
+        float rand1 = rand.nextFloat(min,max);
+        float rand2 = rand.nextFloat();
+        Reputation.logInfo("checking random {} against {} from min {} and max {}",rand1,rand2,min,max);
+        return rand1>rand2;
     }
 
     public static class Data {
@@ -78,6 +87,7 @@ public class ServerTrackers {
             this.queryTimer = potentialTime.orElse(DEFAULT_COOLDOWN);
             potentialTime = JsonUtil.potentialLong(json,"display_timer");
             this.displayTimer = potentialTime.orElse(DEFAULT_DISPLAY);
+            Reputation.logInfo("READ IN DATA TYPE {} WITH {} ICON SETS",this.type,this.iconMap.size());
         }
 
         private boolean isValid() {

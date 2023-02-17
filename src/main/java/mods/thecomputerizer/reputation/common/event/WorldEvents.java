@@ -172,12 +172,10 @@ public class WorldEvents {
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent e) {
         if(e.phase== TickEvent.Phase.END) {
-            if(ServerTrackers.iconsLoaded) {
+            if(ServerTrackers.hasAnyIcons()) {
                 //synchronize the tracker map to stop cmod errors
                 synchronized (TRACKER_MAP) {
                     tickTimer++;
-                    //remove trackers for entities that do not have any chat icons loaded
-                    TRACKER_MAP.entrySet().removeIf(entry -> ServerTrackers.hasAnyIcons(entry.getKey().getType()));
                     for (ChatTracker tracker : TRACKER_MAP.values())
                         tracker.queryChatTimer();
                     //only check and sync chat icon trackers once a second for performance purposes
