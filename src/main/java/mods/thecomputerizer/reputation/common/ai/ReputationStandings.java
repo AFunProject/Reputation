@@ -43,7 +43,6 @@ public class ReputationStandings {
 
     private List<EntityType<?>> parseResourceArray(String element, JsonObject json, String defaultStanding, HashMap<EntityType<?>, String> map) {
         List<EntityType<?>> members = new ArrayList<>();
-        Reputation.logInfo("Checking for mobs with {} attribute",element);
         if(json.has(element)) {
             for (JsonElement index : json.get(element).getAsJsonArray()) {
                 String[] name = index.getAsString().split(":");

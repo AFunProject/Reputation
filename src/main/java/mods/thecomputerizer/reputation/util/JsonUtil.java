@@ -39,7 +39,6 @@ public class JsonUtil {
     //returns an empty list if the json object is null or something fails to parse into a resource
     public static List<ResourceLocation> potentialResourceList(JsonObject json, String resourcePath, String element,
                                                                boolean distinct) {
-        Reputation.logInfo("element {}",element);
         if(Objects.nonNull(json) && json.has(element)) {
             try {
                 List<ResourceLocation> resources = new ArrayList<>();
@@ -58,7 +57,6 @@ public class JsonUtil {
 
     public static OptionalLong potentialLong(JsonObject json, String element) {
         try {
-            Reputation.logInfo("reading in long {}",element);
             return Objects.nonNull(json) && json.has(element) ?
                     OptionalLong.of(json.get(element).getAsLong()) : OptionalLong.empty();
         } catch (Exception e) {
@@ -69,7 +67,6 @@ public class JsonUtil {
 
     public static Optional<Float> potentialFloat(JsonObject json, String element) {
         try {
-            Reputation.logInfo("reading in float {}",element);
             return Objects.nonNull(json) && json.has(element) ?
                     Optional.of(json.get(element).getAsFloat()) : Optional.empty();
         } catch (Exception e) {

@@ -1,6 +1,5 @@
 package mods.thecomputerizer.reputation.common.ai;
 
-import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.util.NetworkUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.EntityType;
@@ -37,7 +36,6 @@ public class ChatTracker {
         this.inRange = false;
         this.engage = false;
         this.flee = false;
-        Reputation.logInfo("successfully attached tracker to {}",entityType.getRegistryName());
     }
 
     private void setID(int id) {
@@ -124,7 +122,6 @@ public class ChatTracker {
     }
 
     public void encode(FriendlyByteBuf buf) {
-        Reputation.logInfo("sending tracker for {}",entityType.getRegistryName());
         buf.writeInt(this.entityID);
         buf.writeInt(this.getPriorityChatEvent().length());
         buf.writeCharSequence(this.getPriorityChatEvent(), StandardCharsets.UTF_8);

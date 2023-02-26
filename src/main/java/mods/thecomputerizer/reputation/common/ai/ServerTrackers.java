@@ -64,7 +64,6 @@ public class ServerTrackers {
         float max = Math.min(1f,SERVER_ICON_DATA.get(type).chance+SERVER_ICON_DATA.get(type).chanceVariation);
         float rand1 = rand.nextFloat(min,max);
         float rand2 = rand.nextFloat();
-        Reputation.logInfo("checking random {} against {} from min {} and max {}",rand1,rand2,min,max);
         return rand1>rand2;
     }
 
@@ -87,7 +86,7 @@ public class ServerTrackers {
             this.queryTimer = potentialTime.orElse(DEFAULT_COOLDOWN);
             potentialTime = JsonUtil.potentialLong(json,"display_timer");
             this.displayTimer = potentialTime.orElse(DEFAULT_DISPLAY);
-            Reputation.logInfo("READ IN DATA TYPE {} WITH {} ICON SETS",this.type,this.iconMap.size());
+            Reputation.logInfo("Read in entity {} with {} icon sets",this.type,this.iconMap.size());
         }
 
         private boolean isValid() {
