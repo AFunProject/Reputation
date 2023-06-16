@@ -16,8 +16,7 @@ public class JsonUtil {
         if(Objects.isNull(json) || !json.has(element)) return Optional.empty();
         try {
             ResourceLocation resource = new ResourceLocation(json.get(element).getAsString());
-            EntityType<?> type = ForgeRegistries.ENTITIES.getValue(resource);
-            return Objects.nonNull(type) ? Optional.of(type) : Optional.empty();
+            return ForgeRegistries.ENTITIES.containsKey(resource) ? Optional.ofNullable(ForgeRegistries.ENTITIES.getValue(resource)) : Optional.empty();
         } catch (Exception e) {
             Reputation.logError("Could not read json element {}",element,e);
             return Optional.empty();
