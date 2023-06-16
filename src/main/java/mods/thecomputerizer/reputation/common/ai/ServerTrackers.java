@@ -90,7 +90,7 @@ public class ServerTrackers {
         }
 
         private boolean isValid() {
-            return !this.iconMap.isEmpty();
+            return Objects.nonNull(this.type) && !this.iconMap.isEmpty();
         }
 
         private boolean hasEventForEntity(EntityType<?> type, String event) {
