@@ -2,6 +2,11 @@
   "block.reputation.ledger": "Ledger",
   "block.reputation.ledger_book": "Ledger Book",
   "item.reputation.faction_bag": "Bundled Currency",
+  "item.reputation.faction_bad.faction_name": "Bag of %1$s",
+  "itemGroup.reputation": "Reputation",
   "ledger.reputation.container": "Ledger Container",
-  "ledger.reputation.checked": "Ledger has been checked"
+  "ledger.reputation.checked": "Ledger has been checked",
+  "ledger_book.reputation.acknowledgement": "The book acknowledges the tribute",
+  "ledger_book.reputation.acknowledgement.extra": "The book acknowledges the tribute and the presence of a fitting 3rd party",
+  "ledger_book.reputation.numbers": "The writing in the book seems to be shifting but briefly settles on some numbers as you look at it: \n%1$s -> %2$s"
 }

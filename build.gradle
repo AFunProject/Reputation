@@ -1,89 +1,121 @@
-buildscript {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net' }
-		maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
-        maven { url = 'https://maven.parchmentmc.org' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-        classpath 'org.parchmentmc:librarian:1.+'
-		classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7-SNAPSHOT'
-	}
+plugins {
+    id 'net.minecraftforge.gradle' version '6.0.+'
+    id 'org.spongepowered.mixin' version '0.7.+'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
 }
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'org.parchmentmc.librarian.forgegradle'
-apply plugin: 'org.spongepowered.mixin'
 
-version = '1.18-0.9.9'
-group = 'mods.thecomputerizer.reputation' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = 'Reputation'
+version = "${project.minecraft_version}-${project.mod_version}"
+group = project.maven_group
+archivesBaseName = project.base_name
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+java.toolchain.getLanguageVersion().set(JavaLanguageVersion.of(17))
 
 minecraft {
-    mappings channel: 'parchment', version: '2022.03.13-1.18.2'
+    mappings channel: 'parchment', version: "${project.parchment_version}-${project.minecraft_version}"
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
     runs {
+        def mixinStuff = [
+                '-Dmixin.debug.export=true',
+                '-Dmixin.hotSwap=true',
+                '-Dmixin.checks.interfaces=true',
+                '-mixin.config="reputation.mixin.json"'
+        ]
         client {
-            workingDirectory project.file('run')
+            workingDirectory file('run')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
+            args mixinStuff
+            mods {
+                reputation {
+                    //noinspection GroovyAssignabilityCheck
+                    source sourceSets.main
+                }
+            }
         }
         server {
-            workingDirectory project.file('run')
+            workingDirectory file('run')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
+            args mixinStuff
+            mods {
+                reputation {
+                    //noinspection GroovyAssignabilityCheck
+                    source sourceSets.main
+                }
+            }
         }
         data {
-            workingDirectory project.file('run')
+            workingDirectory file('run')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
             args '--mod', 'reputation', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            mods {
+                reputation {
+                    //noinspection GroovyAssignabilityCheck
+                    source sourceSets.main
+                }
+            }
         }
     }
 }
 
-mixin {
-    add sourceSets.main, "reputation.mixin.refmap.json"
-    config "reputation.mixin.json"
-}
-
-sourceSets.main.resources { srcDir 'src/generated/resources' }
-
 repositories {
     maven {
-        url = 'https://www.cursemaven.com'
+        name = 'CurseMaven'
+        url = uri('https://www.cursemaven.com')
         content {
             includeGroup "curse.maven"
         }
     }
-
+    flatDir {
+        dirs 'build/libs'
+    }
 }
 
 dependencies {
-    //minecraft
-    minecraft 'net.minecraftforge:forge:1.18.2-40.1.84'
-    //mixin
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-    //mods
-    implementation fg.deobf('curse.maven:guard-villagers-360203:3823106')
-    compileOnly fileTree(dir: 'libs', includes: ['Quest_Giver-1.18.2-1.0.1.jar'])
+    //Minecraft
+    minecraft("net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}")
+
+    //Mixin
+    annotationProcessor("org.spongepowered:mixin:${project.mixin_version}:processor")
+
+    //Locally Implemented Mods
+    implementation(fg.deobf("com.feywild.quest_giver:Quest_Giver:${project.questgiver_version}"))
+
+    //Implemented Mods
+    implementation(fg.deobf("curse.maven:guard-villagers-360203:${project.guards_version}"))
+    implementation(fg.deobf("curse.maven:morevillagers-484954:${project.morevillagers_version}"))
+    implementation(fg.deobf("curse.maven:the-impossible-library-661115:${project.til_version}"))
+
+    //Runtime Mods
+    runtimeOnly(fg.deobf("curse.maven:afptweaks-638098:${project.afptweaks_version}"))
+    runtimeOnly(fg.deobf("curse.maven:atlas-lib-463826:${project.atlaslib_version}"))
+    runtimeOnly(fg.deobf("curse.maven:epicfigt-405076:${project.epicfight_version}"))
+    runtimeOnly(fg.deobf("curse.maven:follow-me-463841:${project.followme_version}"))
+}
+
+mixin {
+    add sourceSets.main, 'reputation.refmap.json'
+}
+
+processResources {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    from (sourceSets.main.resources.srcDirs) {
+        include 'META-INF/mods.toml'
+        expand 'version': project.version
+    }
 }
 
 jar {
     manifest {
         attributes([
-                "Specification-Title"     : "reputation",
-                "Specification-Vendor"    : "The_Computerizer",
                 "Specification-Version"   : project.version,
                 "Implementation-Title"    : project.name,
-                "Implementation-Version"  : project.jar.archiveVersion,
-                "Implementation-Vendor"   : "The_Computerizer",
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-				"MixinConfigs": "reputation.mixin.json"
+                "TweakClass": "org.spongepowered.asm.launch.MixinTweaker",
+                "TweakOrder": 0,
+                "MixinConfigs": "reputation.mixin.json"
         ])
     }
 }
 
-jar.finalizedBy('reobfJar')
+tasks.jar.finalizedBy('reobfJar')

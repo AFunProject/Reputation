@@ -3,24 +3,26 @@ package mods.thecomputerizer.reputation.common.ai;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import mods.thecomputerizer.reputation.Reputation;
-import mods.thecomputerizer.reputation.common.ModDefinitions;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class ReputationStandings {
 
+    public static List<EntityType<?>> PASSIVE_FLEEING_ENTITIES = new ArrayList<>();
+    public static List<EntityType<?>> HOSTILE_ENTITIES = new ArrayList<>();
+    public static List<EntityType<?>> PASSIVE_ENTITIES = new ArrayList<>();
+    public static List<EntityType<?>> INJURED_FLEEING_ENTITIES = new ArrayList<>();
+    public static List<EntityType<?>> TRADING_ENTITIES = new ArrayList<>();
     private final JsonElement data;
 
-    private final HashMap<EntityType<?>, String> passive_fleeing_standings;
-    private final HashMap<EntityType<?>, String> hostile_standings;
-    private final HashMap<EntityType<?>, String> passive_standings;
-    private final HashMap<EntityType<?>, String> injured_fleeing_standings;
-    private final HashMap<EntityType<?>, String> trading_standings;
+    private final Map<EntityType<?>, String> passive_fleeing_standings;
+    private final Map<EntityType<?>, String> hostile_standings;
+    private final Map<EntityType<?>, String> passive_standings;
+    private final Map<EntityType<?>, String> injured_fleeing_standings;
+    private final Map<EntityType<?>, String> trading_standings;
 
     public ReputationStandings(JsonElement data) {
         this.data = data;
@@ -31,17 +33,17 @@ public class ReputationStandings {
         this.trading_standings = new HashMap<>();
         try {
             JsonObject json = data.getAsJsonObject();
-            ModDefinitions.PASSIVE_FLEEING_ENTITIES = parseResourceArray("passive_fleeing",json,"bad",this.passive_fleeing_standings);
-            ModDefinitions.HOSTILE_ENTITIES = parseResourceArray("hostile",json,"bad",this.hostile_standings);
-            ModDefinitions.PASSIVE_ENTITIES = parseResourceArray("passive",json,"good",this.passive_standings);
-            ModDefinitions.INJURED_FLEEING_ENTITIES = parseResourceArray("injured_fleeing",json,"neutral",this.injured_fleeing_standings);
-            ModDefinitions.TRADING_ENTITIES = parseResourceArray("trading",json,"neutral",this.trading_standings);
+            PASSIVE_FLEEING_ENTITIES = parseResourceArray("passive_fleeing",json,"bad",this.passive_fleeing_standings);
+            HOSTILE_ENTITIES = parseResourceArray("hostile",json,"bad",this.hostile_standings);
+            PASSIVE_ENTITIES = parseResourceArray("passive",json,"good",this.passive_standings);
+            INJURED_FLEEING_ENTITIES = parseResourceArray("injured_fleeing",json,"neutral",this.injured_fleeing_standings);
+            TRADING_ENTITIES = parseResourceArray("trading",json,"neutral",this.trading_standings);
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse faction AI!");
         }
     }
 
-    private List<EntityType<?>> parseResourceArray(String element, JsonObject json, String defaultStanding, HashMap<EntityType<?>, String> map) {
+    private List<EntityType<?>> parseResourceArray(String element, JsonObject json, String defaultStanding, Map<EntityType<?>, String> map) {
         List<EntityType<?>> members = new ArrayList<>();
         if(json.has(element)) {
             for (JsonElement index : json.get(element).getAsJsonArray()) {
@@ -53,7 +55,7 @@ public class ReputationStandings {
                     if(checkValidStanding(name[2])) defaultStanding = name[2];
                     entity = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(name[0],name[1]));
                 }
-                if(entity!=null) {
+                if(Objects.nonNull(entity)) {
                     Reputation.logInfo("Adding attribute to entity {} with custom standing {}",entity.getRegistryName(),defaultStanding);
                     members.add(entity);
                     map.put(entity,defaultStanding);

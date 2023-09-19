@@ -5,7 +5,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 
+import java.util.Objects;
+
 public class ReputationPacifyHostileCustomStandingGoal<T extends LivingEntity> extends NearestAttackableTargetGoal<T> {
+
     public final Mob self;
     private final String standing;
 
@@ -17,13 +20,11 @@ public class ReputationPacifyHostileCustomStandingGoal<T extends LivingEntity> e
 
     @Override
     public boolean canUse() {
-        if (HelperMethods.getNearestPlayerInCustomStandingToEntity(this.self,16d,this.standing)!=null) return false;
-        return super.canUse();
+        return Objects.isNull(HelperMethods.getNearestPlayerInCustomStandingToEntity(this.self, 16d, this.standing)) && super.canUse();
     }
 
     @Override
     public boolean canContinueToUse() {
-        if (HelperMethods.getNearestPlayerInCustomStandingToEntity(this.self,16d,this.standing)!=null) return false;
-        return super.canContinueToUse();
+        return Objects.isNull(HelperMethods.getNearestPlayerInCustomStandingToEntity(this.self, 16d, this.standing)) && super.canContinueToUse();
     }
 }

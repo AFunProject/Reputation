@@ -1,14 +1,22 @@
-modLoader="javafml" #mandatory
+modLoader="javafml"
 loaderVersion="[34,)"
 license="MIT"
 
 [[mods]]
-modId="reputation"
-version="0.9.9"
-displayName="Reputation"
-displayURL=""
-updateJSONURL=""
-credits=""
-authors="The_Computerizer"
-description=""
+    modId="reputation"
+    version="${version}"
+    displayName="Reputation"
+    displayURL="https://www.curseforge.com/minecraft/mc-mods/reputation"
+    updateJSONURL=""
+    credits=""
+    authors="The_Computerizer"
+    description='''
+    A faction based reputation system for various types of mobs, generally surrounding but not limited to villagers and trading. Do tasks to gain/lose reputation for each faction
+    '''
 
+    [[dependencies.reputation]]
+        modId="theimpossiblelibrary"
+        mandatory=true
+        versionRange="[1.18.2-0.3.1,)"
+        ordering="NONE"
+        side="BOTH"

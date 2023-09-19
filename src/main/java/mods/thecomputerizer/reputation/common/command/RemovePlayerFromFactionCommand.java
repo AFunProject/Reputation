@@ -1,8 +1,8 @@
 package mods.thecomputerizer.reputation.common.command;
 
 import com.mojang.brigadier.CommandDispatcher;
-import mods.thecomputerizer.reputation.api.PlayerFactionHandler;
-import mods.thecomputerizer.reputation.api.ReputationHandler;
+import mods.thecomputerizer.reputation.capability.handlers.PlayerFactionHandler;
+import mods.thecomputerizer.reputation.capability.handlers.ReputationHandler;
 import net.minecraft.commands.CommandRuntimeException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;

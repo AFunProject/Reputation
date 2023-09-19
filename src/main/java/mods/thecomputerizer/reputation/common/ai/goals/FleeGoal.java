@@ -1,11 +1,11 @@
 package mods.thecomputerizer.reputation.common.ai.goals;
 
-import mods.thecomputerizer.reputation.api.Faction;
-import mods.thecomputerizer.reputation.api.PlayerFactionHandler;
-import mods.thecomputerizer.reputation.api.ReputationHandler;
-import mods.thecomputerizer.reputation.client.event.RenderEvents;
-import mods.thecomputerizer.reputation.common.network.FleeIconMessage;
-import mods.thecomputerizer.reputation.common.network.PacketHandler;
+import mods.thecomputerizer.reputation.capability.Faction;
+import mods.thecomputerizer.reputation.capability.handlers.PlayerFactionHandler;
+import mods.thecomputerizer.reputation.capability.handlers.ReputationHandler;
+import mods.thecomputerizer.reputation.capability.reputation.ReputationProvider;
+import mods.thecomputerizer.reputation.client.ClientEvents;
+import mods.thecomputerizer.reputation.network.PacketFleeIcon;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.Mob;
@@ -21,11 +21,12 @@ import net.minecraft.world.phys.Vec3;
 import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 public class FleeGoal extends Goal {
-    @Nullable
-    protected Path path;
+
+    protected @Nullable Path path;
     protected final PathNavigation pathNav;
     private final Mob mob;
     private Player player;
@@ -53,22 +54,22 @@ public class FleeGoal extends Goal {
     private boolean checkWithReputation() {
         Level level = this.mob.level;
         List<? extends Player> list = level.players().stream().filter(EntitySelector.NO_SPECTATORS)
-                .filter((p) -> this.mob.closerThan(p, 16.0D))
-                .filter((p) -> p.getCapability(ReputationHandler.REPUTATION_CAPABILITY).isPresent())
+                .filter(player -> this.mob.closerThan(player, 16d))
+                .filter(player -> player.getCapability(ReputationProvider.REPUTATION_CAPABILITY).isPresent())
                 .sorted(Comparator.comparingDouble(this.mob::distanceToSqr)).toList();
         if(!list.isEmpty()) {
             Player nearest = list.get(0);
-            for (Faction f : ReputationHandler.getEntityFactions(this.mob)) {
+            for(Faction f : ReputationHandler.getEntityFactions(this.mob)) {
                 int reputation = ReputationHandler.getReputation(nearest, f);
                 if(reputation<=f.getLowerRep()) {
                     this.player = nearest;
-                    Vec3 vec3 = DefaultRandomPos.getPosAway((PathfinderMob) this.mob, 16, 7, this.player.position());
-                    if (vec3 == null) return false;
-                    else if (this.player.distanceToSqr(vec3.x, vec3.y, vec3.z) < this.player.distanceToSqr(this.mob)) return false;
+                    Vec3 vec3 = DefaultRandomPos.getPosAway((PathfinderMob)this.mob,16,7,this.player.position());
+                    if(Objects.isNull(vec3)) return false;
+                    else if(this.player.distanceToSqr(vec3.x,vec3.y,vec3.z) < this.player.distanceToSqr(this.mob)) return false;
                     else {
                         this.pathNav.setSpeedModifier(this.speed);
-                        this.path = this.pathNav.createPath(vec3.x, vec3.y, vec3.z, 0);
-                        if (this.path != null) {
+                        this.path = this.pathNav.createPath(vec3.x,vec3.y,vec3.z,0);
+                        if(Objects.nonNull(this.path)) {
                             this.startFlee = true;
                             return true;
                         }
@@ -86,7 +87,7 @@ public class FleeGoal extends Goal {
 
     private boolean checkWithPlayerReputation() {
         float percent = this.mob.getHealth()/this.mob.getMaxHealth();
-        if(this.player!=null || this.mob.getLastHurtByMob() instanceof Player ) {
+        if(Objects.nonNull(this.player) || this.mob.getLastHurtByMob() instanceof Player ) {
             if(this.mob.getLastHurtByMob() instanceof Player p) this.player = p;
             if (this.mob.distanceTo(this.player)<=28 && percent <= .5f) {
                 boolean inFaction = ReputationHandler.getEntityFactions(this.mob).isEmpty();
@@ -95,39 +96,38 @@ public class FleeGoal extends Goal {
                 }
                 if (!inFaction && this.random.nextFloat(51f)>=0f && !this.startFlee) {
                     this.startFlee = true;
-                    if (this.player instanceof ServerPlayer)
-                        PacketHandler.sendTo(new FleeIconMessage(this.mob.getUUID(), true), (ServerPlayer) this.player);
-                    else if (!RenderEvents.fleeingMobs.contains(this.mob.getUUID()))
-                        RenderEvents.fleeingMobs.add(this.mob.getUUID());
+                    if (this.player instanceof ServerPlayer p)
+                        new PacketFleeIcon(this.mob.getUUID(),true).addPlayers(p).send();
+                    else if (!ClientEvents.FLEEING_MOBS.contains(this.mob.getUUID()))
+                        ClientEvents.FLEEING_MOBS.add(this.mob.getUUID());
                 }
                 if(this.startFlee) {
                     Vec3 vec3 = DefaultRandomPos.getPosAway((PathfinderMob) this.mob, 32, 7, this.player.position());
-                    if (vec3 == null) return false;
-                    else if (this.player.distanceToSqr(vec3.x, vec3.y, vec3.z) < this.player.distanceToSqr(this.mob)) return false;
+                    if(Objects.isNull(vec3)) return false;
+                    else if (this.player.distanceToSqr(vec3.x,vec3.y,vec3.z) < this.player.distanceToSqr(this.mob)) return false;
                     else {
                         this.pathNav.setSpeedModifier(this.speed);
-                        this.path = this.pathNav.createPath(vec3.x, vec3.y, vec3.z, 0);
-                        return this.path != null;
+                        this.path = this.pathNav.createPath(vec3.x,vec3.y,vec3.z,0);
+                        return Objects.nonNull(this.path);
                     }
                 }
             }
             else if(this.startFlee) {
                 this.startFlee = false;
-                if (this.player instanceof ServerPlayer)
-                    PacketHandler.sendTo(new FleeIconMessage(this.mob.getUUID(), false), (ServerPlayer) this.player);
-                else RenderEvents.fleeingMobs.remove(this.mob.getUUID());
+                if (this.player instanceof ServerPlayer p)
+                    new PacketFleeIcon(this.mob.getUUID(),false).addPlayers(p).send();
+                else ClientEvents.FLEEING_MOBS.remove(this.mob.getUUID());
             }
         }
         else if(this.startFlee) {
             this.startFlee = false;
-            if (this.player!=null && this.player instanceof ServerPlayer)
-                PacketHandler.sendTo(new FleeIconMessage(this.mob.getUUID(), false), (ServerPlayer) this.player);
-            else RenderEvents.fleeingMobs.remove(this.mob.getUUID());
+            if(this.player instanceof ServerPlayer p)
+                new PacketFleeIcon(this.mob.getUUID(),false).addPlayers(p).send();
+            else ClientEvents.FLEEING_MOBS.remove(this.mob.getUUID());
         }
-        if (percent <= .5f && startFlee && !this.mob.isDeadOrDying() && this.mob.distanceTo(this.player)>28) {
-            for (Faction f : ReputationHandler.getEntityFactions(this.mob)) {
+        if (percent<=0.5f && startFlee && !this.mob.isDeadOrDying() && this.mob.distanceTo(this.player)>28) {
+            for (Faction f : ReputationHandler.getEntityFactions(this.mob))
                 ReputationHandler.changeReputation(this.player, f, -1 * f.getActionWeighting("fleeing"));
-            }
             this.mob.discard();
         }
         return this.startFlee;
@@ -136,9 +136,9 @@ public class FleeGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         if(this.pathNav.isDone() && this.startFlee) {
-            Vec3 vec3 = DefaultRandomPos.getPosAway((PathfinderMob) this.mob, 32, 7, this.player.position());
-            if (!(vec3 == null) && !(this.player.distanceToSqr(vec3.x, vec3.y, vec3.z) < this.player.distanceToSqr(this.mob))) {
-                this.path = this.pathNav.createPath(vec3.x, vec3.y, vec3.z, 0);
+            Vec3 vec3 = DefaultRandomPos.getPosAway((PathfinderMob)this.mob,32,7, this.player.position());
+            if (Objects.nonNull(vec3) && !(this.player.distanceToSqr(vec3.x,vec3.y,vec3.z) < this.player.distanceToSqr(this.mob))) {
+                this.path = this.pathNav.createPath(vec3.x,vec3.y,vec3.z,0);
                 this.pathNav.moveTo(this.path, this.speed);
             }
         }

@@ -3,7 +3,7 @@ package mods.thecomputerizer.reputation.util;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import mods.thecomputerizer.reputation.Reputation;
-import mods.thecomputerizer.reputation.common.ModDefinitions;
+import mods.thecomputerizer.reputation.Constants;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -24,9 +24,11 @@ public class JsonUtil {
         }
     }
 
-    //return an empty optional if the json object is null or if none of the elements exist within it
-    public static Map<String, List<ResourceLocation>> potentialResourceMap(JsonObject json, boolean distinctValues,
-                                                                                     String resourcePath, String ... elements) {
+    /**
+     * Return an empty optional if the json object is null or if none of the elements exist within it
+     */
+    public static Map<String, List<ResourceLocation>> potentialResourceMap(
+            JsonObject json, boolean distinctValues, String resourcePath, String ... elements) {
         Map<String, List<ResourceLocation>> ret = new HashMap<>();
         for(String element : elements) {
             List<ResourceLocation> potentialResources = potentialResourceList(json,resourcePath,element,distinctValues);
@@ -36,14 +38,16 @@ public class JsonUtil {
         return ret;
     }
 
-    //returns an empty list if the json object is null or something fails to parse into a resource
-    public static List<ResourceLocation> potentialResourceList(JsonObject json, String resourcePath, String element,
-                                                               boolean distinct) {
+    /**
+     * Returns an empty list if the json object is null or something fails to parse into a resource
+     */
+    public static List<ResourceLocation> potentialResourceList(
+            JsonObject json, String resourcePath, String element, boolean distinct) {
         if(Objects.nonNull(json) && json.has(element)) {
             try {
                 List<ResourceLocation> resources = new ArrayList<>();
                 for(JsonElement e : json.get(element).getAsJsonArray()) {
-                    ResourceLocation resource = ModDefinitions.getResource(resourcePath.replaceFirst("\\{}", e.getAsString()));
+                    ResourceLocation resource = Constants.res(resourcePath.replaceFirst("\\{}",e.getAsString()));
                     if(!distinct || !resources.contains(resource)) resources.add(resource);
                 }
                 return resources;

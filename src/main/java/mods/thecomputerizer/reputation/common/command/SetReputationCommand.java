@@ -2,8 +2,9 @@ package mods.thecomputerizer.reputation.common.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import mods.thecomputerizer.reputation.api.ReputationHandler;
-import mods.thecomputerizer.reputation.api.capability.IReputation;
+import mods.thecomputerizer.reputation.capability.handlers.ReputationHandler;
+import mods.thecomputerizer.reputation.capability.reputation.IReputation;
+import mods.thecomputerizer.reputation.capability.reputation.ReputationProvider;
 import net.minecraft.commands.CommandRuntimeException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -31,7 +32,7 @@ public class SetReputationCommand {
     private static int setReputation(CommandSourceStack cs, ResourceLocation faction, int set) throws CommandRuntimeException {
         try {
             Player player = cs.getPlayerOrException();
-            LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
+            LazyOptional<IReputation> optional = player.getCapability(ReputationProvider.REPUTATION_CAPABILITY);
             if (optional.isPresent() && optional.resolve().isPresent()) {
                 IReputation reputation = optional.resolve().get();
                 reputation.setReputation(player,ReputationHandler.getFaction(faction),set);
@@ -47,7 +48,7 @@ public class SetReputationCommand {
     private static int setReputationPlayer(Entity e, ResourceLocation faction, int set) throws CommandRuntimeException {
         try {
             if(!(e instanceof Player player)) throw new CommandRuntimeException(new TextComponent("Entity was not a player!"));
-            LazyOptional<IReputation> optional = player.getCapability(ReputationHandler.REPUTATION_CAPABILITY);
+            LazyOptional<IReputation> optional = player.getCapability(ReputationProvider.REPUTATION_CAPABILITY);
             if (optional.isPresent() && optional.resolve().isPresent()) {
                 IReputation reputation = optional.resolve().get();
                 reputation.setReputation(player,ReputationHandler.getFaction(faction),set);

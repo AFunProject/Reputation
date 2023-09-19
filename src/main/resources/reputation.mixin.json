@@ -2,7 +2,7 @@
   "required": true,
   "package": "mods.thecomputerizer.reputation.mixin",
   "compatibilityLevel": "JAVA_17",
-  "refmap": "reputation.mixin.refmap.json",
+  "refmap": "reputation.refmap.json",
   "mixins": [
     "MixinVillager"
   ],

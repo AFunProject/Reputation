@@ -1,13 +1,10 @@
 package mods.thecomputerizer.reputation.common.ai;
 
-import mods.thecomputerizer.reputation.util.NetworkUtil;
+import mods.thecomputerizer.theimpossiblelibrary.util.NetworkUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 
-import java.nio.charset.StandardCharsets;
-
-@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 public class ChatTracker {
 
     private long queryTimer;
@@ -75,8 +72,8 @@ public class ChatTracker {
         return this.entityType;
     }
 
-    public boolean getRecent() {
-        return this.recentChat;
+    public boolean notRecent() {
+        return !this.recentChat;
     }
 
     public boolean getChanged() {
@@ -95,8 +92,8 @@ public class ChatTracker {
         return this.engage;
     }
 
-    public boolean getFlee() {
-        return this.flee;
+    public boolean notFlee() {
+        return !this.flee;
     }
 
     public void queryChatTimer() {
@@ -123,15 +120,14 @@ public class ChatTracker {
 
     public void encode(FriendlyByteBuf buf) {
         buf.writeInt(this.entityID);
-        buf.writeInt(this.getPriorityChatEvent().length());
-        buf.writeCharSequence(this.getPriorityChatEvent(), StandardCharsets.UTF_8);
+        NetworkUtil.writeString(buf,getPriorityChatEvent());
         NetworkUtil.writeEntityType(buf,this.entityType);
     }
 
     public static ChatTracker decode(FriendlyByteBuf buf) {
         ChatTracker ret = new ChatTracker();
         ret.setID(buf.readInt());
-        ret.event = (String)buf.readCharSequence(buf.readInt(), StandardCharsets.UTF_8);
+        ret.event = NetworkUtil.readString(buf);
         ret.entityType = NetworkUtil.readEntityType(buf).orElse(null);
         return ret;
     }

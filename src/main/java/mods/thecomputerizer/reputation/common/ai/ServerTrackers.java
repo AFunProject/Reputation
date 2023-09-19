@@ -2,11 +2,11 @@ package mods.thecomputerizer.reputation.common.ai;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import mods.thecomputerizer.reputation.Constants;
 import mods.thecomputerizer.reputation.Reputation;
-import mods.thecomputerizer.reputation.common.network.PacketHandler;
-import mods.thecomputerizer.reputation.common.network.SyncChatIconsMessage;
+import mods.thecomputerizer.reputation.network.PacketSyncChatIcons;
 import mods.thecomputerizer.reputation.util.JsonUtil;
-import mods.thecomputerizer.reputation.util.NetworkUtil;
+import mods.thecomputerizer.theimpossiblelibrary.util.NetworkUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -38,7 +38,7 @@ public class ServerTrackers {
 
     public static void syncChatIcons(ServerPlayer player) {
         if(!SERVER_ICON_DATA.isEmpty())
-            PacketHandler.sendTo(new SyncChatIconsMessage(new ArrayList<>(SERVER_ICON_DATA.values())),player);
+            new PacketSyncChatIcons(new ArrayList<>(SERVER_ICON_DATA.values())).addPlayers(player).send();
     }
 
     public static boolean hasAnyIcons() {
@@ -59,11 +59,11 @@ public class ServerTrackers {
         return SERVER_ICON_DATA.get(type).queryTimer;
     }
 
-    public static boolean rollRandom(Random rand, EntityType<?> type) {
+    public static boolean rollRandom(EntityType<?> type) {
         float min = Math.max(0f,SERVER_ICON_DATA.get(type).chance-SERVER_ICON_DATA.get(type).chanceVariation);
         float max = Math.min(1f,SERVER_ICON_DATA.get(type).chance+SERVER_ICON_DATA.get(type).chanceVariation);
-        float rand1 = rand.nextFloat(min,max);
-        float rand2 = rand.nextFloat();
+        float rand1 = Constants.floatRand(min,max);
+        float rand2 = Constants.floatRand();
         return rand1>rand2;
     }
 
@@ -94,7 +94,7 @@ public class ServerTrackers {
         }
 
         private boolean hasEventForEntity(EntityType<?> type, String event) {
-            return Objects.nonNull(type) && iconMap.containsKey(event);
+            return Objects.nonNull(type) && this.iconMap.containsKey(event);
         }
 
         public EntityType<?> getType() {
@@ -103,8 +103,8 @@ public class ServerTrackers {
 
         public void encode(FriendlyByteBuf buf) {
             NetworkUtil.writeEntityType(buf,this.type);
-            NetworkUtil.writeGenericMap(buf,this.iconMap,NetworkUtil::writeString,
-                    (buf1, list) -> NetworkUtil.writeGenericList(buf1,list,FriendlyByteBuf::writeResourceLocation));
+            NetworkUtil.writeGenericMap(buf,this.iconMap,NetworkUtil::writeString,(buf1,list) ->
+                    NetworkUtil.writeGenericList(buf1,list,FriendlyByteBuf::writeResourceLocation));
             buf.writeLong(displayTimer);
         }
     }

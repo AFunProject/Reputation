@@ -5,6 +5,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 
+import java.util.Objects;
+
 public class ReputationAttackableTargetGoal<T extends LivingEntity> extends NearestAttackableTargetGoal<T> {
 
     public Mob self;
@@ -16,13 +18,11 @@ public class ReputationAttackableTargetGoal<T extends LivingEntity> extends Near
 
     @Override
     public boolean canUse() {
-        if (HelperMethods.getNearestPlayerInBadStandingToEntity(this.self,16d)!=null) return super.canUse();
-        return false;
+        return Objects.nonNull(HelperMethods.getNearestPlayerInBadStandingToEntity(this.self,16d)) && super.canUse();
     }
 
     @Override
     public boolean canContinueToUse() {
-        if (HelperMethods.getNearestPlayerInBadStandingToEntity(this.self,16d)!=null) return super.canContinueToUse();
-        return false;
+        return Objects.nonNull(HelperMethods.getNearestPlayerInBadStandingToEntity(this.self,16d)) && super.canContinueToUse();
     }
 }

@@ -1,62 +1,44 @@
 package mods.thecomputerizer.reputation;
 
-import mods.thecomputerizer.reputation.api.capability.IPlacedContainer;
-import mods.thecomputerizer.reputation.api.capability.IPlayerFaction;
-import mods.thecomputerizer.reputation.api.capability.IReputation;
-import mods.thecomputerizer.reputation.client.ClientTrackers;
-import mods.thecomputerizer.reputation.client.event.RenderEvents;
-import mods.thecomputerizer.reputation.client.event.WorldEvents;
-import mods.thecomputerizer.reputation.client.render.RenderIcon;
-import mods.thecomputerizer.reputation.common.ModDefinitions;
+import mods.thecomputerizer.reputation.capability.placedcontainer.IPlacedContainer;
+import mods.thecomputerizer.reputation.capability.playerfaction.IPlayerFaction;
+import mods.thecomputerizer.reputation.capability.reputation.IReputation;
 import mods.thecomputerizer.reputation.common.command.ReputationFactionArgument;
-import mods.thecomputerizer.reputation.common.network.PacketHandler;
-import mods.thecomputerizer.reputation.common.registration.RegistryHandler;
 import mods.thecomputerizer.reputation.config.ClientConfigHandler;
-import mods.thecomputerizer.reputation.util.FactionListener;
+import mods.thecomputerizer.reputation.registry.RegistryHandler;
 import net.minecraft.commands.synchronization.ArgumentTypes;
 import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
-import net.minecraftforge.event.AddReloadListenerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
 
-@Mod(value = ModDefinitions.MODID)
-@Mod.EventBusSubscriber(modid = ModDefinitions.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@Mod(value = Constants.MODID)
 public class Reputation {
 
-	private static final Logger LOGGER = LogManager.getLogger(ModDefinitions.NAME);
-
 	public Reputation() {
-		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::commonSetup);
-		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::clientSetup);
-		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::registerCapabilities);
-		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ClientConfigHandler.CONFIG, "reputation/client.toml");
-		MinecraftForge.EVENT_BUS.register(this);
-		MinecraftForge.EVENT_BUS.addListener(this::reloadData);
-		RegistryHandler.registerCommonObjects(FMLJavaModLoadingContext.get().getModEventBus());
+		IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+		bus.addListener(this::commonSetup);
+		bus.addListener(this::clientSetup);
+		bus.addListener(this::registerCapabilities);
+		RegistryHandler.initRegistries(bus);
+		RegistryHandler.queuePackets();
 	}
 
 	public void commonSetup(FMLCommonSetupEvent event) {
-		PacketHandler.initPackets();
-		ArgumentTypes.register("reputation:faction_argument", ReputationFactionArgument.class, new EmptyArgumentSerializer<>(ReputationFactionArgument::id));
+		ArgumentTypes.register("reputation:faction_argument",ReputationFactionArgument.class,
+				new EmptyArgumentSerializer<>(ReputationFactionArgument::id));
 	}
 
 	public void clientSetup(FMLClientSetupEvent event) {
-		MinecraftForge.EVENT_BUS.register(RenderIcon.class);
-		MinecraftForge.EVENT_BUS.register(ClientTrackers.class);
-		MinecraftForge.EVENT_BUS.register(RenderEvents.class);
-		MinecraftForge.EVENT_BUS.register(WorldEvents.class);
+		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT,
+				ClientConfigHandler.CONFIG,"reputation/client.toml");
 	}
 
 	public void registerCapabilities(RegisterCapabilitiesEvent event) {
@@ -65,20 +47,15 @@ public class Reputation {
 		event.register(IPlayerFaction.class);
 	}
 
-	@SubscribeEvent
-	public void reloadData(AddReloadListenerEvent event) {
-		event.addListener(new FactionListener());
-	}
-
 	public static void logInfo(String message, Object... vars) {
-		LOGGER.info(message, vars);
+		Constants.LOGGER.info(message, vars);
 	}
 
 	public static void logError(String message, Object... vars) {
-		LOGGER.error(message,vars);
+		Constants.LOGGER.error(message,vars);
 	}
 
-	public static void logStringCollection(Level logLevel, String initialMessage, Collection<String> collection, int numPerLine) {
+	public static void logStringCollection(String initialMessage, Collection<String> collection, int numPerLine) {
 		StringBuilder builder = new StringBuilder();
 		builder.append(initialMessage).append(": ");
 		int i = 0;
@@ -89,6 +66,6 @@ public class Reputation {
 				else builder.append(" ");
 				i++;
 			}
-		} LOGGER.log(logLevel,builder.toString());
+		} Constants.LOGGER.info(builder.toString());
 	}
 }

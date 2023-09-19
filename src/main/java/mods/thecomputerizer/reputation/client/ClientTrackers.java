@@ -1,22 +1,28 @@
 package mods.thecomputerizer.reputation.client;
 
+import mods.thecomputerizer.reputation.Constants;
 import mods.thecomputerizer.reputation.common.ai.ChatTracker;
-import mods.thecomputerizer.reputation.util.NetworkUtil;
+import mods.thecomputerizer.reputation.util.HelperMethods;
+import mods.thecomputerizer.theimpossiblelibrary.util.NetworkUtil;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Mod.EventBusSubscriber(modid = Constants.MODID, value = Dist.CLIENT)
 public class ClientTrackers {
-    private static final HashMap<EntityType<?>, Data> CLIENT_ICON_DATA = new HashMap<>();
+    private static final Map<EntityType<?>, Data> CLIENT_ICON_DATA = new HashMap<>();
 
     @SubscribeEvent
     public static void tickTrackers(TickEvent.ClientTickEvent e) {
@@ -32,11 +38,12 @@ public class ClientTrackers {
     }
 
     public static void setIcons(List<ChatTracker> trackers) {
-        if(Objects.nonNull(Minecraft.getInstance().player)) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if(Objects.nonNull(player)) {
             for(ChatTracker tracker : trackers) {
-                Entity entity = Minecraft.getInstance().player.level.getEntity(tracker.getEntityID());
+                Entity entity = player.level.getEntity(tracker.getEntityID());
                 if (entity instanceof LivingEntity living && CLIENT_ICON_DATA.containsKey(entity.getType()))
-                    CLIENT_ICON_DATA.get(entity.getType()).set(living, tracker.getEvent());
+                    CLIENT_ICON_DATA.get(entity.getType()).set(living,tracker.getEvent());
             }
         }
     }
@@ -50,14 +57,12 @@ public class ClientTrackers {
     }
 
     public static class Data {
-        private final Random selector;
         private final EntityType<?> type;
         private final Map<String, List<ResourceLocation>> iconMap;
         private final long displayTimer;
         private final Map<LivingEntity, ResourceLocation> currentIcons;
         private final Map<LivingEntity, MutableInt> currentTimers;
         private Data(FriendlyByteBuf buf) {
-            this.selector = new Random();
             this.type = NetworkUtil.readEntityType(buf).orElse(null);
             this.iconMap = NetworkUtil.readGenericMap(buf,NetworkUtil::readString,
                     buf1 -> NetworkUtil.readGenericList(buf1,FriendlyByteBuf::readResourceLocation));
@@ -69,8 +74,11 @@ public class ClientTrackers {
         private void set(LivingEntity entity, String event) {
             if(Objects.nonNull(this.type) && this.iconMap.containsKey(event) && !this.iconMap.get(event).isEmpty()
                     && this.displayTimer>0) {
-                this.currentIcons.put(entity,this.iconMap.get(event).get(this.selector.nextInt(this.iconMap.get(event).size())));
-                this.currentTimers.put(entity,new MutableInt(this.displayTimer));
+                ResourceLocation res = HelperMethods.randomListElement(this.iconMap.get(event));
+                if(Objects.nonNull(res)) {
+                    this.currentIcons.put(entity,res);
+                    this.currentTimers.put(entity,new MutableInt(this.displayTimer));
+                }
             }
         }
 
@@ -80,12 +88,12 @@ public class ClientTrackers {
 
         private void tick() {
             if(!this.currentTimers.isEmpty()) {
-                for (MutableInt timer : this.currentTimers.values())
+                for(MutableInt timer : this.currentTimers.values())
                     timer.decrement();
                 Iterator<Map.Entry<LivingEntity, MutableInt>> itr = this.currentTimers.entrySet().iterator();
                 while (itr.hasNext()) {
                     Map.Entry<LivingEntity, MutableInt> entry = itr.next();
-                    if (entry.getValue().getValue() <= 0) {
+                    if(entry.getValue().getValue()<=0) {
                         this.currentIcons.remove(entry.getKey());
                         itr.remove();
                     }
