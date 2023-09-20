@@ -169,7 +169,7 @@ public class HelperMethods {
                     new AABB(mob.getX()-range,mob.getY()-(range/2f),mob.getZ()-range,mob.getX()+range,
                             mob.getY()+(range / 2f),mob.getZ()+range)));
             ret.removeIf(e -> {
-                if(e.getStringUUID().matches(mob.getStringUUID()) || !faction.getMembers().contains(e.getType())) return true;
+                if(e.getUUID().compareTo(mob.getUUID())==0 || !faction.getMembers().contains(e.getType())) return true;
                 return e instanceof Mob m && !m.getSensing().hasLineOfSight(mob);
             });
         } else {

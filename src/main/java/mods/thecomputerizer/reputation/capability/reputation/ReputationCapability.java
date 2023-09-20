@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class ReputationCapability implements IReputation {
 
@@ -22,12 +23,14 @@ public class ReputationCapability implements IReputation {
 
 	@Override
 	public int getReputation(Faction faction) {
+		if(Objects.isNull(faction)) return 0;
 		if (!FACTION_IDS.containsKey(faction.getID().toString())) FACTION_IDS.put(faction.getID().toString(),faction.getDefaultRep());
 		return FACTION_IDS.get(faction.getID().toString());
 	}
 
 	@Override
 	public void setReputation(Player p, Faction faction, int reputation) {
+		if(Objects.isNull(p) || Objects.isNull(faction)) return;
 		FACTIONS.put(faction, reputation);
 		FACTION_IDS.put(faction.getID().toString(),reputation);
 		if(p instanceof ServerPlayer player)
@@ -36,6 +39,7 @@ public class ReputationCapability implements IReputation {
 
 	@Override
 	public void changeReputation(Player p, Faction faction, int reputation) {
+		if(Objects.isNull(p) || Objects.isNull(faction)) return;
 		int base = FACTION_IDS.containsKey(faction.getID().toString()) ? FACTION_IDS.get(faction.getID().toString()) : faction.getDefaultRep();
 		FACTION_IDS.put(faction.getID().toString(), base + reputation);
 		FACTIONS.put(faction, base + reputation);

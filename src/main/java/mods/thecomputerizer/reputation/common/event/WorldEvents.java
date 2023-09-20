@@ -172,11 +172,21 @@ public class WorldEvents {
     }
 
     /**
-     * Cleared cached maps when the server closes. Mostly helpful for singleplayer worlds
+     * Stop keeping track of players that log out
+     */
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent e) {
+        if(e.getPlayer() instanceof ServerPlayer player)
+            PLAYERS.remove(player);
+    }
+
+    /**
+     * Cleared cached maps when the server closes. Helpful for singleplayer world and guarding against memory leaks
      */
     @SubscribeEvent
     public static void onServerClose(ServerStoppedEvent e) {
         ReputationHandler.emptyMaps();
+        PLAYERS.clear();
     }
 
     @SubscribeEvent
