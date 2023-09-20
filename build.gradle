@@ -90,8 +90,11 @@ dependencies {
     //Runtime Mods
     runtimeOnly(fg.deobf("curse.maven:afptweaks-638098:${project.afptweaks_version}"))
     runtimeOnly(fg.deobf("curse.maven:atlas-lib-463826:${project.atlaslib_version}"))
+    runtimeOnly(fg.deobf("curse.maven:configured-457570:${project.configured_version}"))
     runtimeOnly(fg.deobf("curse.maven:epicfigt-405076:${project.epicfight_version}"))
     runtimeOnly(fg.deobf("curse.maven:follow-me-463841:${project.followme_version}"))
+    runtimeOnly(fg.deobf("curse.maven:jei-238222:${project.jei_version}"))
+    runtimeOnly(fg.deobf("curse.maven:libx-412525:${project.libx_version}"))
 }
 
 mixin {

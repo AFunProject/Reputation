@@ -35,9 +35,8 @@ public class FactionListener extends SimplePreparableReloadListener<Void> {
         return builder.create();
     });
 
-    @Nonnull
     @Override
-    protected Void prepare(@Nonnull ResourceManager manager, @Nonnull ProfilerFiller profiler) {
+    protected @Nonnull Void prepare(@Nonnull ResourceManager manager, @Nonnull ProfilerFiller profiler) {
         return null;
     }
 

@@ -12,10 +12,7 @@ import mods.thecomputerizer.reputation.common.ai.ReputationStandings;
 import mods.thecomputerizer.reputation.common.ai.ServerTrackers;
 import mods.thecomputerizer.reputation.common.ai.goals.*;
 import mods.thecomputerizer.reputation.capability.playerfaction.PlayerFactionProvider;
-import mods.thecomputerizer.reputation.common.command.AddPlayerToFactionCommand;
-import mods.thecomputerizer.reputation.common.command.AddReputationCommand;
-import mods.thecomputerizer.reputation.common.command.RemovePlayerFromFactionCommand;
-import mods.thecomputerizer.reputation.common.command.SetReputationCommand;
+import mods.thecomputerizer.reputation.common.command.ReputationCommands;
 import mods.thecomputerizer.reputation.network.PacketChatIcon;
 import mods.thecomputerizer.reputation.network.PacketSyncFactions;
 import mods.thecomputerizer.reputation.util.HelperMethods;
@@ -69,10 +66,7 @@ public class WorldEvents {
 
     @SubscribeEvent
     public static void registerCommands(RegisterCommandsEvent event) {
-        SetReputationCommand.register(event.getDispatcher());
-        AddReputationCommand.register(event.getDispatcher());
-        AddPlayerToFactionCommand.register(event.getDispatcher());
-        RemovePlayerFromFactionCommand.register(event.getDispatcher());
+        ReputationCommands.register(event.getDispatcher());
     }
 
     /**
