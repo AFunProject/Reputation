@@ -1,7 +1,6 @@
 package mods.thecomputerizer.reputation.network;
 
 import mods.thecomputerizer.reputation.Constants;
-import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.client.ClientEvents;
 import mods.thecomputerizer.reputation.client.ClientHandler;
 import mods.thecomputerizer.reputation.registry.SoundRegistry;
@@ -63,7 +62,6 @@ public class PacketSetIcon extends MessageImpl {
 
     private Map<String,Object> makeVarMap(boolean offset, float iconWidth) {
         float scale = offset ? ICON_SCALE*0.75f : ICON_SCALE;
-        Reputation.logError("ICON WIDTH IS {} AND SCALE IS {}",iconWidth,scale);
         Map<String,Object> ret = new HashMap<>();
         ret.put("time",150L);
         ret.put("fade_out",35L);
