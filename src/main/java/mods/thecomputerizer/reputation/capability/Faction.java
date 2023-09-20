@@ -8,14 +8,12 @@ import mods.thecomputerizer.reputation.capability.handlers.ReputationHandler;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class Faction {
 
@@ -24,18 +22,22 @@ public class Faction {
 	private final int defaultRep;
 	private final int lowerRep;
 	private final int higherRep;
+	private final int playerJoinThreshold;
 	private final Item currencyItem;
 	private final List<ResourceLocation> enemy_names = new ArrayList<>();
 	private final List<Faction> enemies = new ArrayList<>();
 	private final List<EntityType<?>> members = new ArrayList<>();
-	private final HashMap<String, Integer> weightedActions;
+	private final Map<String, Integer> weightedActions;
 
-	public Faction(ResourceLocation id, String name, int defaultRep, int lowerRep, int higherRep, Item currencyItem, HashMap<String, Integer> weightedActions, List<ResourceLocation> enemies, List<EntityType<?>> members) {
+	public Faction(ResourceLocation id, String name, int defaultRep, int lowerRep, int higherRep,
+				   int playerJoinThreshold, Item currencyItem, Map<String, Integer> weightedActions,
+				   List<ResourceLocation> enemies, List<EntityType<?>> members) {
 		this.id = id;
 		this.name = name;
 		this.defaultRep = defaultRep;
 		this.lowerRep = lowerRep;
 		this.higherRep = higherRep;
+		this.playerJoinThreshold = playerJoinThreshold;
 		this.currencyItem = Objects.nonNull(currencyItem) ? currencyItem : Items.DIAMOND;
 		this.weightedActions = weightedActions;
 		this.enemy_names.addAll(enemies);
@@ -85,6 +87,10 @@ public class Faction {
 		return this.higherRep;
 	}
 
+	public boolean canPlayerJoin(Player player) {
+		return ReputationHandler.getReputation(player,this)>=this.playerJoinThreshold;
+	}
+
 	public Item getCurrencyItem() {
 		return this.currencyItem;
 	}
@@ -119,6 +125,8 @@ public class Faction {
 			int defaultRep = json.get("default_reputation").getAsInt();
 			int lowerRep = json.get("lower_reputation_bound").getAsInt();
 			int higherRep = json.get("upper_reputation_bound").getAsInt();
+			int playerJoin = json.has("player_join_threshold") ?
+					json.get("player_join_threshold").getAsInt() : Integer.MIN_VALUE;
 			Item currency = ForgeRegistries.ITEMS.getValue(new ResourceLocation(json.get("currency").getAsString()));
 			HashMap<String, Integer> weighting = new HashMap<>();
 			weighting.put("murder", json.get("weighted_murder").getAsInt());
@@ -126,7 +134,7 @@ public class Faction {
 			weighting.put("fleeing", json.get("weighted_fleeing").getAsInt());
 			List<EntityType<?>> members = parseMembers(json);
 			List<ResourceLocation> enemies = parseResourceArray("enemies", json);
-			return new Faction(faction_id, name, defaultRep, lowerRep, higherRep, currency, weighting, enemies, members);
+			return new Faction(faction_id,name, defaultRep,lowerRep,higherRep,playerJoin,currency,weighting,enemies,members);
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to parse faction with id "+id+"!",e);
 		}

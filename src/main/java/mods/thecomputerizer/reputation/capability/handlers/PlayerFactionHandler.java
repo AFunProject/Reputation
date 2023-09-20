@@ -36,8 +36,9 @@ public class PlayerFactionHandler {
         boolean pass = false;
         for(Faction other : ReputationHandler.getFactionMap().values()) {
             if(other==faction) {
+                if(!faction.canPlayerJoin(player)) return false;
                 IPlayerFaction playerFaction = getCapability(faction);
-                if (Objects.nonNull(playerFaction)) pass = playerFaction.addPlayer(player);
+                if(Objects.nonNull(playerFaction)) pass = playerFaction.addPlayer(player);
             } else removePlayerFromFaction(player,faction);
         }
         return pass;

@@ -96,9 +96,10 @@ public class ReputationCommands {
                 ResourceLocation factionRes = ResourceLocationArgument.getId(ctx, "resourcelocation");
                 Faction faction = ReputationHandler.getFaction(factionRes);
                 if(Objects.nonNull(faction)) {
-                    if(isAdd) PlayerFactionHandler.addPlayerToFaction(player,faction);
-                    else PlayerFactionHandler.removePlayerFromFaction(player,faction);
-                    sendSuccess(player,lang+".success",player.getDisplayName().getString(),factionRes);
+                    boolean success;
+                    if(isAdd) success = PlayerFactionHandler.addPlayerToFaction(player,faction);
+                    else success = PlayerFactionHandler.removePlayerFromFaction(player,faction);
+                    sendSuccess(player,lang+(success ? ".success" : ".fail"),player.getDisplayName().getString(),factionRes);
                 } else throwException("failure.modify.faction", factionRes);
             } else throwException("failure.player");
         }

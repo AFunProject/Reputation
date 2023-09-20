@@ -216,7 +216,7 @@ public class WorldEvents {
                                         Level level = entity.getLevel();
                                         if(level instanceof ServerLevel serverLevel) {
                                             for(Faction f : ReputationHandler.getEntityFactions(entity)) {
-                                                if(!HelperMethods.getSeenEntitiesOfFaction(serverLevel,entity,16,entity.getBrain(),f).isEmpty()) {
+                                                if(!HelperMethods.getSeenEntitiesOfFaction(serverLevel,entity,10,entity.getBrain(),f).isEmpty()) {
                                                     tracker.setInRange(true);
                                                     tracker.setChanged(true);
                                                     tracker.setRecent(true);
