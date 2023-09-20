@@ -17,7 +17,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
@@ -29,21 +28,17 @@ public class Reputation {
 	public Reputation() {
 		IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
 		bus.addListener(this::commonSetup);
-		bus.addListener(this::clientSetup);
 		bus.addListener(this::registerCapabilities);
 		MinecraftForge.EVENT_BUS.addListener(this::reloadData);
 		RegistryHandler.initRegistries(bus);
 		RegistryHandler.queuePackets();
+		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT,
+				ClientConfigHandler.CONFIG,"reputation/client.toml");
 	}
 
 	public void commonSetup(FMLCommonSetupEvent event) {
 		ArgumentTypes.register("reputation:faction_argument",ReputationFactionArgument.class,
 				new EmptyArgumentSerializer<>(ReputationFactionArgument::id));
-	}
-
-	public void clientSetup(FMLClientSetupEvent event) {
-		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT,
-				ClientConfigHandler.CONFIG,"reputation/client.toml");
 	}
 
 	public void registerCapabilities(RegisterCapabilitiesEvent event) {
@@ -54,7 +49,6 @@ public class Reputation {
 
 	@SubscribeEvent
 	public void reloadData(AddReloadListenerEvent event) {
-		logError("ADDING NEW FACTION LISTENER");
 		event.addListener(new FactionListener());
 	}
 

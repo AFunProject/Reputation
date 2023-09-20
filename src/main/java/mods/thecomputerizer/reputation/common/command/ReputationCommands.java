@@ -70,9 +70,10 @@ public class ReputationCommands {
                 Faction faction = ReputationHandler.getFaction(factionRes);
                 if(Objects.nonNull(faction)) {
                     ReputationHandler.changeReputation(player,faction,amount);
-                    if(hasPlayerSelector) sendSuccess(player,lang+".success.player",amount,player,factionRes);
+                    if(hasPlayerSelector) sendSuccess(player,lang+".success.player",amount,
+                            player.getDisplayName().getString(),factionRes);
                     else sendSuccess(player,lang+".success",amount,factionRes);
-                } else throwException("failure.modify.faction", factionRes);
+                } else throwException("failure.modify.faction",factionRes);
             } else throwException("failure.player");
         }
         catch(Exception e) {
@@ -97,7 +98,7 @@ public class ReputationCommands {
                 if(Objects.nonNull(faction)) {
                     if(isAdd) PlayerFactionHandler.addPlayerToFaction(player,faction);
                     else PlayerFactionHandler.removePlayerFromFaction(player,faction);
-                    sendSuccess(player,lang+".success",player,factionRes);
+                    sendSuccess(player,lang+".success",player.getDisplayName().getString(),factionRes);
                 } else throwException("failure.modify.faction", factionRes);
             } else throwException("failure.player");
         }
@@ -108,10 +109,10 @@ public class ReputationCommands {
     }
 
     private static void sendSuccess(Player player, String lang, Object ... parameters) {
-        player.sendMessage(new TranslatableComponent(lang,parameters),player.getUUID());
+        player.sendMessage(new TranslatableComponent("commands."+Constants.MODID+"."+lang,parameters),player.getUUID());
     }
 
     private static void throwException(String lang, Object ... parameters) {
-        throw new CommandRuntimeException(new TranslatableComponent("commands.reputation."+lang,parameters));
+        throw new CommandRuntimeException(new TranslatableComponent("commands."+Constants.MODID+"."+lang,parameters));
     }
 }
