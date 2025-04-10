@@ -3,7 +3,7 @@ package mods.thecomputerizer.reputation.registry;
 import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.capability.Faction;
 import mods.thecomputerizer.reputation.capability.handlers.ReputationHandler;
-import mods.thecomputerizer.reputation.Constants;
+import mods.thecomputerizer.reputation.ReputationRef;
 import mods.thecomputerizer.reputation.util.HelperMethods;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
@@ -27,7 +27,7 @@ import static mods.thecomputerizer.reputation.registry.ItemRegistry.FACTION_BAG;
 
 public class RecipeRegistry {
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_REGISTRY =
-            DeferredRegister.create(Registry.RECIPE_SERIALIZER_REGISTRY, Constants.MODID);
+            DeferredRegister.create(Registry.RECIPE_SERIALIZER_REGISTRY, ReputationRef.MODID);
     public static RegistryObject<RecipeSerializer<?>> CURRENCY_RECIPE_SERIALIZER = register("currency_recipe");
 
     private static Set<Item> CURRENCY_SET = Set.of();

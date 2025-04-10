@@ -1,21 +1,24 @@
 package mods.thecomputerizer.reputation.network;
 
-import mods.thecomputerizer.reputation.Constants;
-import mods.thecomputerizer.reputation.client.ClientEvents;
+import io.netty.buffer.ByteBuf;
+import mods.thecomputerizer.reputation.ReputationRef;
 import mods.thecomputerizer.reputation.client.ClientHandler;
-import mods.thecomputerizer.reputation.registry.SoundRegistry;
-import mods.thecomputerizer.theimpossiblelibrary.client.render.Renderer;
-import mods.thecomputerizer.theimpossiblelibrary.network.MessageImpl;
+import mods.thecomputerizer.theimpossiblelibrary.api.client.render.RenderHelper;
+import mods.thecomputerizer.theimpossiblelibrary.api.network.message.MessageAPI;
+import mods.thecomputerizer.theimpossiblelibrary.api.wrappers.WrapperHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent.Context;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class PacketSetIcon extends MessageImpl {
+import static mods.thecomputerizer.reputation.client.ClientEvents.CLIENT_FACTIONS;
+import static mods.thecomputerizer.reputation.client.ClientEvents.CLIENT_FACTIONS_REPUTATION;
+import static mods.thecomputerizer.reputation.registry.SoundRegistry.DECREASE_REPUTATION;
+import static mods.thecomputerizer.reputation.registry.SoundRegistry.INCREASE_REPUTATION;
+
+public class PacketSetIcon extends MessageAPI<Context> {
 
     private static final float ICON_SCALE = 0.32f;
     private final Boolean encoded;
@@ -23,41 +26,38 @@ public class PacketSetIcon extends MessageImpl {
     private final ResourceLocation faction;
     private final int amount;
 
-
-    public PacketSetIcon(FriendlyByteBuf buf) {
-        this.encoded = buf.readBoolean();
-        this.factionIcon = buf.readResourceLocation();
-        this.faction = buf.readResourceLocation();
-        this.amount = buf.readInt();
-    }
-
     public PacketSetIcon(boolean plus, ResourceLocation faction, int amount) {
         this.encoded = plus;
-        this.factionIcon = Constants.res("textures/icons/faction_"+faction.getPath()+".png");
-        this.faction = Constants.res(faction.getPath());
+        this.factionIcon = ReputationRef.res("textures/icons/faction_"+faction.getPath()+".png");
+        this.faction = ReputationRef.res(faction.getPath());
         this.amount = amount;
     }
-
-    @Override
-    public Dist getSide() {
-        return Dist.CLIENT;
+    
+    public PacketSetIcon(ByteBuf buf) {
+        this.encoded = buf.readBoolean();
+        this.factionIcon = ReputationNetwork.readResourceLocation(buf);
+        this.faction = ReputationNetwork.readResourceLocation(buf);
+        this.amount = buf.readInt();
+    }
+    
+    private void addPNG(ResourceLocation location, Map<String,Object> args) {
+        RenderHelper.addRenderable(RenderHelper.initPNG(WrapperHelper.wrapResourceLocation(location),args));
     }
 
-    @Override
-    public void encode(FriendlyByteBuf buf) {
+    @Override public void encode(ByteBuf buf) {
         buf.writeBoolean(this.encoded);
-        buf.writeResourceLocation(this.factionIcon);
-        buf.writeResourceLocation(this.faction);
+        ReputationNetwork.writeResourceLocation(buf,this.factionIcon);
+        ReputationNetwork.writeResourceLocation(buf,this.faction);
         buf.writeInt(this.amount);
     }
 
-    @Override
-    public void handle(NetworkEvent.Context ctx) {
-        ClientEvents.CLIENT_FACTIONS_REPUTATION.put(ClientEvents.CLIENT_FACTIONS.get(this.faction),
-                ClientEvents.CLIENT_FACTIONS_REPUTATION.get(ClientEvents.CLIENT_FACTIONS.get(this.faction))+this.amount);
-        Renderer.addRenderable(Renderer.initializePng(this.setIconLocation(),makeVarMap(true,getIconWidth(true))));
-        Renderer.addRenderable(Renderer.initializePng(this.factionIcon,makeVarMap(false,getIconWidth(false))));
-        ClientHandler.playPacketSound(this.encoded ? SoundRegistry.INCREASE_REPUTATION.get() : SoundRegistry.DECREASE_REPUTATION.get());
+    @Override public MessageAPI<Context> handle(Context ctx) {
+        CLIENT_FACTIONS_REPUTATION.put(CLIENT_FACTIONS.get(this.faction),
+                CLIENT_FACTIONS_REPUTATION.get(CLIENT_FACTIONS.get(this.faction))+this.amount);
+        addPNG(this.setIconLocation(),makeVarMap(true,getIconWidth(true)));
+        addPNG(this.factionIcon,makeVarMap(false,getIconWidth(false)));
+        ClientHandler.playPacketSound(this.encoded ? INCREASE_REPUTATION.get() : DECREASE_REPUTATION.get());
+        return null;
     }
 
     private Map<String,Object> makeVarMap(boolean offset, float iconWidth) {
@@ -78,7 +78,7 @@ public class PacketSetIcon extends MessageImpl {
     }
 
     private ResourceLocation setIconLocation() {
-        return this.encoded ? Constants.res("textures/icons/reputation_increase.png") :
-                Constants.res("textures/icons/reputation_decrease.png");
+        return this.encoded ? ReputationRef.res("textures/icons/reputation_increase.png") :
+                ReputationRef.res("textures/icons/reputation_decrease.png");
     }
 }

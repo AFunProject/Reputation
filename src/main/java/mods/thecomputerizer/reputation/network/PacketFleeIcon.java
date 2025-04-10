@@ -1,46 +1,40 @@
 package mods.thecomputerizer.reputation.network;
 
+import io.netty.buffer.ByteBuf;
 import mods.thecomputerizer.reputation.client.ClientHandler;
-import mods.thecomputerizer.reputation.client.ClientEvents;
-import mods.thecomputerizer.reputation.registry.SoundRegistry;
-import mods.thecomputerizer.theimpossiblelibrary.network.MessageImpl;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import mods.thecomputerizer.theimpossiblelibrary.api.network.message.MessageAPI;
+import net.minecraftforge.network.NetworkEvent.Context;
 
 import java.util.UUID;
 
-public class PacketFleeIcon extends MessageImpl {
+import static mods.thecomputerizer.reputation.client.ClientEvents.FLEEING_MOBS;
+import static mods.thecomputerizer.reputation.registry.SoundRegistry.FLEE;
+
+public class PacketFleeIcon extends MessageAPI<Context> {
+    
     private final UUID uuid;
     private final boolean add;
-
-    public PacketFleeIcon(FriendlyByteBuf buf) {
-        this.uuid = buf.readUUID();
-        this.add = buf.readBoolean();
-    }
 
     public PacketFleeIcon(UUID uuid, boolean add) {
         this.uuid = uuid;
         this.add = add;
     }
-
-    @Override
-    public Dist getSide() {
-        return Dist.CLIENT;
+    
+    public PacketFleeIcon(ByteBuf buf) {
+        this.uuid = ReputationNetwork.readUUID(buf);
+        this.add = buf.readBoolean();
     }
 
-    @Override
-    public void encode(FriendlyByteBuf buf) {
-        buf.writeUUID(this.uuid);
+    @Override public void encode(ByteBuf buf) {
+        ReputationNetwork.writeUUID(buf,this.uuid);
         buf.writeBoolean(this.add);
     }
 
-    @Override
-    public void handle(NetworkEvent.Context ctx) {
-        if(!ClientEvents.FLEEING_MOBS.contains(this.uuid) && this.add) {
-            ClientEvents.FLEEING_MOBS.add(this.uuid);
-            ClientHandler.playPacketSound(SoundRegistry.FLEE.get());
-        }
-        else if(!this.add) ClientEvents.FLEEING_MOBS.remove(this.uuid);
+    @Override public MessageAPI<Context> handle(Context ctx) {
+        if(!FLEEING_MOBS.contains(this.uuid) && this.add) {
+            FLEEING_MOBS.add(this.uuid);
+            ClientHandler.playPacketSound(FLEE.get());
+        } else if(!this.add) FLEEING_MOBS.remove(this.uuid);
+        return null;
     }
 }

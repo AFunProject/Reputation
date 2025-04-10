@@ -1,39 +1,32 @@
 package mods.thecomputerizer.reputation.network;
 
+import io.netty.buffer.ByteBuf;
 import mods.thecomputerizer.reputation.client.ClientTrackers;
 import mods.thecomputerizer.reputation.common.ai.ChatTracker;
-import mods.thecomputerizer.theimpossiblelibrary.network.MessageImpl;
-import mods.thecomputerizer.theimpossiblelibrary.util.NetworkUtil;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import mods.thecomputerizer.theimpossiblelibrary.api.network.NetworkHelper;
+import mods.thecomputerizer.theimpossiblelibrary.api.network.message.MessageAPI;
+import net.minecraftforge.network.NetworkEvent.Context;
 
 import java.util.List;
 
-public class PacketChatIcon extends MessageImpl {
+public class PacketChatIcon extends MessageAPI<Context> {
 
     private final List<ChatTracker> trackers;
-
-    public PacketChatIcon(FriendlyByteBuf buf) {
-        this.trackers = NetworkUtil.readGenericList(buf,ChatTracker::decode);
-    }
 
     public PacketChatIcon(List<ChatTracker> trackers) {
         this.trackers = trackers;
     }
-
-    @Override
-    public Dist getSide() {
-        return Dist.CLIENT;
+    
+    public PacketChatIcon(ByteBuf buf) {
+        this.trackers = NetworkHelper.readList(buf,() -> ChatTracker.decode(buf));
     }
 
-    @Override
-    public void encode(FriendlyByteBuf buf) {
-        NetworkUtil.writeGenericList(buf,this.trackers,(buf1, tracker) -> tracker.encode(buf1));
+    @Override public void encode(ByteBuf buf) {
+        NetworkHelper.writeList(buf,this.trackers,tracker -> tracker.encode(buf));
     }
 
-    @Override
-    public void handle(NetworkEvent.Context ctx) {
+    @Override public MessageAPI<Context> handle(Context ctx) {
         ClientTrackers.setIcons(this.trackers);
+        return null;
     }
 }

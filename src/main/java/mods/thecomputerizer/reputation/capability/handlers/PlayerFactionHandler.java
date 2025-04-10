@@ -16,7 +16,7 @@ import java.util.Objects;
 
 public class PlayerFactionHandler {
 
-    public static Map<Faction, PlayerFactionProvider> PLAYER_FACTIONS = new HashMap<>();
+    public static Map<Faction,PlayerFactionProvider> PLAYER_FACTIONS = new HashMap<>();
 
     @SuppressWarnings("DataFlowIssue")
     private static @Nullable IPlayerFaction getCapability(@Nonnull Faction faction) {

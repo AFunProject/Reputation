@@ -18,13 +18,11 @@ public class ReputationPacifyHostileCustomStandingGoal<T extends LivingEntity> e
         this.standing = standing;
     }
 
-    @Override
-    public boolean canUse() {
-        return Objects.isNull(HelperMethods.getNearestPlayerInCustomStandingToEntity(this.self, 16d, this.standing)) && super.canUse();
+    @Override public boolean canUse() {
+        return Objects.isNull(HelperMethods.getNearestPlayerInCustomStandingToEntity(this.self,16d,this.standing)) && super.canUse();
     }
 
-    @Override
-    public boolean canContinueToUse() {
-        return Objects.isNull(HelperMethods.getNearestPlayerInCustomStandingToEntity(this.self, 16d, this.standing)) && super.canContinueToUse();
+    @Override public boolean canContinueToUse() {
+        return Objects.isNull(HelperMethods.getNearestPlayerInCustomStandingToEntity(this.self,16d,this.standing)) && super.canContinueToUse();
     }
 }

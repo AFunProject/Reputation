@@ -1,7 +1,8 @@
 package mods.thecomputerizer.reputation.common.ai;
 
-import mods.thecomputerizer.theimpossiblelibrary.util.NetworkUtil;
-import net.minecraft.network.FriendlyByteBuf;
+import io.netty.buffer.ByteBuf;
+import mods.thecomputerizer.reputation.network.ReputationNetwork;
+import mods.thecomputerizer.theimpossiblelibrary.api.network.NetworkHelper;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -63,7 +64,6 @@ public class ChatTracker {
         this.flee = flee;
     }
 
-
     public int getEntityID() {
         return this.entityID;
     }
@@ -118,17 +118,17 @@ public class ChatTracker {
         return this.event;
     }
 
-    public void encode(FriendlyByteBuf buf) {
+    public void encode(ByteBuf buf) {
         buf.writeInt(this.entityID);
-        NetworkUtil.writeString(buf,getPriorityChatEvent());
-        NetworkUtil.writeEntityType(buf,this.entityType);
+        NetworkHelper.writeString(buf, getPriorityChatEvent());
+        ReputationNetwork.writeEntityType(buf,this.entityType);
     }
 
-    public static ChatTracker decode(FriendlyByteBuf buf) {
+    public static ChatTracker decode(ByteBuf buf) {
         ChatTracker ret = new ChatTracker();
         ret.setID(buf.readInt());
-        ret.event = NetworkUtil.readString(buf);
-        ret.entityType = NetworkUtil.readEntityType(buf).orElse(null);
+        ret.event = NetworkHelper.readString(buf);
+        ret.entityType = ReputationNetwork.readEntityType(buf);
         return ret;
     }
 }

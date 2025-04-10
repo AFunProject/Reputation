@@ -2,56 +2,51 @@ package mods.thecomputerizer.reputation.network;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import io.netty.buffer.ByteBuf;
 import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.capability.Faction;
 import mods.thecomputerizer.reputation.capability.handlers.ReputationHandler;
-import mods.thecomputerizer.theimpossiblelibrary.network.MessageImpl;
-import mods.thecomputerizer.theimpossiblelibrary.util.NetworkUtil;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import mods.thecomputerizer.theimpossiblelibrary.api.network.NetworkHelper;
+import mods.thecomputerizer.theimpossiblelibrary.api.network.message.MessageAPI;
+import net.minecraftforge.network.NetworkEvent.Context;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class PacketSyncFactions extends MessageImpl {
+public class PacketSyncFactions extends MessageAPI<Context> {
 
-	private final Map<String, Integer> factionJsons;
+	private final Map<String,Integer> factionJsons;
 	private final JsonElement reputationStandingsData;
 
-	public PacketSyncFactions(FriendlyByteBuf buf) {
-		this.reputationStandingsData = JsonParser.parseString(NetworkUtil.readString(buf));
-		this.factionJsons = NetworkUtil.readGenericMap(buf,NetworkUtil::readString,FriendlyByteBuf::readInt);
-	}
-
-	public PacketSyncFactions(Map<Faction, Integer> factions, JsonElement reputationStandingsData) {
+	public PacketSyncFactions(Map<Faction,Integer> factions, JsonElement reputationStandingsData) {
 		this.factionJsons = new HashMap<>();
-		for(Faction f : factions.keySet()) this.factionJsons.put(f.toJsonString(), factions.get(f));
+		for(Faction f : factions.keySet()) this.factionJsons.put(f.toJsonString(),factions.get(f));
 		this.reputationStandingsData = reputationStandingsData;
-		Reputation.logInfo("Syncing {} factions to the client",factions.keySet().size());
+		Reputation.logInfo("Syncing {} factions to the client",factions.size());
+	}
+	
+	public PacketSyncFactions(ByteBuf buf) {
+		this.reputationStandingsData = JsonParser.parseString(NetworkHelper.readString(buf));
+		this.factionJsons = NetworkHelper.readMap(buf,() -> NetworkHelper.readString(buf),buf::readInt);
 	}
 
-	@Override
-	public Dist getSide() {
-		return Dist.CLIENT;
+	@Override public void encode(ByteBuf buf) {
+		NetworkHelper.writeString(buf,this.reputationStandingsData.toString());
+		NetworkHelper.writeMap(buf,this.factionJsons,key -> NetworkHelper.writeString(buf,key),buf::writeInt);
 	}
 
-	public void encode(FriendlyByteBuf buf) {
-		NetworkUtil.writeString(buf,this.reputationStandingsData.toString());
-		NetworkUtil.writeGenericMap(buf,this.factionJsons,NetworkUtil::writeString,FriendlyByteBuf::writeInt);
+	@Override public MessageAPI<Context> handle(Context ctx) {
+		ReputationHandler.readPacketData(getFactionData(),getReputationStandingsData());
+		return null;
 	}
 
-	@Override
-	public void handle(NetworkEvent.Context ctx) {
-		ReputationHandler.readPacketData(this.getFactionData(), this.getReputationStandingsData());
-	}
-
-	public HashMap<Faction, Integer> getFactionData() {
-		HashMap<Faction, Integer> ret = new HashMap<>();
+	public Map<Faction,Integer> getFactionData() {
+		Map<Faction,Integer> ret = new HashMap<>();
 		for(String factionData : this.factionJsons.keySet())
 			if(Objects.nonNull(factionData) && !factionData.isBlank())
-				ret.put(Faction.fromJsonAsString("from server packet "+hashCode(),factionData),this.factionJsons.get(factionData));
+				ret.put(Faction.fromJsonAsString("from server packet "+hashCode(),factionData),
+						this.factionJsons.get(factionData));
 		return ret;
 	}
 

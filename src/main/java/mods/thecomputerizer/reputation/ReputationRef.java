@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Random;
 
-public class Constants {
+public class ReputationRef {
 
 	public static final String MODID = "reputation";
 	public static final String NAME = "Reputation";
@@ -17,17 +17,21 @@ public class Constants {
 	public static float floatRand() {
 		return RANDOM.nextFloat();
 	}
+	
 	public static float floatRand(float bound) {
 		return RANDOM.nextFloat(bound);
 	}
+	
 	public static float floatRand(float min, float max) {
 		return Mth.randomBetween(RANDOM,min,max);
 	}
+	
 	public static int intRand(int bound) {
 		return RANDOM.nextInt(bound);
 	}
 
+	@SuppressWarnings("removal")
 	public static ResourceLocation res(String name) {
-		return new ResourceLocation(MODID, name.toLowerCase());
+		return new ResourceLocation(MODID,name.toLowerCase());
 	}
 }

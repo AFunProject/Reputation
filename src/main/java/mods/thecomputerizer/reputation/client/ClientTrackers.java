@@ -1,39 +1,43 @@
 package mods.thecomputerizer.reputation.client;
 
-import mods.thecomputerizer.reputation.Constants;
+import io.netty.buffer.ByteBuf;
 import mods.thecomputerizer.reputation.common.ai.ChatTracker;
+import mods.thecomputerizer.reputation.network.ReputationNetwork;
 import mods.thecomputerizer.reputation.util.HelperMethods;
-import mods.thecomputerizer.theimpossiblelibrary.util.NetworkUtil;
+import mods.thecomputerizer.theimpossiblelibrary.api.network.NetworkHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.TickEvent.ClientTickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-@Mod.EventBusSubscriber(modid = Constants.MODID, value = Dist.CLIENT)
+import static mods.thecomputerizer.reputation.ReputationRef.MODID;
+import static net.minecraftforge.api.distmarker.Dist.CLIENT;
+import static net.minecraftforge.event.TickEvent.Phase.END;
+
+@EventBusSubscriber(modid=MODID,value=CLIENT)
 public class ClientTrackers {
-    private static final Map<EntityType<?>, Data> CLIENT_ICON_DATA = new HashMap<>();
+    
+    private static final Map<EntityType<?>,Data> CLIENT_ICON_DATA = new HashMap<>();
 
     @SubscribeEvent
-    public static void tickTrackers(TickEvent.ClientTickEvent e) {
-        if(e.phase==TickEvent.Phase.END)
-            for(Data clientData : CLIENT_ICON_DATA.values())
-                clientData.tick();
+    public static void tickTrackers(ClientTickEvent e) {
+        if(e.phase==END)
+            for(Data clientData : CLIENT_ICON_DATA.values()) clientData.tick();
     }
 
-    public static void onSync(FriendlyByteBuf buf) {
+    public static void onSync(ByteBuf buf) {
         CLIENT_ICON_DATA.clear();
-        CLIENT_ICON_DATA.putAll(NetworkUtil.readGenericList(buf,Data::new).stream().filter(Data::isValid)
+        CLIENT_ICON_DATA.putAll(NetworkHelper.readList(buf,() -> new Data(buf)).stream().filter(Data::isValid)
                 .collect(Collectors.toMap(Data::getType,data -> data)));
     }
 
@@ -42,7 +46,7 @@ public class ClientTrackers {
         if(Objects.nonNull(player)) {
             for(ChatTracker tracker : trackers) {
                 Entity entity = player.level.getEntity(tracker.getEntityID());
-                if (entity instanceof LivingEntity living && CLIENT_ICON_DATA.containsKey(entity.getType()))
+                if(entity instanceof LivingEntity living && CLIENT_ICON_DATA.containsKey(entity.getType()))
                     CLIENT_ICON_DATA.get(entity.getType()).set(living,tracker.getEvent());
             }
         }
@@ -57,15 +61,17 @@ public class ClientTrackers {
     }
 
     public static class Data {
+        
         private final EntityType<?> type;
-        private final Map<String, List<ResourceLocation>> iconMap;
+        private final Map<String,List<ResourceLocation>> iconMap;
         private final long displayTimer;
-        private final Map<LivingEntity, ResourceLocation> currentIcons;
-        private final Map<LivingEntity, MutableInt> currentTimers;
-        private Data(FriendlyByteBuf buf) {
-            this.type = NetworkUtil.readEntityType(buf).orElse(null);
-            this.iconMap = NetworkUtil.readGenericMap(buf,NetworkUtil::readString,
-                    buf1 -> NetworkUtil.readGenericList(buf1,FriendlyByteBuf::readResourceLocation));
+        private final Map<LivingEntity,ResourceLocation> currentIcons;
+        private final Map<LivingEntity,MutableInt> currentTimers;
+        
+        private Data(ByteBuf buf) {
+            this.type = ReputationNetwork.readEntityType(buf);
+            this.iconMap = NetworkHelper.readMap(buf,() -> NetworkHelper.readString(buf),
+                    () -> NetworkHelper.readList(buf,() -> ReputationNetwork.readResourceLocation(buf)));
             this.displayTimer = buf.readLong();
             this.currentIcons = new HashMap<>();
             this.currentTimers = new HashMap<>();
@@ -88,11 +94,10 @@ public class ClientTrackers {
 
         private void tick() {
             if(!this.currentTimers.isEmpty()) {
-                for(MutableInt timer : this.currentTimers.values())
-                    timer.decrement();
-                Iterator<Map.Entry<LivingEntity, MutableInt>> itr = this.currentTimers.entrySet().iterator();
+                for(MutableInt timer : this.currentTimers.values()) timer.decrement();
+                Iterator<Entry<LivingEntity,MutableInt>> itr = this.currentTimers.entrySet().iterator();
                 while (itr.hasNext()) {
-                    Map.Entry<LivingEntity, MutableInt> entry = itr.next();
+                    Entry<LivingEntity,MutableInt> entry = itr.next();
                     if(entry.getValue().getValue()<=0) {
                         this.currentIcons.remove(entry.getKey());
                         itr.remove();

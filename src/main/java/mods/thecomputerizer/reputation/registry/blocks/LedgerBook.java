@@ -1,6 +1,6 @@
 package mods.thecomputerizer.reputation.registry.blocks;
 
-import mods.thecomputerizer.reputation.Constants;
+import mods.thecomputerizer.reputation.ReputationRef;
 import mods.thecomputerizer.reputation.capability.Faction;
 import mods.thecomputerizer.reputation.capability.handlers.ReputationHandler;
 import mods.thecomputerizer.reputation.registry.BlockEntitiesRegistry;
@@ -49,7 +49,7 @@ public class LedgerBook extends BaseEntityBlock {
         super(properties);
     }
 
-    @Override
+    @SuppressWarnings("removal") @Override
     public @NotNull InteractionResult use(
             @NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Player player,
             @NotNull InteractionHand hand, @NotNull BlockHitResult hit) {
@@ -69,8 +69,8 @@ public class LedgerBook extends BaseEntityBlock {
                             if(HelperMethods.getNearEntitiesOfFaction(sLevel,player,faction,8).isEmpty()) {
                                 player.sendMessage(new TranslatableComponent("ledger_book.reputation.acknowledgement"),Util.NIL_UUID);
                                 factor = 1f;
-                                level.playLocalSound(pos.getX(),pos.getY(),pos.getZ(),SoundRegistry.LEDGER_SIGN.get(),
-                                        SoundSource.BLOCKS,1f,Constants.floatRand(0.88f, 1.12f),false);
+                                level.playLocalSound(pos.getX(), pos.getY(), pos.getZ(), SoundRegistry.LEDGER_SIGN.get(),
+                                                     SoundSource.BLOCKS, 1f, ReputationRef.floatRand(0.88f, 1.12f), false);
                             } else {
                                 player.sendMessage(new TranslatableComponent("ledger_book.reputation.acknowledgement.extra"),Util.NIL_UUID);
                                 if(!tag.contains("Enchantments")) {
@@ -79,8 +79,8 @@ public class LedgerBook extends BaseEntityBlock {
                                     enchTag.putString("id", "signed");
                                     enchTag.putShort("lvl", (short) 1);
                                     tag.getList("Enchantments", 10).add(enchTag);
-                                    level.playLocalSound(pos.getX(),pos.getY(),pos.getZ(),SoundRegistry.LEDGER_SIGN.get(),
-                                            SoundSource.BLOCKS,1f,Constants.floatRand(0.88f, 1.12f),false);
+                                    level.playLocalSound(pos.getX(), pos.getY(), pos.getZ(), SoundRegistry.LEDGER_SIGN.get(),
+                                                         SoundSource.BLOCKS, 1f, ReputationRef.floatRand(0.88f, 1.12f), false);
                                 }
                             }
                             tag.putFloat("signed", factor);

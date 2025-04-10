@@ -1,22 +1,22 @@
 package mods.thecomputerizer.reputation.network;
 
+import io.netty.buffer.ByteBuf;
 import mods.thecomputerizer.reputation.capability.Faction;
 import mods.thecomputerizer.reputation.capability.handlers.ReputationHandler;
 import mods.thecomputerizer.reputation.client.ClientHandler;
-import mods.thecomputerizer.theimpossiblelibrary.network.MessageImpl;
-import net.minecraft.network.FriendlyByteBuf;
+import mods.thecomputerizer.theimpossiblelibrary.api.network.message.MessageAPI;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent.Context;
 
 import java.util.Objects;
 
-public class PacketSyncReputation extends MessageImpl {
+public class PacketSyncReputation extends MessageAPI<Context> {
 
 	private final ResourceLocation factionID;
 	private final int reputation;
-	public PacketSyncReputation(FriendlyByteBuf buf) {
-		this.factionID = buf.readResourceLocation();
+	
+	public PacketSyncReputation(ByteBuf buf) {
+		this.factionID = ReputationNetwork.readResourceLocation(buf);
 		this.reputation = buf.readInt();
 	}
 
@@ -25,22 +25,16 @@ public class PacketSyncReputation extends MessageImpl {
 		this.reputation = reputation;
 	}
 
-	@Override
-	public Dist getSide() {
-		return Dist.CLIENT;
-	}
-
-	@Override
-	public void encode(FriendlyByteBuf buf) {
-		buf.writeResourceLocation(this.factionID);
+	@Override public void encode(ByteBuf buf) {
+		ReputationNetwork.writeResourceLocation(buf,this.factionID);
 		buf.writeInt(this.reputation);
 	}
 
-	@Override
-	public void handle(NetworkEvent.Context ctx) {
+	@Override public MessageAPI<Context> handle(Context ctx) {
 		if(Objects.nonNull(this.factionID)) {
 			Faction faction = ReputationHandler.getFaction(this.factionID);
 			if(Objects.nonNull(faction)) ClientHandler.readReputationMessage(faction,this.reputation);
 		}
+		return null;
 	}
 }

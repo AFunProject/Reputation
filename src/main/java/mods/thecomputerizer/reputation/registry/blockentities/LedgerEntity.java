@@ -1,6 +1,6 @@
 package mods.thecomputerizer.reputation.registry.blockentities;
 
-import mods.thecomputerizer.reputation.Constants;
+import mods.thecomputerizer.reputation.ReputationRef;
 import mods.thecomputerizer.reputation.capability.Faction;
 import mods.thecomputerizer.reputation.capability.handlers.ReputationHandler;
 import mods.thecomputerizer.reputation.registry.BlockEntitiesRegistry;
@@ -73,6 +73,7 @@ public class LedgerEntity extends BaseContainerBlockEntity implements LidBlockEn
         }
     }
 
+    @SuppressWarnings("removal")
     protected void runCollection(Level level, BlockPos pos) {
         for(ItemStack stack : this.items) {
             if(!stack.isEmpty() && stack.getItem()==ItemRegistry.FACTION_BAG.get()) {
@@ -87,8 +88,8 @@ public class LedgerEntity extends BaseContainerBlockEntity implements LidBlockEn
                 }
             }
         }
-        level.playLocalSound(pos.getX(),pos.getY(),pos.getZ(),SoundRegistry.LEDGER_PLACE.get(),SoundSource.BLOCKS,
-                1f,Constants.floatRand(0.88f,1.12f),false);
+        level.playLocalSound(pos.getX(), pos.getY(), pos.getZ(), SoundRegistry.LEDGER_PLACE.get(), SoundSource.BLOCKS,
+                             1f, ReputationRef.floatRand(0.88f, 1.12f), false);
         this.clearContent();
         this.setCustomName(new TranslatableComponent("ledger.reputation.checked"));
         this.cooldownTimer = 2000;

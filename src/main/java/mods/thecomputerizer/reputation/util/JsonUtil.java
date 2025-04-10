@@ -3,7 +3,7 @@ package mods.thecomputerizer.reputation.util;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import mods.thecomputerizer.reputation.Reputation;
-import mods.thecomputerizer.reputation.Constants;
+import mods.thecomputerizer.reputation.ReputationRef;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -12,6 +12,7 @@ import java.util.*;
 
 public class JsonUtil {
 
+    @SuppressWarnings("removal")
     public static Optional<EntityType<?>> potentialEntity(JsonObject json, String element) {
         if(Objects.isNull(json) || !json.has(element)) return Optional.empty();
         try {
@@ -46,7 +47,7 @@ public class JsonUtil {
             try {
                 List<ResourceLocation> resources = new ArrayList<>();
                 for(JsonElement e : json.get(element).getAsJsonArray()) {
-                    ResourceLocation resource = Constants.res(resourcePath.replaceFirst("\\{}",e.getAsString()));
+                    ResourceLocation resource = ReputationRef.res(resourcePath.replaceFirst("\\{}", e.getAsString()));
                     if(!distinct || !resources.contains(resource)) resources.add(resource);
                 }
                 return resources;

@@ -1,6 +1,6 @@
 package mods.thecomputerizer.reputation.registry;
 
-import mods.thecomputerizer.reputation.Constants;
+import mods.thecomputerizer.reputation.ReputationRef;
 import mods.thecomputerizer.reputation.registry.blockentities.LedgerBookEntity;
 import mods.thecomputerizer.reputation.registry.blockentities.LedgerEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -12,7 +12,7 @@ import net.minecraftforge.registries.RegistryObject;
 @SuppressWarnings("ConstantConditions")
 public class BlockEntitiesRegistry {
     public static DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_REGISTRY =
-            DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, Constants.MODID);
+            DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, ReputationRef.MODID);
     public static RegistryObject<BlockEntityType<LedgerEntity>> LEDGER_ENTITY = BLOCK_ENTITY_REGISTRY.register(
             "ledger_entity", () -> BlockEntityType.Builder.of(LedgerEntity::new,BlockRegistry.LEDGER.get())
                     .build(null));

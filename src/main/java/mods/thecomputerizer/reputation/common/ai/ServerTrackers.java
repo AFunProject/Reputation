@@ -2,12 +2,13 @@ package mods.thecomputerizer.reputation.common.ai;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import mods.thecomputerizer.reputation.Constants;
+import io.netty.buffer.ByteBuf;
+import mods.thecomputerizer.reputation.ReputationRef;
 import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.network.PacketSyncChatIcons;
+import mods.thecomputerizer.reputation.network.ReputationNetwork;
 import mods.thecomputerizer.reputation.util.JsonUtil;
-import mods.thecomputerizer.theimpossiblelibrary.util.NetworkUtil;
-import net.minecraft.network.FriendlyByteBuf;
+import mods.thecomputerizer.theimpossiblelibrary.api.network.NetworkHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
@@ -16,7 +17,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class ServerTrackers {
-    public static final HashMap<EntityType<?>, Data> SERVER_ICON_DATA = new HashMap<>();
+    
+    public static final Map<EntityType<?>,Data> SERVER_ICON_DATA = new HashMap<>();
     private static float DEFAULT_CHANCE;
     private static float DEFAULT_CHANCE_VARIATION;
     public static long DEFAULT_COOLDOWN;
@@ -38,7 +40,7 @@ public class ServerTrackers {
 
     public static void syncChatIcons(ServerPlayer player) {
         if(!SERVER_ICON_DATA.isEmpty())
-            new PacketSyncChatIcons(new ArrayList<>(SERVER_ICON_DATA.values())).addPlayers(player).send();
+            ReputationNetwork.sendToClient(new PacketSyncChatIcons(new ArrayList<>(SERVER_ICON_DATA.values())),player);
     }
 
     public static boolean hasAnyIcons() {
@@ -62,18 +64,20 @@ public class ServerTrackers {
     public static boolean rollRandom(EntityType<?> type) {
         float min = Math.max(0f,SERVER_ICON_DATA.get(type).chance-SERVER_ICON_DATA.get(type).chanceVariation);
         float max = Math.min(1f,SERVER_ICON_DATA.get(type).chance+SERVER_ICON_DATA.get(type).chanceVariation);
-        float rand1 = Constants.floatRand(min,max);
-        float rand2 = Constants.floatRand();
+        float rand1 = ReputationRef.floatRand(min, max);
+        float rand2 = ReputationRef.floatRand();
         return rand1>rand2;
     }
 
     public static class Data {
+        
         private final EntityType<?> type;
-        private final Map<String, List<ResourceLocation>> iconMap;
+        private final Map<String,List<ResourceLocation>> iconMap;
         private final long queryTimer;
         private final long displayTimer;
         private final float chance;
         private final float chanceVariation;
+        
         private Data(JsonObject json) {
             this.type = JsonUtil.potentialEntity(json,"name").orElse(null);
             this.iconMap = JsonUtil.potentialResourceMap(json,true,"textures/chat/{}.png",
@@ -101,10 +105,11 @@ public class ServerTrackers {
             return this.type;
         }
 
-        public void encode(FriendlyByteBuf buf) {
-            NetworkUtil.writeEntityType(buf,this.type);
-            NetworkUtil.writeGenericMap(buf,this.iconMap,NetworkUtil::writeString,(buf1,list) ->
-                    NetworkUtil.writeGenericList(buf1,list,FriendlyByteBuf::writeResourceLocation));
+        public void encode(ByteBuf buf) {
+            ReputationNetwork.writeEntityType(buf,this.type);
+            NetworkHelper.writeMap(buf,this.iconMap,key -> NetworkHelper.writeString(buf,key),list ->
+                            NetworkHelper.writeList(buf,list,location ->
+                                    ReputationNetwork.writeResourceLocation(buf,location)));
             buf.writeLong(displayTimer);
         }
     }

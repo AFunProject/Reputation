@@ -1,6 +1,6 @@
 package mods.thecomputerizer.reputation.registry;
 
-import mods.thecomputerizer.reputation.Constants;
+import mods.thecomputerizer.reputation.ReputationRef;
 import mods.thecomputerizer.reputation.registry.items.FactionCurrencyBag;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -12,7 +12,7 @@ import net.minecraftforge.registries.RegistryObject;
 
 @SuppressWarnings("unused")
 public class ItemRegistry {
-    public static DeferredRegister<Item> ITEM_REGISTRY = DeferredRegister.create(ForgeRegistries.ITEMS, Constants.MODID);
+    public static DeferredRegister<Item> ITEM_REGISTRY = DeferredRegister.create(ForgeRegistries.ITEMS, ReputationRef.MODID);
     public static RegistryObject<Item> LEDGER_ITEM = ITEM_REGISTRY.register("ledger",
             () -> new BlockItem(BlockRegistry.LEDGER.get(), new Item.Properties().stacksTo(1)
                     .tab(RegistryHandler.REPUTATION_TAB).rarity(Rarity.RARE)));

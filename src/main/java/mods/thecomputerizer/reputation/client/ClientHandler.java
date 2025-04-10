@@ -1,8 +1,7 @@
 package mods.thecomputerizer.reputation.client;
 
-import mods.thecomputerizer.reputation.Constants;
+import mods.thecomputerizer.reputation.ReputationRef;
 import mods.thecomputerizer.reputation.capability.Faction;
-import mods.thecomputerizer.reputation.capability.handlers.PlayerFactionHandler;
 import mods.thecomputerizer.reputation.capability.handlers.ReputationHandler;
 import mods.thecomputerizer.reputation.capability.playerfaction.IPlayerFaction;
 import mods.thecomputerizer.reputation.capability.playerfaction.PlayerFactionProvider;
@@ -21,7 +20,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static mods.thecomputerizer.reputation.capability.handlers.PlayerFactionHandler.PLAYER_FACTIONS;
+
 public class ClientHandler {
+	
 	public static ReputationStandings standings;
 
 	public static void readReputationMessage(Faction faction, int reputation) {
@@ -37,10 +39,10 @@ public class ClientHandler {
 		Minecraft mc = Minecraft.getInstance();
 		Level overworld = ServerLifecycleHooks.getCurrentServer().overworld();
 		if(Objects.nonNull(mc.player) && Objects.nonNull(mc.level)) {
-			PlayerFactionProvider provider = PlayerFactionHandler.PLAYER_FACTIONS.get(faction);
+			PlayerFactionProvider provider = PLAYER_FACTIONS.get(faction);
 			Capability<IPlayerFaction> cap = Objects.nonNull(provider) ? provider.PLAYER_FACTION : null;
 			IPlayerFaction playerFaction = Objects.nonNull(cap) ? overworld.getCapability(cap).orElse(null) : null;
-			if (Objects.nonNull(playerFaction)) {
+			if(Objects.nonNull(playerFaction)) {
 				for(UUID uuid : uuids) {
 					Player player = mc.level.getPlayerByUUID(uuid);
 					if(Objects.nonNull(player)) playerFaction.addPlayer(player);
@@ -51,6 +53,6 @@ public class ClientHandler {
 
 	public static void playPacketSound(SoundEvent sound) {
 		SoundManager manager = Minecraft.getInstance().getSoundManager();
-		manager.play(SimpleSoundInstance.forUI(sound, Constants.floatRand(0.88f,1.12f)));
+		manager.play(SimpleSoundInstance.forUI(sound, ReputationRef.floatRand(0.88f,1.12f)));
 	}
 }

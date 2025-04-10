@@ -3,11 +3,9 @@ package mods.thecomputerizer.reputation.common.ai.goals;
 import mods.thecomputerizer.reputation.capability.Faction;
 import mods.thecomputerizer.reputation.capability.handlers.PlayerFactionHandler;
 import mods.thecomputerizer.reputation.capability.handlers.ReputationHandler;
-import mods.thecomputerizer.reputation.capability.reputation.ReputationProvider;
-import mods.thecomputerizer.reputation.client.ClientEvents;
 import mods.thecomputerizer.reputation.network.PacketFleeIcon;
+import mods.thecomputerizer.reputation.network.ReputationNetwork;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -23,6 +21,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+
+import static mods.thecomputerizer.reputation.capability.reputation.ReputationProvider.REPUTATION_CAPABILITY;
+import static mods.thecomputerizer.reputation.client.ClientEvents.FLEEING_MOBS;
+import static net.minecraft.world.entity.EntitySelector.NO_SPECTATORS;
 
 public class FleeGoal extends Goal {
 
@@ -45,17 +47,16 @@ public class FleeGoal extends Goal {
         this.pathNav = mob.getNavigation();
     }
 
-    @Override
-    public boolean canUse() {
+    @Override public boolean canUse() {
         if(this.checkReputation) return checkWithReputation();
         else return checkWithPlayerReputation();
     }
 
     private boolean checkWithReputation() {
         Level level = this.mob.level;
-        List<? extends Player> list = level.players().stream().filter(EntitySelector.NO_SPECTATORS)
-                .filter(player -> this.mob.closerThan(player, 16d))
-                .filter(player -> player.getCapability(ReputationProvider.REPUTATION_CAPABILITY).isPresent())
+        List<? extends Player> list = level.players().stream().filter(NO_SPECTATORS)
+                .filter(player -> this.mob.closerThan(player,16d))
+                .filter(player -> player.getCapability(REPUTATION_CAPABILITY).isPresent())
                 .sorted(Comparator.comparingDouble(this.mob::distanceToSqr)).toList();
         if(!list.isEmpty()) {
             Player nearest = list.get(0);
@@ -74,8 +75,7 @@ public class FleeGoal extends Goal {
                             return true;
                         }
                     }
-                }
-                else {
+                } else {
                     this.startFlee = false;
                     return false;
                 }
@@ -89,22 +89,21 @@ public class FleeGoal extends Goal {
         float percent = this.mob.getHealth()/this.mob.getMaxHealth();
         if(Objects.nonNull(this.player) || this.mob.getLastHurtByMob() instanceof Player ) {
             if(this.mob.getLastHurtByMob() instanceof Player p) this.player = p;
-            if (this.mob.distanceTo(this.player)<=28 && percent <= .5f) {
+            if(this.mob.distanceTo(this.player)<=28 && percent<=0.5f) {
                 boolean inFaction = ReputationHandler.getEntityFactions(this.mob).isEmpty();
-                for (Faction f : ReputationHandler.getEntityFactions(this.mob)) {
-                    if (PlayerFactionHandler.isPlayerInFaction(this.player, f)) inFaction = true;
-                }
-                if (!inFaction && this.random.nextFloat(51f)>=0f && !this.startFlee) {
+                for(Faction f : ReputationHandler.getEntityFactions(this.mob))
+                    if(PlayerFactionHandler.isPlayerInFaction(this.player,f)) inFaction = true;
+                if(!inFaction && this.random.nextFloat(51f)>=0f && !this.startFlee) {
                     this.startFlee = true;
-                    if (this.player instanceof ServerPlayer p)
-                        new PacketFleeIcon(this.mob.getUUID(),true).addPlayers(p).send();
-                    else if (!ClientEvents.FLEEING_MOBS.contains(this.mob.getUUID()))
-                        ClientEvents.FLEEING_MOBS.add(this.mob.getUUID());
+                    if(this.player instanceof ServerPlayer p)
+                        ReputationNetwork.sendToClient(new PacketFleeIcon(this.mob.getUUID(),true),p);
+                    else if(!FLEEING_MOBS.contains(this.mob.getUUID()))
+                        FLEEING_MOBS.add(this.mob.getUUID());
                 }
                 if(this.startFlee) {
-                    Vec3 vec3 = DefaultRandomPos.getPosAway((PathfinderMob) this.mob, 32, 7, this.player.position());
+                    Vec3 vec3 = DefaultRandomPos.getPosAway((PathfinderMob)this.mob,32,7,this.player.position());
                     if(Objects.isNull(vec3)) return false;
-                    else if (this.player.distanceToSqr(vec3.x,vec3.y,vec3.z) < this.player.distanceToSqr(this.mob)) return false;
+                    else if (this.player.distanceToSqr(vec3.x,vec3.y,vec3.z)<this.player.distanceToSqr(this.mob)) return false;
                     else {
                         this.pathNav.setSpeedModifier(this.speed);
                         this.path = this.pathNav.createPath(vec3.x,vec3.y,vec3.z,0);
@@ -114,27 +113,26 @@ public class FleeGoal extends Goal {
             }
             else if(this.startFlee) {
                 this.startFlee = false;
-                if (this.player instanceof ServerPlayer p)
-                    new PacketFleeIcon(this.mob.getUUID(),false).addPlayers(p).send();
-                else ClientEvents.FLEEING_MOBS.remove(this.mob.getUUID());
+                if(this.player instanceof ServerPlayer p)
+                    ReputationNetwork.sendToClient(new PacketFleeIcon(this.mob.getUUID(),false),p);
+                else FLEEING_MOBS.remove(this.mob.getUUID());
             }
         }
         else if(this.startFlee) {
             this.startFlee = false;
             if(this.player instanceof ServerPlayer p)
-                new PacketFleeIcon(this.mob.getUUID(),false).addPlayers(p).send();
-            else ClientEvents.FLEEING_MOBS.remove(this.mob.getUUID());
+                ReputationNetwork.sendToClient(new PacketFleeIcon(this.mob.getUUID(),false),p);
+            else FLEEING_MOBS.remove(this.mob.getUUID());
         }
-        if (percent<=0.5f && startFlee && !this.mob.isDeadOrDying() && this.mob.distanceTo(this.player)>28) {
-            for (Faction f : ReputationHandler.getEntityFactions(this.mob))
-                ReputationHandler.changeReputation(this.player, f, -1 * f.getActionWeighting("fleeing"));
+        if(percent<=0.5f && startFlee && !this.mob.isDeadOrDying() && this.mob.distanceTo(this.player)>28) {
+            for(Faction f : ReputationHandler.getEntityFactions(this.mob))
+                ReputationHandler.changeReputation(this.player,f,-1*f.getActionWeighting("fleeing"));
             this.mob.discard();
         }
         return this.startFlee;
     }
 
-    @Override
-    public boolean canContinueToUse() {
+    @Override public boolean canContinueToUse() {
         if(this.pathNav.isDone() && this.startFlee) {
             Vec3 vec3 = DefaultRandomPos.getPosAway((PathfinderMob)this.mob,32,7, this.player.position());
             if (Objects.nonNull(vec3) && !(this.player.distanceToSqr(vec3.x,vec3.y,vec3.z) < this.player.distanceToSqr(this.mob))) {
@@ -145,18 +143,15 @@ public class FleeGoal extends Goal {
         return this.startFlee;
     }
 
-    @Override
-    public void start() {
-        this.pathNav.moveTo(this.path, this.speed);
+    @Override public void start() {
+        this.pathNav.moveTo(this.path,this.speed);
     }
 
-    @Override
-    public void stop() {
+    @Override public void stop() {
         this.player = null;
     }
 
-    @Override
-    public void tick() {
+    @Override public void tick() {
         this.pathNav.setSpeedModifier(this.speed);
         this.mob.getNavigation().setSpeedModifier(this.speed);
     }

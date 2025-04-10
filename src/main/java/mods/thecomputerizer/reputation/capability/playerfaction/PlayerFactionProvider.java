@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class PlayerFactionProvider implements ICapabilitySerializable<CompoundTag> {
 
-    public Capability<IPlayerFaction> PLAYER_FACTION = CapabilityManager.get(new CapabilityToken<>() {});
+    public Capability<IPlayerFaction> PLAYER_FACTION = CapabilityManager.get(new CapabilityToken<>(){});
 
     private final IPlayerFaction instance;
 
@@ -20,18 +20,15 @@ public class PlayerFactionProvider implements ICapabilitySerializable<CompoundTa
         instance = new PlayerFaction(faction);
     }
 
-    @Override
-    public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, Direction side) {
-        return cap == PLAYER_FACTION ? LazyOptional.of(() -> instance).cast() : LazyOptional.empty();
+    @Override public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, Direction side) {
+        return cap==PLAYER_FACTION ? LazyOptional.of(() -> instance).cast() : LazyOptional.empty();
     }
 
-    @Override
-    public CompoundTag serializeNBT() {
+    @Override public CompoundTag serializeNBT() {
         return instance.writeTag(new CompoundTag());
     }
 
-    @Override
-    public void deserializeNBT(CompoundTag nbt) {
+    @Override public void deserializeNBT(CompoundTag nbt) {
         instance.readTag(nbt);
     }
 }

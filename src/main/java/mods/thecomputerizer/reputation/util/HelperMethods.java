@@ -4,7 +4,7 @@ import mods.thecomputerizer.reputation.Reputation;
 import mods.thecomputerizer.reputation.capability.Faction;
 import mods.thecomputerizer.reputation.capability.handlers.PlayerFactionHandler;
 import mods.thecomputerizer.reputation.capability.handlers.ReputationHandler;
-import mods.thecomputerizer.reputation.Constants;
+import mods.thecomputerizer.reputation.ReputationRef;
 import mods.thecomputerizer.reputation.capability.reputation.ReputationProvider;
 import mods.thecomputerizer.reputation.common.ai.ReputationAIPackages;
 import mods.thecomputerizer.reputation.common.ai.ReputationStandings;
@@ -221,6 +221,6 @@ public class HelperMethods {
     public static <T> T randomListElement(@Nonnull List<T> list) {
         int size = list.size();
         if(size==0) return null;
-        return size==1 ? list.get(0) : list.get(Constants.intRand(size));
+        return size==1 ? list.get(0) : list.get(ReputationRef.intRand(size));
     }
 }

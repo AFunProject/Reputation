@@ -1,17 +1,18 @@
 package mods.thecomputerizer.reputation.capability.handlers;
 
 import mods.thecomputerizer.reputation.capability.placedcontainer.IPlacedContainer;
-import mods.thecomputerizer.reputation.capability.placedcontainer.PlacedContainerProvider;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
 
+import static mods.thecomputerizer.reputation.capability.placedcontainer.PlacedContainerProvider.PLACED_CONTAINER_CAPABILITY;
+
 public class ContainerHandler {
 
     @SuppressWarnings("DataFlowIssue")
     private static @Nullable IPlacedContainer getCapability(BlockEntity entity) {
-        return entity.getCapability(PlacedContainerProvider.PLACED_CONTAINER_CAPABILITY).orElse(null);
+        return entity.getCapability(PLACED_CONTAINER_CAPABILITY).orElse(null);
     }
 
     public static boolean changesReputation(BlockEntity entity) {

@@ -16,13 +16,11 @@ public class ReputationAttackableTargetGoal<T extends LivingEntity> extends Near
         this.self = mob;
     }
 
-    @Override
-    public boolean canUse() {
+    @Override public boolean canUse() {
         return Objects.nonNull(HelperMethods.getNearestPlayerInBadStandingToEntity(this.self,16d)) && super.canUse();
     }
 
-    @Override
-    public boolean canContinueToUse() {
+    @Override public boolean canContinueToUse() {
         return Objects.nonNull(HelperMethods.getNearestPlayerInBadStandingToEntity(this.self,16d)) && super.canContinueToUse();
     }
 }

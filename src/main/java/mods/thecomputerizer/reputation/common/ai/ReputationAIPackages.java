@@ -17,6 +17,13 @@ import net.minecraft.world.entity.schedule.Activity;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static mods.thecomputerizer.reputation.common.ai.ReputationMemoryModule.FLEE_FROM_PLAYER;
+import static mods.thecomputerizer.reputation.common.ai.ReputationMemoryModule.NEAREST_PLAYER_BAD_REPUTATION;
+import static mods.thecomputerizer.reputation.common.ai.ReputationMemoryModule.NEAREST_PLAYER_GOOD_REPUTATION;
+import static mods.thecomputerizer.reputation.common.ai.ReputationMemoryModule.NEAREST_PLAYER_NEUTRAL_REPUTATION;
+import static mods.thecomputerizer.reputation.common.ai.ReputationSenorType.NEAREST_PLAYER_REPUTATION;
+import static net.minecraft.world.entity.schedule.Activity.*;
+
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ReputationAIPackages {
 
@@ -27,50 +34,54 @@ public class ReputationAIPackages {
     }
 
     public static void buildReputationSensor(Brain<? extends LivingEntity> brain) {
-        brain.memories.put(ReputationMemoryModule.NEAREST_PLAYER_BAD_REPUTATION.get(),Optional.empty());
-        brain.memories.put(ReputationMemoryModule.NEAREST_PLAYER_NEUTRAL_REPUTATION.get(),Optional.empty());
-        brain.memories.put(ReputationMemoryModule.NEAREST_PLAYER_GOOD_REPUTATION.get(),Optional.empty());
-        brain.memories.put(ReputationMemoryModule.FLEE_FROM_PLAYER.get(),Optional.empty());
-        brain.sensors.put(ReputationSenorType.NEAREST_PLAYER_REPUTATION.get(),ReputationSenorType.NEAREST_PLAYER_REPUTATION.get().create());
+        brain.memories.put(NEAREST_PLAYER_BAD_REPUTATION.get(),Optional.empty());
+        brain.memories.put(NEAREST_PLAYER_NEUTRAL_REPUTATION.get(),Optional.empty());
+        brain.memories.put(NEAREST_PLAYER_GOOD_REPUTATION.get(),Optional.empty());
+        brain.memories.put(FLEE_FROM_PLAYER.get(),Optional.empty());
+        brain.sensors.put(NEAREST_PLAYER_REPUTATION.get(),NEAREST_PLAYER_REPUTATION.get().create());
     }
 
     public static void buildReputationFleeAI(Brain brain, float f, String reputationBound) {
-        for (Activity activity : Arrays.asList(Activity.PANIC,Activity.CORE,Activity.MEET,Activity.IDLE,Activity.REST,Activity.HIDE)) {
+        for(Activity activity : Arrays.asList(PANIC,CORE,MEET,IDLE,REST,HIDE))
             brain.addActivity(activity, getFleePackage(f,reputationBound));
-        }
     }
 
     public static void buildReputationInjuredAI(Brain brain, float f) {
-        for (Activity activity : Arrays.asList(Activity.PANIC,Activity.CORE,Activity.MEET,Activity.IDLE,Activity.REST,Activity.HIDE)) {
+        for(Activity activity : Arrays.asList(PANIC,CORE,MEET,IDLE,REST,HIDE))
             brain.addActivity(activity, getInjuredFleePackage(f));
-        }
     }
 
     public static void buildReputationPassiveAI(Brain brain, int time, String reputationBound) {
-        brain.addActivity(Activity.CORE,getPassivePackage(time,reputationBound));
-        brain.addActivity(Activity.FIGHT,getPassivePackage(time,reputationBound));
+        brain.addActivity(CORE,getPassivePackage(time,reputationBound));
+        brain.addActivity(FIGHT,getPassivePackage(time,reputationBound));
     }
 
     public static void buildReputationHostileAI(Mob mob, Brain brain, String reputationBound) {
-        brain.addActivity(Activity.IDLE,getHostilePackage(mob,brain,reputationBound));
+        brain.addActivity(IDLE,getHostilePackage(mob,brain,reputationBound));
     }
 
-    public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getFleePackage(float f, String reputationBound) {
-        return ImmutableList.of(Pair.of(0,SetWalkTargetAwayFrom.entity(ReputationMemoryModule.getNearestModuleFromString(reputationBound),f,6,false)));
+    public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getFleePackage(float f,
+            String reputationBound) {
+        return ImmutableList.of(Pair.of(0,SetWalkTargetAwayFrom.entity(
+                ReputationMemoryModule.getNearestModuleFromString(reputationBound),f,6,false)));
     }
 
-    public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getInjuredFleePackage(float f) {
-        return ImmutableList.of(Pair.of(0,SetWalkTargetAwayFrom.entity(ReputationMemoryModule.FLEE_FROM_PLAYER.get(),f,32,false)));
+    public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getInjuredFleePackage(
+            float f) {
+        return ImmutableList.of(Pair.of(0,SetWalkTargetAwayFrom.entity(FLEE_FROM_PLAYER.get(),f,32,false)));
     }
 
-    public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getPassivePackage(int time, String reputationBound) {
-        return ImmutableList.of(Pair.of(0,new BecomePassiveIfMemoryPresent(ReputationMemoryModule.getNearestModuleFromString(reputationBound),time)));
+    public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getPassivePackage(int time,
+            String reputationBound) {
+        return ImmutableList.of(Pair.of(0,new BecomePassiveIfMemoryPresent(
+                ReputationMemoryModule.getNearestModuleFromString(reputationBound),time)));
     }
 
-    public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getHostilePackage(Mob mob, Brain<? extends LivingEntity> brain, String reputationBound) {
-        return ImmutableList.of(Pair.of(1, new StartAttacking<>(attackFunction -> {
+    public static ImmutableList<Pair<Integer, ? extends Behavior<? extends LivingEntity>>> getHostilePackage(Mob mob,
+            Brain<? extends LivingEntity> brain, String reputationBound) {
+        return ImmutableList.of(Pair.of(1,new StartAttacking<>(attackFunction -> {
             Optional<Player> optional = brain.getMemory(ReputationMemoryModule.getNearestModuleFromString(reputationBound));
-            return optional.isPresent() && Sensor.isEntityAttackable(mob, optional.get()) ? optional : Optional.empty();
+            return optional.isPresent() && Sensor.isEntityAttackable(mob,optional.get()) ? optional : Optional.empty();
         })));
     }
 }

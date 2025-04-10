@@ -4,7 +4,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import mods.thecomputerizer.reputation.Constants;
 import mods.thecomputerizer.reputation.capability.Faction;
 import mods.thecomputerizer.reputation.capability.handlers.PlayerFactionHandler;
 import mods.thecomputerizer.reputation.capability.handlers.ReputationHandler;
@@ -20,10 +19,12 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.Objects;
 
+import static mods.thecomputerizer.reputation.ReputationRef.MODID;
+
 public class ReputationCommands {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal(Constants.MODID)
+        dispatcher.register(Commands.literal(MODID)
                 .then(reputationArguments("addreputation",true))
                 .then(reputationArguments("setreputation",false))
                 .then(playerFactionArguments("addplayerfaction",true))
@@ -32,27 +33,28 @@ public class ReputationCommands {
 
     private static ArgumentBuilder<CommandSourceStack,?> reputationArguments(String type, boolean isAdd) {
         return Commands.literal(type)
-                .then(Commands.argument("resourcelocation", ReputationFactionArgument.id())
-                        .then(Commands.argument("reputation", IntegerArgumentType.integer())
+                .then(Commands.argument("resourcelocation",ReputationFactionArgument.id())
+                        .then(Commands.argument("reputation",IntegerArgumentType.integer())
                                 .executes(ctx -> addReputation(ctx,type,isAdd)))
-                        .then(Commands.argument("entity", EntityArgument.entity())
-                                .then(Commands.argument("reputation", IntegerArgumentType.integer())
+                        .then(Commands.argument("entity",EntityArgument.entity())
+                                .then(Commands.argument("reputation",IntegerArgumentType.integer())
                                         .executes(ctx -> addReputation(ctx,type,isAdd))))
                 );
     }
 
     private static ArgumentBuilder<CommandSourceStack,?> playerFactionArguments(String type, boolean isAdd) {
         return Commands.literal(type)
-                .then(Commands.argument("resourcelocation", ReputationFactionArgument.id())
-                        .then(Commands.argument("reputation", IntegerArgumentType.integer())
+                .then(Commands.argument("resourcelocation",ReputationFactionArgument.id())
+                        .then(Commands.argument("reputation",IntegerArgumentType.integer())
                                 .executes(ctx -> playerFaction(ctx,type,isAdd)))
-                        .then(Commands.argument("entity", EntityArgument.entity())
-                                .then(Commands.argument("reputation", IntegerArgumentType.integer())
+                        .then(Commands.argument("entity",EntityArgument.entity())
+                                .then(Commands.argument("reputation",IntegerArgumentType.integer())
                                         .executes(ctx -> playerFaction(ctx,type,isAdd))))
                 );
     }
 
-    private static int addReputation(CommandContext<CommandSourceStack> ctx, String type, boolean isAdd) throws CommandRuntimeException {
+    private static int addReputation(CommandContext<CommandSourceStack> ctx, String type, boolean isAdd)
+            throws CommandRuntimeException {
         try {
             String lang = isAdd ? "add_reputation" : "set_reputation";
             boolean hasPlayerSelector = false;
@@ -76,8 +78,8 @@ public class ReputationCommands {
                 } else throwException("failure.modify.faction",factionRes);
             } else throwException("failure.player");
         }
-        catch(Exception e) {
-            throwException("failure.unknown",type);
+        catch(Exception ex) {
+            throwException("failure.unknown",type,ex);
         }
         return 1;
     }
@@ -100,20 +102,20 @@ public class ReputationCommands {
                     if(isAdd) success = PlayerFactionHandler.addPlayerToFaction(player,faction);
                     else success = PlayerFactionHandler.removePlayerFromFaction(player,faction);
                     sendSuccess(player,lang+(success ? ".success" : ".fail"),player.getDisplayName().getString(),factionRes);
-                } else throwException("failure.modify.faction", factionRes);
+                } else throwException("failure.modify.faction",factionRes);
             } else throwException("failure.player");
         }
-        catch(Exception e) {
-            throwException("failure.unknown",type);
+        catch(Exception ex) {
+            throwException("failure.unknown",type,ex);
         }
         return 1;
     }
 
     private static void sendSuccess(Player player, String lang, Object ... parameters) {
-        player.sendMessage(new TranslatableComponent("commands."+Constants.MODID+"."+lang,parameters),player.getUUID());
+        player.sendMessage(new TranslatableComponent("commands."+MODID+"."+lang, parameters), player.getUUID());
     }
 
     private static void throwException(String lang, Object ... parameters) {
-        throw new CommandRuntimeException(new TranslatableComponent("commands."+Constants.MODID+"."+lang,parameters));
+        throw new CommandRuntimeException(new TranslatableComponent("commands."+MODID+"."+lang, parameters));
     }
 }
