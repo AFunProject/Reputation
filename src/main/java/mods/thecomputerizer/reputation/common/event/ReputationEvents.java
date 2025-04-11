@@ -24,7 +24,7 @@ import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock;
 import net.minecraftforge.event.world.BlockEvent.EntityPlaceEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -60,7 +60,7 @@ public class ReputationEvents {
 	}
 
 	@SubscribeEvent
-	public static void useBlock(PlayerInteractEvent.RightClickBlock event) {
+	public static void useBlock(RightClickBlock event) {
 		if(event.getWorld() instanceof ServerLevel level && event.getUseBlock()!=DENY) {
 			BlockEntity entity = level.getBlockEntity(event.getPos());
 			if(entity instanceof Container &&

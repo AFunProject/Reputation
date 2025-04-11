@@ -4,22 +4,24 @@ import mods.thecomputerizer.reputation.ReputationRef;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
+import static mods.thecomputerizer.reputation.ReputationRef.MODID;
+import static net.minecraftforge.registries.ForgeRegistries.Keys.SOUND_EVENTS;
+
 public class SoundRegistry {
-    public static final DeferredRegister<SoundEvent> SOUNDS = 
-            DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, ReputationRef.MODID);
-    public static final RegistryObject<SoundEvent> INCREASE_REPUTATION = SOUNDS.register("increase_reputation", 
-            () -> new SoundEvent(ReputationRef.res("increase_reputation")));
-    public static final RegistryObject<SoundEvent> DECREASE_REPUTATION = SOUNDS.register("decrease_reputation", 
-            () -> new SoundEvent(ReputationRef.res("decrease_reputation")));
-    public static final RegistryObject<SoundEvent> FLEE = SOUNDS.register("flee", 
-            () -> new SoundEvent(ReputationRef.res("flee")));
-    public static final RegistryObject<SoundEvent> LEDGER_PLACE = SOUNDS.register("ledger_place", 
-            () -> new SoundEvent(ReputationRef.res("ledger_place")));
-    public static final RegistryObject<SoundEvent> LEDGER_SIGN = SOUNDS.register("ledger_sign", 
-            () -> new SoundEvent(ReputationRef.res("ledger_sign")));
+    
+    public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(SOUND_EVENTS,MODID);
+    
+    public static final RegistryObject<SoundEvent> INCREASE_REPUTATION = make("increase_reputation");
+    public static final RegistryObject<SoundEvent> DECREASE_REPUTATION = make("decrease_reputation");
+    public static final RegistryObject<SoundEvent> FLEE = make("flee");
+    public static final RegistryObject<SoundEvent> LEDGER_PLACE = make("ledger_place");
+    public static final RegistryObject<SoundEvent> LEDGER_SIGN = make("ledger_sign");
+    
+    private static RegistryObject<SoundEvent> make(String name) {
+        return SOUNDS.register(name,() -> new SoundEvent(ReputationRef.res(name)));
+    }
 
     public static void register(IEventBus bus) {
         SOUNDS.register(bus);

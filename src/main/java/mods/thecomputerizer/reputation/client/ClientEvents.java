@@ -6,7 +6,6 @@ import com.mojang.math.Matrix4f;
 import mods.thecomputerizer.reputation.ReputationRef;
 import mods.thecomputerizer.reputation.capability.Faction;
 import mods.thecomputerizer.reputation.capability.handlers.ReputationHandler;
-import mods.thecomputerizer.reputation.config.ClientConfigHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -25,6 +24,7 @@ import java.util.*;
 
 import static com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_TEX;
 import static com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS;
+import static mods.thecomputerizer.reputation.client.ClientConfigHandler.DEBUG;
 import static mods.thecomputerizer.reputation.ReputationRef.MODID;
 import static net.minecraftforge.api.distmarker.Dist.CLIENT;
 import static net.minecraftforge.eventbus.api.EventPriority.LOWEST;
@@ -62,7 +62,7 @@ public class ClientEvents {
                 PoseStack matrix = event.getPoseStack();
                 EntityRenderer<?> renderer = event.getEntityRenderer();
                 if(!FLEEING_MOBS.contains(living.getUUID())) {
-                    if(ClientConfigHandler.debug.get()) {
+                    if(ClientConfigHandler.DEBUG.get()) {
                         int offset = 0;
                         ResourceLocation icon = null;
                         for(Faction f : ReputationHandler.getEntityFactions(living)) {
@@ -122,7 +122,7 @@ public class ClientEvents {
      */
     @SubscribeEvent
     public static void debugInfo(Text event) {
-        if(ClientConfigHandler.debug.get() && Objects.nonNull(Minecraft.getInstance().player))
+        if(DEBUG.get() && Objects.nonNull(Minecraft.getInstance().player))
             for(Faction f : CLIENT_FACTIONS.values())
                 event.getLeft().add("Reputation for the "+f.getID()+" faction: "+CLIENT_FACTIONS_REPUTATION.get(f));
     }

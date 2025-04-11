@@ -31,6 +31,11 @@ public class ReputationHandler {
 			FACTIONS.put(faction.getID(),faction);
 		}
 	}
+	
+	@SuppressWarnings("removal")
+	public static Faction getFaction(String location) {
+		return getFaction(new ResourceLocation(location));
+	}
 
 	public static Faction getFaction(ResourceLocation res) {
 		return FACTIONS.get(res);

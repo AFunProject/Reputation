@@ -1,9 +1,8 @@
 package mods.thecomputerizer.reputation.registry.blocks;
 
 import mods.thecomputerizer.reputation.registry.blockentities.LedgerEntity;
-import mods.thecomputerizer.reputation.registry.BlockEntitiesRegistry;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
@@ -17,98 +16,94 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings("deprecation")
-public class Ledger extends BaseEntityBlock {
+import javax.annotation.ParametersAreNonnullByDefault;
 
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+import static mods.thecomputerizer.reputation.registry.BlockEntitiesRegistry.LEDGER_ENTITY;
+import static net.minecraft.core.Direction.NORTH;
+import static net.minecraft.core.Direction.SOUTH;
+import static net.minecraft.world.InteractionResult.PASS;
+import static net.minecraft.world.InteractionResult.SUCCESS;
+import static net.minecraft.world.level.block.HorizontalDirectionalBlock.FACING;
+import static net.minecraft.world.level.block.RenderShape.MODEL;
+
+@MethodsReturnNonnullByDefault @ParametersAreNonnullByDefault
+public class Ledger extends BaseEntityBlock {
+    
     public Ledger(Properties properties) {
         super(properties);
     }
-
-    @Override
-    public @NotNull InteractionResult use(
-            @NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Player player,
-            @NotNull InteractionHand hand, @NotNull BlockHitResult hit) {
-        if (level.isClientSide) return InteractionResult.SUCCESS;
-        else {
-            BlockEntity entity = level.getBlockEntity(pos);
-            if(entity instanceof LedgerEntity)
-                player.openMenu(state.getMenuProvider(level,pos));
-            return InteractionResult.PASS;
-        }
+    
+    @SuppressWarnings("deprecation")
+    @Override public RenderShape getRenderShape(BlockState state) {
+        return MODEL;
     }
 
-    @Override
-    public @NotNull RenderShape getRenderShape(@NotNull BlockState state) {
-        return RenderShape.MODEL;
+    @Override protected void createBlockStateDefinition(Builder<Block,BlockState> builder) {
+        builder.add(FACING);
     }
-
-    @Override
-    public @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos,
-                                        @NotNull CollisionContext ctx) {
-        if(state.getValue(FACING)==Direction.NORTH || state.getValue(FACING)==Direction.SOUTH)
-            return Block.box(0d,0d,2d,16d,10d,14d);
-        return Block.box(2d,0d,0d,14d,10d,16d);
+    
+    protected static <T extends BlockEntity> @Nullable BlockEntityTicker<T> createTicker(Level level,
+            BlockEntityType<T> type, BlockEntityType<T> ledgerType) {
+        return level.isClientSide ? null : createTickerHelper(type,ledgerType,LedgerEntity::tick);
     }
-
-    @Override
-    public void onRemove(BlockState state, @NotNull Level level, @NotNull BlockPos pos, BlockState newState,
-                         boolean isMoving) {
-        if (!state.is(newState.getBlock())) {
+    
+    @SuppressWarnings("deprecation")
+    @Override public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
+        final boolean ns = state.getValue(FACING)==NORTH || state.getValue(FACING)==SOUTH;
+        double x = ns ? 2d : 0d;
+        double z = ns ? 0d : 2d;
+        return Block.box(2d-x,0d,2d-z,14d+x,10d,14d+z);
+    }
+    
+    @Override public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        return this.defaultBlockState().setValue(FACING,ctx.getHorizontalDirection().getOpposite());
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state,
+            BlockEntityType<T> type) {
+        return createTicker(level,type,(BlockEntityType<T>)LEDGER_ENTITY.get());
+    }
+    
+    @SuppressWarnings("deprecation")
+    @Override public @NotNull BlockState mirror(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+    
+    @Override public  @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new LedgerEntity(pos,state);
+    }
+    
+    @SuppressWarnings("deprecation")
+    @Override public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        if(!state.is(newState.getBlock())) {
             BlockEntity blockentity = level.getBlockEntity(pos);
-            if (blockentity instanceof Container container) {
+            if(blockentity instanceof Container container) {
                 Containers.dropContents(level,pos,container);
                 level.updateNeighbourForOutputSignal(pos,this);
             }
             super.onRemove(state,level,pos,newState,isMoving);
         }
     }
-
-    @Override
-    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
-        return this.defaultBlockState().setValue(FACING,ctx.getHorizontalDirection().getOpposite());
-    }
-
-    @Override
-    public @NotNull BlockState rotate(BlockState state, Rotation rotation) {
+    
+    @SuppressWarnings("deprecation")
+    @Override public @NotNull BlockState rotate(BlockState state, Rotation rotation) {
         return state.setValue(FACING,rotation.rotate(state.getValue(FACING)));
     }
-
-    @Override
-    public @NotNull BlockState mirror(BlockState state, Mirror mirror) {
-        return state.rotate(mirror.getRotation(state.getValue(FACING)));
-    }
-
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block,BlockState> builder) {
-        builder.add(FACING);
-    }
-
-    @Nullable
-    @Override
-    public BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
-        return new LedgerEntity(pos,state);
-    }
-
-    @Nullable
-    @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(
-            @NotNull Level level, @NotNull BlockState state,@NotNull BlockEntityType<T> type) {
-        return createTicker(level, type, BlockEntitiesRegistry.LEDGER_ENTITY.get());
-    }
-
-   @Nullable
-    protected static <T extends BlockEntity> BlockEntityTicker<T> createTicker(
-            Level level, @NotNull BlockEntityType<T> type, BlockEntityType<? extends LedgerEntity> ledgerType) {
-        return level.isClientSide ? null :
-                createTickerHelper(type,ledgerType,(level1,pos,state,ledger) -> LedgerEntity.tick(level1,pos,ledger));
+    
+    @SuppressWarnings("deprecation")
+    @Override public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+            InteractionHand hand, BlockHitResult hit) {
+        if(level.isClientSide) return SUCCESS;
+        BlockEntity entity = level.getBlockEntity(pos);
+        if(entity instanceof LedgerEntity) player.openMenu(state.getMenuProvider(level,pos));
+        return PASS;
     }
 }

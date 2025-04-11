@@ -3,24 +3,21 @@ package mods.thecomputerizer.reputation.registry.blocks;
 import mods.thecomputerizer.reputation.ReputationRef;
 import mods.thecomputerizer.reputation.capability.Faction;
 import mods.thecomputerizer.reputation.capability.handlers.ReputationHandler;
-import mods.thecomputerizer.reputation.registry.BlockEntitiesRegistry;
-import mods.thecomputerizer.reputation.registry.SoundRegistry;
 import mods.thecomputerizer.reputation.registry.blockentities.LedgerBookEntity;
 import mods.thecomputerizer.reputation.registry.items.FactionCurrencyBag;
 import mods.thecomputerizer.reputation.util.HelperMethods;
-import net.minecraft.Util;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -29,127 +26,137 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Objects;
 
+import static mods.thecomputerizer.reputation.registry.BlockEntitiesRegistry.LEDGER_BOOK_ENTITY;
+import static mods.thecomputerizer.reputation.registry.SoundRegistry.LEDGER_SIGN;
+import static net.minecraft.Util.NIL_UUID;
+import static net.minecraft.sounds.SoundSource.BLOCKS;
+import static net.minecraft.world.InteractionResult.CONSUME_PARTIAL;
+import static net.minecraft.world.InteractionResult.FAIL;
+import static net.minecraft.world.InteractionResult.PASS;
+import static net.minecraft.world.InteractionResult.SUCCESS;
+import static net.minecraft.world.item.Items.INK_SAC;
+import static net.minecraft.world.level.block.HorizontalDirectionalBlock.FACING;
+import static net.minecraft.world.level.block.RenderShape.MODEL;
 
-@SuppressWarnings("deprecation")
+@MethodsReturnNonnullByDefault @ParametersAreNonnullByDefault
 public class LedgerBook extends BaseEntityBlock {
-
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
 
     public LedgerBook(Properties properties) {
         super(properties);
     }
 
-    @SuppressWarnings("removal") @Override
-    public @NotNull InteractionResult use(
-            @NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Player player,
-            @NotNull InteractionHand hand, @NotNull BlockHitResult hit) {
-        if(level.isClientSide) return InteractionResult.SUCCESS;
-        else {
-            BlockEntity entity = level.getBlockEntity(pos);
-            if(entity instanceof LedgerBookEntity ledgerBookEntity) {
-                ItemStack mainItem = player.getMainHandItem();
-                ItemStack offItem = player.getOffhandItem();
-                if(ledgerBookEntity.canUse() && level instanceof ServerLevel sLevel) {
-                    CompoundTag tag = mainItem.getOrCreateTag();
-                    if(mainItem.getItem() instanceof FactionCurrencyBag && offItem.getItem()==Items.INK_SAC &&
-                            tag.contains("factionID")) {
-                        Faction faction = ReputationHandler.getFaction(new ResourceLocation(tag.getString("factionID")));
-                        if(Objects.nonNull(faction) && !tag.contains("signed")) {
-                            float factor = 2f;
-                            if(HelperMethods.getNearEntitiesOfFaction(sLevel,player,faction,8).isEmpty()) {
-                                player.sendMessage(new TranslatableComponent("ledger_book.reputation.acknowledgement"),Util.NIL_UUID);
-                                factor = 1f;
-                                level.playLocalSound(pos.getX(), pos.getY(), pos.getZ(), SoundRegistry.LEDGER_SIGN.get(),
-                                                     SoundSource.BLOCKS, 1f, ReputationRef.floatRand(0.88f, 1.12f), false);
-                            } else {
-                                player.sendMessage(new TranslatableComponent("ledger_book.reputation.acknowledgement.extra"),Util.NIL_UUID);
-                                if(!tag.contains("Enchantments")) {
-                                    tag.put("Enchantments", new ListTag());
-                                    CompoundTag enchTag = new CompoundTag();
-                                    enchTag.putString("id", "signed");
-                                    enchTag.putShort("lvl", (short) 1);
-                                    tag.getList("Enchantments", 10).add(enchTag);
-                                    level.playLocalSound(pos.getX(), pos.getY(), pos.getZ(), SoundRegistry.LEDGER_SIGN.get(),
-                                                         SoundSource.BLOCKS, 1f, ReputationRef.floatRand(0.88f, 1.12f), false);
-                                }
-                            }
-                            tag.putFloat("signed", factor);
-                            offItem.shrink(1);
-                            ledgerBookEntity.setCooldown();
-                            return InteractionResult.CONSUME_PARTIAL;
-                        }
-                    } else {
-                        Faction faction = ReputationHandler.getFactionFromCurrency(mainItem.getItem());
-                        if(Objects.isNull(faction))
-                            faction = ReputationHandler.getFactionFromCurrency(offItem.getItem());
-                        if(Objects.nonNull(faction)) {
-                            player.sendMessage(new TranslatableComponent("ledger_book.reputation.numbers",
-                                    faction.getName(),ReputationHandler.getReputation(player,faction)),Util.NIL_UUID);
-                            ledgerBookEntity.setCooldown();
-                        }
-                    }
-                    return InteractionResult.PASS;
-                }
-            }
-            return InteractionResult.FAIL;
-        }
-    }
-
-    @Override
-    public @NotNull RenderShape getRenderShape(@NotNull BlockState state) {
-        return RenderShape.MODEL;
-    }
-
-    @Override
-    public @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos,
-                                        @NotNull CollisionContext ctx) {
-        return Block.box(3d,0d,3d,12d,4d,12d);
-    }
-
-    @Override
-    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
-        return this.defaultBlockState().setValue(FACING,ctx.getHorizontalDirection().getOpposite());
-    }
-
-    @Override
-    public @NotNull BlockState rotate(BlockState state, Rotation rotation) {
-        return state.setValue(FACING,rotation.rotate(state.getValue(FACING)));
-    }
-
-    @Override
-    public @NotNull BlockState mirror(BlockState state, Mirror mirror) {
-        return state.rotate(mirror.getRotation(state.getValue(FACING)));
-    }
-
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+    @Override protected void createBlockStateDefinition(Builder<Block,BlockState> builder) {
         builder.add(FACING);
     }
 
-    @Override
-    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(
-            @NotNull Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> type) {
-        return createTicker(level,type,BlockEntitiesRegistry.LEDGER_BOOK_ENTITY.get());
+    protected static <T extends BlockEntity> @Nullable BlockEntityTicker<T> createTicker(Level level,
+            BlockEntityType<T> type, BlockEntityType<T> bookType) {
+        return level.isClientSide ? null : createTickerHelper(type,bookType,LedgerBookEntity::tick);
+    }
+    
+    @SuppressWarnings("deprecation")
+    @Override public RenderShape getRenderShape(BlockState state) {
+        return MODEL;
+    }
+    
+    @SuppressWarnings("deprecation")
+    @Override public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
+        return Block.box(3d,0d,3d,12d,4d,12d);
+    }
+    
+    @Override public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        return this.defaultBlockState().setValue(FACING,ctx.getHorizontalDirection().getOpposite());
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state,
+            BlockEntityType<T> type) {
+        return createTicker(level,type,(BlockEntityType<T>)LEDGER_BOOK_ENTITY.get());
+    }
+    
+    protected InteractionResult interactionMsg(final InteractionResult result, final Player player,
+            final Collection<Component> msgs) {
+        for(Component msg : msgs) player.sendMessage(msg,NIL_UUID);
+        return result;
+    }
+    
+    @SuppressWarnings("deprecation")
+    @Override public BlockState mirror(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
-    protected static @Nullable <T extends BlockEntity> BlockEntityTicker<T> createTicker(
-            Level level, @NotNull BlockEntityType<T> type, BlockEntityType<? extends LedgerBookEntity> bookType) {
-        return level.isClientSide ? null :
-                createTickerHelper(type,bookType,(level1,pos,state,book) -> LedgerBookEntity.tick(book));
-    }
-
-    @Override
-    public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
+    @Override public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new LedgerBookEntity(pos,state);
+    }
+    
+    @SuppressWarnings("deprecation")
+    @Override public BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING,rotation.rotate(state.getValue(FACING)));
+    }
+    
+    @SuppressWarnings("deprecation")
+    @Override public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+            InteractionHand hand, BlockHitResult hit) {
+        final Collection<Component> msgs = new ArrayList<>();
+        BlockEntity entity = level.getBlockEntity(pos);
+        if(entity instanceof LedgerBookEntity ledgerBookEntity) {
+            if(level.isClientSide) return interactionMsg(SUCCESS,player,msgs);
+            ItemStack mainStack = player.getMainHandItem();
+            ItemStack offStack = player.getOffhandItem();
+            Item mainItem = mainStack.getItem();
+            Item offItem = offStack.getItem();
+            if(ledgerBookEntity.canUse() && level instanceof ServerLevel sLevel) {
+                CompoundTag tag = mainStack.getOrCreateTag();
+                if(mainItem instanceof FactionCurrencyBag && offItem==INK_SAC && tag.contains("factionID")) {
+                    Faction faction = ReputationHandler.getFaction(tag.getString("factionID"));
+                    if(Objects.nonNull(faction) && !tag.contains("signed")) {
+                        float factor = 2f;
+                        if(HelperMethods.getNearEntitiesOfFaction(sLevel,player,faction,8).isEmpty()) {
+                            msgs.add(new TranslatableComponent("ledger_book.reputation.acknowledgement"));
+                            factor = 1f;
+                            level.playLocalSound(pos.getX(),pos.getY(),pos.getZ(),LEDGER_SIGN.get(),BLOCKS,1f,
+                                                 ReputationRef.floatRand(0.88f,1.12f),false);
+                        } else {
+                            msgs.add(new TranslatableComponent("ledger_book.reputation.acknowledgement.extra"));
+                            if(!tag.contains("Enchantments")) {
+                                tag.put("Enchantments", new ListTag());
+                                CompoundTag enchTag = new CompoundTag();
+                                enchTag.putString("id","signed");
+                                enchTag.putShort("lvl",(short) 1);
+                                tag.getList("Enchantments",10).add(enchTag);
+                                level.playLocalSound(pos.getX(),pos.getY(),pos.getZ(),LEDGER_SIGN.get(),BLOCKS,
+                                                     1f,ReputationRef.floatRand(0.88f,1.12f),false);
+                            }
+                        }
+                        tag.putFloat("signed", factor);
+                        offStack.shrink(1);
+                        ledgerBookEntity.setCooldown();
+                        return interactionMsg(CONSUME_PARTIAL,player,msgs);
+                    }
+                } else {
+                    Faction faction = ReputationHandler.getFactionFromCurrency(mainStack.getItem());
+                    if(Objects.isNull(faction)) faction = ReputationHandler.getFactionFromCurrency(offStack.getItem());
+                    if(Objects.nonNull(faction)) {
+                        String arg1 = faction.getName();
+                        int arg2 = ReputationHandler.getReputation(player,faction);
+                        msgs.add(new TranslatableComponent("ledger_book.reputation.numbers",arg1,arg2));
+                        ledgerBookEntity.setCooldown();
+                    }
+                }
+                return interactionMsg(PASS,player,msgs);
+            }
+        }
+        return interactionMsg(FAIL,player,msgs);
     }
 }
