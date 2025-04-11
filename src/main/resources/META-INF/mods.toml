@@ -17,6 +17,6 @@ license="MIT"
     [[dependencies.reputation]]
         modId="theimpossiblelibrary"
         mandatory=true
-        versionRange="[1.18.2-0.3.1,)"
+        versionRange="[0.4.0,)"
         ordering="NONE"
         side="BOTH"
