@@ -28,7 +28,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import static mods.thecomputerizer.reputation.registry.BlockEntitiesRegistry.LEDGER_ENTITY;
 import static net.minecraft.core.Direction.NORTH;
 import static net.minecraft.core.Direction.SOUTH;
-import static net.minecraft.world.InteractionResult.PASS;
+import static net.minecraft.world.InteractionResult.CONSUME;
 import static net.minecraft.world.InteractionResult.SUCCESS;
 import static net.minecraft.world.level.block.HorizontalDirectionalBlock.FACING;
 import static net.minecraft.world.level.block.RenderShape.MODEL;
@@ -104,6 +104,6 @@ public class Ledger extends BaseEntityBlock {
         if(level.isClientSide) return SUCCESS;
         BlockEntity entity = level.getBlockEntity(pos);
         if(entity instanceof LedgerEntity) player.openMenu(state.getMenuProvider(level,pos));
-        return PASS;
+        return CONSUME;
     }
 }

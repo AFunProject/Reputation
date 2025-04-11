@@ -19,13 +19,12 @@ import static net.minecraftforge.registries.ForgeRegistries.ENTITIES;
 
 public class ReputationNetwork {
     
-    public static void initClient() {
-    
-    }
+    public static void initClient() {}
     
     public static void initCommon() {
         NetworkHandler.registerMsgToClient(PacketChatIcon.class, PacketChatIcon::new);
         NetworkHandler.registerMsgToClient(PacketFleeIcon.class,PacketFleeIcon::new);
+        NetworkHandler.registerMsgToClient(PacketFlipDebug.class,PacketFlipDebug::new);
         NetworkHandler.registerMsgToClient(PacketSetIcon.class,PacketSetIcon::new);
         NetworkHandler.registerMsgToClient(PacketSyncChatIcons.class,PacketSyncChatIcons::new);
         NetworkHandler.registerMsgToClient(PacketSyncFactionPlayers.class,PacketSyncFactionPlayers::new);
